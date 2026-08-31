@@ -20,6 +20,8 @@
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
     "supabase:reset": "supabase db reset",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
     "supabase:functions:serve": "supabase functions serve --no-verify-jwt",
     "supabase:typegen": "node scripts/generate-supabase-types.mjs",
     "functions:test": "node scripts/test-functions.mjs"
