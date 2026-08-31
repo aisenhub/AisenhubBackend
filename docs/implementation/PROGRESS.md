@@ -36,7 +36,7 @@ Dependencies: P0-T001, P0-T002, P0-T003, P0-T004, P0-T008, and P0-T009 completed
 - Dependency graph: PASS — 107 dependency blocks, no missing Task ID, no self-dependency, no cycle
 - Human Interaction design: PASS — 102 AUTONOMOUS tasks, 5 conditional/explicit HUMAN_GATE tasks; Local budget remains 0
 - Markdown/local links: PASS — balanced code fences and no broken local links
-- Implementation format/lint/typecheck/tests/build: PASS — workspace checks remain green; database-specific gates are being added with P0-T005.
+- Implementation format/lint/typecheck/tests/build: PASS — workspace checks remain green; P0-T005 database migration test passed 12/12, while repeat-reset verification is paused during the user's Docker WSL data relocation.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
@@ -47,7 +47,7 @@ Dependencies: P0-T001, P0-T002, P0-T003, P0-T004, P0-T008, and P0-T009 completed
 
 ## Current Blockers
 
-- None for the current local task. Supabase core services are running; the optional Vector log collector is restarting because its Docker log source briefly cannot connect, but this does not prevent database/API work.
+- P0-T005 repeat-reset verification: PAUSED — the user is relocating Docker WSL data; no Docker/Supabase process will be started until that operation is complete.
 
 ## Pending Human Gates
 
