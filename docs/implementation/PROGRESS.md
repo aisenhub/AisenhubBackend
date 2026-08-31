@@ -65,7 +65,14 @@ Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004
 
 ## Recent Commits
 
-None — implementation has not started.
+- `b9c5c39` — docs(implementation): record client transport repair
+- `0ab1a99` — fix(client): stabilize typed transport checks
+- `a75ef69` — feat(client): add typed platform transports
+- `9494727` — feat(contracts): add platform contract primitives
+- `63effc8` — chore(supabase): initialize local platform runtime
+- `38c8a92` — chore(repo): scaffold platform workspaces
+- `c21b7e8` — chore(repo): initialize pnpm workspace tooling
+- `a07a7a0` — docs(bootstrap): record local environment baseline
 
 ## Update Rules
 
