@@ -8,12 +8,12 @@
 | P0-T002 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | pending | Frozen install, format, lint, typecheck, test, and build checks passed. |
 | P0-T003 | Bootstrap | in_progress | 2026-09-01 |  |  | Scaffolding approved apps and packages with dependency boundaries. |
 | P0-T003 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | pending | All approved apps/packages build; boundary checker and forbidden-import negative test pass; Admin rules preserved. |
-| P0-T004 | Bootstrap | in_progress | 2026-09-01 |  |  | Initializing Supabase Local and Edge Function layout. |
+| P0-T004 | Bootstrap | in_progress | 2026-09-01 |  | pending | Local config and four function health shells added; `pnpm supabase:start` fails because Docker/Podman is unavailable. Installation attempts recorded in ENVIRONMENT_BASELINE.md. |
 | P0-T004 | Bootstrap | pending |  |  |  |  |
 | P0-T005 | Bootstrap | pending |  |  |  |  |
 | P0-T006 | Bootstrap | pending |  |  |  |  |
 | P0-T007 | Bootstrap | pending |  |  |  |  |
-| P0-T008 | Bootstrap | pending |  |  |  |  |
+| P0-T008 | Bootstrap | in_progress | 2026-09-01 |  |  | Defining typed contract primitives and validation skeleton in the independent contract lane. |
 | P0-T009 | Bootstrap | pending |  |  |  |  |
 | P0-T010 | Bootstrap | pending |  |  |  |  |
 | P0-T011 | Bootstrap | pending |  |  |  |  |

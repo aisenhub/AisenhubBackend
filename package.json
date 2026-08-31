@@ -14,7 +14,14 @@
     "test": "vitest run --passWithNoTests",
     "build": "pnpm --if-present -r run build",
     "clean-safe": "pnpm --if-present -r run clean",
-    "boundaries:check": "node scripts/check-boundaries.mjs"
+    "boundaries:check": "node scripts/check-boundaries.mjs",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:reset": "supabase db reset",
+    "supabase:functions:serve": "supabase functions serve --no-verify-jwt",
+    "supabase:typegen": "node scripts/generate-supabase-types.mjs",
+    "functions:test": "node scripts/test-functions.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -22,6 +29,7 @@
     "eslint": "10.9.1",
     "globals": "16.4.0",
     "prettier": "3.9.6",
+    "supabase": "2.116.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.69.0",
     "vitest": "4.1.11"

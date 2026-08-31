@@ -7,7 +7,7 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P0 — Autonomous Bootstrap  
-Current Task: P0-T004 — Initialize Supabase Local and Edge Function layout  
+Current Task: P0-T008 — Define contracts and error-envelope skeleton (parallel lane)  
 Overall Progress: 3 / 107 tasks completed  
 Last Successful Quality Gate: P0-T003 workspace skeleton checks — PASS
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P0-T003 workspace skeleton checks — PASS
 
 Status: IN_PROGRESS  
 Goal: Establish deterministic local workspace tooling and continue through the P0 bootstrap tasks.  
-Dependencies: P0-T001, P0-T002, and P0-T003 completed; P0-T004 is now active.
+Dependencies: P0-T001, P0-T002, and P0-T003 completed. P0-T004 remains in progress pending a local container runtime; P0-T008 is active in its independent parallel lane.
 
 ## Latest Verification
 
@@ -40,6 +40,7 @@ Dependencies: P0-T001, P0-T002, and P0-T003 completed; P0-T004 is now active.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
+- P0-T004 function shell: PASS — Supabase CLI `2.116.0`, local config, four function groups, shared health handler, and static function smoke test are present; Local start is FAIL because Docker/Podman is unavailable.
 
 ## Current Blockers
 
@@ -55,9 +56,9 @@ None.
 
 ## Next Tasks
 
-1. P0-T004 — Initialize Supabase Local and Edge Function layout.
-2. P0-T005 — Create platform schema, role, and idempotency baseline migration.
-3. P0-T006 — Establish SQL, RLS, function, and API test harnesses.
+1. P0-T008 — Define contracts and error-envelope skeleton (active parallel lane).
+2. P0-T004 — Retry Local Supabase start after container runtime remediation.
+3. P0-T005 — Create platform schema, role, and idempotency baseline migration after T004.
 
 ## Recent Commits
 
