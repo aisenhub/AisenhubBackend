@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P0 — Autonomous Bootstrap  
-Current Task: P0-T004 — Retry Local Supabase start after WSL remediation
-Overall Progress: 5 / 107 tasks completed  
-Last Successful Quality Gate: P0-T009 typed client transport checks — PASS
+Current Task: P0-T005 — Create platform schema, role, and idempotency baseline migration
+Overall Progress: 6 / 107 tasks completed
+Last Successful Quality Gate: P0-T004 local Supabase and function health checks — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P0-T009 typed client transport checks — PASS
 
 Status: IN_PROGRESS  
 Goal: Establish deterministic local workspace tooling and continue through the P0 bootstrap tasks.  
-Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004 remains in progress pending WSL update.
+Dependencies: P0-T001, P0-T002, P0-T003, P0-T004, P0-T008, and P0-T009 completed. P0-T005 is in progress.
 
 ## Latest Verification
 
@@ -36,18 +36,18 @@ Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004
 - Dependency graph: PASS — 107 dependency blocks, no missing Task ID, no self-dependency, no cycle
 - Human Interaction design: PASS — 102 AUTONOMOUS tasks, 5 conditional/explicit HUMAN_GATE tasks; Local budget remains 0
 - Markdown/local links: PASS — balanced code fences and no broken local links
-- Implementation format/lint/typecheck/tests/build: NOT_RUN — no implementation exists
+- Implementation format/lint/typecheck/tests/build: PASS — workspace checks remain green; database-specific gates are being added with P0-T005.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
-- P0-T004 function shell: PASS — Supabase CLI `2.116.0`, local config, four function groups, shared health handler, and static function smoke test are present; Docker Desktop `4.88.1` is installed at `D:\APP\Base\DockerDesktop`, but Local start is FAIL because WSL is too old.
+- P0-T004 local runtime/function shell: PASS — Docker client/server `29.7.2`, Supabase CLI `2.116.0`, local start/status exit 0, four function groups, static smoke test, and live `platform-api` health request passed. Core Supabase services are healthy; Vector is an optional restarting log collector.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
 
 ## Current Blockers
 
-- P0-T004 local runtime: WAITING — Docker Desktop is installed at `D:\APP\Base\DockerDesktop`, but it reports that the WSL version is too old. `wsl --update` has no custom installation-directory option; it is paused under the repository install-path rule. Local Supabase cannot report healthy until the Docker Linux engine starts.
+- None for the current local task. Supabase core services are running; the optional Vector log collector is restarting because its Docker log source briefly cannot connect, but this does not prevent database/API work.
 
 ## Pending Human Gates
 
@@ -59,9 +59,9 @@ Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004
 
 ## Next Tasks
 
-1. P0-T004 — Retry Local Supabase start after WSL remediation.
-2. P0-T005 — Create platform schema, role, and idempotency baseline migration after T004.
-3. P0-T006 — Establish SQL, RLS, function, and API test harnesses.
+1. P0-T005 — Create platform schema, role, and idempotency baseline migration.
+2. P0-T006 — Establish SQL, RLS, function, and API test harnesses.
+3. P0-T007 — Create deterministic seed and local identities.
 
 ## Recent Commits
 
