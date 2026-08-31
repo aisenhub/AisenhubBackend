@@ -4,6 +4,9 @@ export const API_VERSION = 'v1' as const;
 
 export const RequestIdSchema = z.string().uuid();
 export type RequestId = z.infer<typeof RequestIdSchema>;
+export interface ContractSchema<T> {
+  parse(input: unknown): T;
+}
 
 export const ErrorCodes = {
   ADMIN_ACCESS_DENIED: 'ADMIN_ACCESS_DENIED',
@@ -39,16 +42,23 @@ export function parseApiError(input: unknown): ApiErrorEnvelope {
   return ApiErrorEnvelopeSchema.parse(input);
 }
 
-export const ApiSuccessEnvelopeSchema = <const T extends z.ZodType>(dataSchema: T) =>
-  z.object({
-    data: dataSchema,
-    requestId: RequestIdSchema,
-  });
-
 export type ApiSuccessEnvelope<T> = {
   data: T;
   requestId: RequestId;
 };
+
+export const ApiSuccessEnvelopeSchema = <T>(
+  dataSchema: ContractSchema<T>,
+): z.ZodType<ApiSuccessEnvelope<T>> =>
+  z
+    .object({
+      data: z.unknown(),
+      requestId: RequestIdSchema,
+    })
+    .transform(({ data, requestId }) => ({
+      data: dataSchema.parse(data),
+      requestId,
+    }));
 
 export const PaginationQuerySchema = z.object({
   cursor: z.string().min(1).optional(),

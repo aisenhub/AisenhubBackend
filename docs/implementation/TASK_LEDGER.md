@@ -14,7 +14,7 @@
 | P0-T006 | Bootstrap | pending |  |  |  |  |
 | P0-T007 | Bootstrap | pending |  |  |  |  |
 | P0-T008 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | pending | Contract schemas, error codes, permission actions, pagination, validation, uniqueness, and serialization tests passed. |
-| P0-T009 | Bootstrap | in_progress | 2026-09-01 |  |  | Defining platform-client and admin-client transport skeletons. |
+| P0-T009 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | pending | Credentialed transports, CSRF/requestId handling, malformed-response safety, Admin idempotency, tests/typechecks/builds passed. |
 | P0-T009 | Bootstrap | pending |  |  |  |  |
 | P0-T010 | Bootstrap | pending |  |  |  |  |
 | P0-T011 | Bootstrap | pending |  |  |  |  |

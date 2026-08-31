@@ -104,6 +104,9 @@ for (const name of graph.keys()) visit(name, new Set(), visited);
 
 const adminClient = workspaceByName.get('@aisenhub/admin-client');
 if (adminClient) {
+  if (allDependencies(adminClient.manifest).includes('@aisenhub/platform-client')) {
+    fail('admin-client must not depend on platform-client');
+  }
   for (const dependency of allDependencies(adminClient.manifest)) {
     if (
       forbiddenAdminClientPatterns.some((pattern) => dependency.toLowerCase().includes(pattern))
@@ -135,6 +138,17 @@ if (admin) {
   }
   const adminAgents = path.join(path.dirname(admin.manifestPath), 'AGENTS.md');
   if (!fs.existsSync(adminAgents)) fail('apps/admin/AGENTS.md is missing');
+}
+
+if (admin) {
+  for (const filePath of sourceFiles(path.dirname(admin.manifestPath))) {
+    const contents = fs.readFileSync(filePath, 'utf8');
+    if (contents.includes('@aisenhub/platform-client')) {
+      fail(
+        `Admin source ${path.relative(scanRoot, filePath)} must use admin-client, not platform-client`,
+      );
+    }
+  }
 }
 
 if (process.exitCode !== 1)

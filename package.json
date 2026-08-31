@@ -11,6 +11,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.base.json --noEmit",
+    "pretest": "node scripts/build-contracts.mjs",
     "test": "vitest run --passWithNoTests",
     "build": "pnpm --if-present -r run build",
     "clean-safe": "pnpm --if-present -r run clean",
