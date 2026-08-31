@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P0 — Autonomous Bootstrap  
-Current Task: P0-T002 — Create pnpm workspace and root tooling  
-Overall Progress: 1 / 107 tasks completed  
-Last Successful Quality Gate: P0-T001 discovery acceptance — PASS
+Current Task: P0-T003 — Scaffold approved apps and packages  
+Overall Progress: 2 / 107 tasks completed  
+Last Successful Quality Gate: P0-T002 root tooling checks — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P0-T001 discovery acceptance — PASS
 
 Status: IN_PROGRESS  
 Goal: Establish deterministic local workspace tooling and continue through the P0 bootstrap tasks.  
-Dependencies: P0-T001 completed; P0-T002 is now active.
+Dependencies: P0-T001 and P0-T002 completed; P0-T003 is now active.
 
 ## Latest Verification
 
@@ -38,6 +38,7 @@ Dependencies: P0-T001 completed; P0-T002 is now active.
 - Markdown/local links: PASS — balanced code fences and no broken local links
 - Implementation format/lint/typecheck/tests/build: NOT_RUN — no implementation exists
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
+- P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 
 ## Current Blockers
 
@@ -53,9 +54,9 @@ None.
 
 ## Next Tasks
 
-1. P0-T002 — Create pnpm workspace and root tooling.
-2. P0-T003 — Scaffold apps and packages with dependency boundaries.
-3. P0-T004 — Initialize Supabase Local and Edge Function layout.
+1. P0-T003 — Scaffold apps and packages with dependency boundaries.
+2. P0-T004 — Initialize Supabase Local and Edge Function layout.
+3. P0-T005 — Create platform schema, role, and idempotency baseline migration.
 
 ## Recent Commits
 

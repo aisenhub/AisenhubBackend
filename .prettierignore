@@ -1,0 +1,8 @@
+node_modules
+dist
+coverage
+.git
+.supabase
+docs
+AGENTS.md
+app/AGENTS.md
