@@ -12,7 +12,7 @@
 | P0-T006 | Bootstrap | pending |  |  |  |  |
 | P0-T007 | Bootstrap | pending |  |  |  |  |
 | P0-T008 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 9494727 | Contract schemas, error codes, permission actions, pagination, validation, uniqueness, and serialization tests passed. |
-| P0-T009 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | a75ef69 | Credentialed transports, CSRF/requestId handling, malformed-response safety, Admin idempotency, tests/typechecks/builds passed. |
+| P0-T009 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | a75ef69 + 0ab1a99 | Credentialed transports, CSRF/requestId handling, malformed-response safety, Admin idempotency, tests/typechecks/builds passed; follow-up build-lock repair verified. |
 | P0-T010 | Bootstrap | pending |  |  |  |  |
 | P0-T011 | Bootstrap | pending |  |  |  |  |
 | P0-T012 | Bootstrap | pending |  |  |  |  |
