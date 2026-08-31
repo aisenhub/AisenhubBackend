@@ -13,10 +13,12 @@
     "typecheck": "tsc -p tsconfig.base.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "build": "pnpm --if-present -r run build",
-    "clean-safe": "pnpm --if-present -r run clean"
+    "clean-safe": "pnpm --if-present -r run clean",
+    "boundaries:check": "node scripts/check-boundaries.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@types/node": "24.10.1",
     "eslint": "10.9.1",
     "globals": "16.4.0",
     "prettier": "3.9.6",

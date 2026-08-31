@@ -7,7 +7,8 @@
 | P0-T001 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | a07a7a0 | Environment baseline recorded; Node/pnpm/Git verified; Docker/Supabase/browser remediation documented. |
 | P0-T002 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | pending | Frozen install, format, lint, typecheck, test, and build checks passed. |
 | P0-T003 | Bootstrap | in_progress | 2026-09-01 |  |  | Scaffolding approved apps and packages with dependency boundaries. |
-| P0-T003 | Bootstrap | pending |  |  |  |  |
+| P0-T003 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | pending | All approved apps/packages build; boundary checker and forbidden-import negative test pass; Admin rules preserved. |
+| P0-T004 | Bootstrap | in_progress | 2026-09-01 |  |  | Initializing Supabase Local and Edge Function layout. |
 | P0-T004 | Bootstrap | pending |  |  |  |  |
 | P0-T005 | Bootstrap | pending |  |  |  |  |
 | P0-T006 | Bootstrap | pending |  |  |  |  |
