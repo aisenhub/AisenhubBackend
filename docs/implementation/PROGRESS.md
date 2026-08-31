@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P0 — Autonomous Bootstrap  
-Current Task: P0-T008 — Define contracts and error-envelope skeleton (parallel lane)  
-Overall Progress: 3 / 107 tasks completed  
-Last Successful Quality Gate: P0-T003 workspace skeleton checks — PASS
+Current Task: P0-T009 — Define platform-client and admin-client transport skeletons (parallel lane)  
+Overall Progress: 4 / 107 tasks completed  
+Last Successful Quality Gate: P0-T008 contract primitives checks — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P0-T003 workspace skeleton checks — PASS
 
 Status: IN_PROGRESS  
 Goal: Establish deterministic local workspace tooling and continue through the P0 bootstrap tasks.  
-Dependencies: P0-T001, P0-T002, and P0-T003 completed. P0-T004 remains in progress pending a local container runtime; P0-T008 is active in its independent parallel lane.
+Dependencies: P0-T001, P0-T002, P0-T003, and P0-T008 completed. P0-T004 remains in progress pending a local container runtime; P0-T009 is active in its independent contract lane.
 
 ## Latest Verification
 
@@ -41,6 +41,7 @@ Dependencies: P0-T001, P0-T002, and P0-T003 completed. P0-T004 remains in progre
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
 - P0-T004 function shell: PASS — Supabase CLI `2.116.0`, local config, four function groups, shared health handler, and static function smoke test are present; Local start is FAIL because Docker/Podman is unavailable.
+- P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 
 ## Current Blockers
 
@@ -56,7 +57,7 @@ None.
 
 ## Next Tasks
 
-1. P0-T008 — Define contracts and error-envelope skeleton (active parallel lane).
+1. P0-T009 — Define platform-client and admin-client transport skeletons (active parallel lane).
 2. P0-T004 — Retry Local Supabase start after container runtime remediation.
 3. P0-T005 — Create platform schema, role, and idempotency baseline migration after T004.
 
