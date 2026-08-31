@@ -27,7 +27,7 @@ Last Successful Quality Gate: P0-T009 typed client transport checks — PASS
 
 Status: IN_PROGRESS  
 Goal: Establish deterministic local workspace tooling and continue through the P0 bootstrap tasks.  
-Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004 remains in progress pending a local container runtime; its remediation is now the active task.
+Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004 remains in progress pending local UAC approval for a container runtime installation.
 
 ## Latest Verification
 
@@ -43,10 +43,11 @@ Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004
 - P0-T004 function shell: PASS — Supabase CLI `2.116.0`, local config, four function groups, shared health handler, and static function smoke test are present; Local start is FAIL because Docker/Podman is unavailable.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
+- Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
 
 ## Current Blockers
 
-None.
+- P0-T004 local runtime: WAITING — `pnpm supabase:start` returns `docker: command not found (podman also not found)`. Docker Desktop and Podman installers were attempted; Docker's installer log records that it relaunched for UAC elevation and the operation was cancelled. Local Supabase cannot report healthy until the user approves the installer elevation or installs a Docker-compatible runtime.
 
 ## Pending Human Gates
 

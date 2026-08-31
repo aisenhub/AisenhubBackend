@@ -5,17 +5,14 @@
 | Task | Phase | Status | Started | Completed | Commit | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | P0-T001 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | a07a7a0 | Environment baseline recorded; Node/pnpm/Git verified; Docker/Supabase/browser remediation documented. |
-| P0-T002 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | pending | Frozen install, format, lint, typecheck, test, and build checks passed. |
-| P0-T003 | Bootstrap | in_progress | 2026-09-01 |  |  | Scaffolding approved apps and packages with dependency boundaries. |
-| P0-T003 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | pending | All approved apps/packages build; boundary checker and forbidden-import negative test pass; Admin rules preserved. |
-| P0-T004 | Bootstrap | in_progress | 2026-09-01 |  | pending | Local config and four function health shells added; `pnpm supabase:start` fails because Docker/Podman is unavailable. Installation attempts recorded in ENVIRONMENT_BASELINE.md. |
-| P0-T004 | Bootstrap | pending |  |  |  |  |
+| P0-T002 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | c21b7e8 | Frozen install, format, lint, typecheck, test, and build checks passed. |
+| P0-T003 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 38c8a92 | All approved apps/packages build; boundary checker and forbidden-import negative test pass; Admin rules preserved. |
+| P0-T004 | Bootstrap | in_progress | 2026-09-01 |  | 63effc8 | Local config and four function health shells added; `pnpm supabase:start` fails because Docker/Podman is unavailable. Installer/UAC evidence is recorded in ENVIRONMENT_BASELINE.md. |
 | P0-T005 | Bootstrap | pending |  |  |  |  |
 | P0-T006 | Bootstrap | pending |  |  |  |  |
 | P0-T007 | Bootstrap | pending |  |  |  |  |
-| P0-T008 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | pending | Contract schemas, error codes, permission actions, pagination, validation, uniqueness, and serialization tests passed. |
-| P0-T009 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | pending | Credentialed transports, CSRF/requestId handling, malformed-response safety, Admin idempotency, tests/typechecks/builds passed. |
-| P0-T009 | Bootstrap | pending |  |  |  |  |
+| P0-T008 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 9494727 | Contract schemas, error codes, permission actions, pagination, validation, uniqueness, and serialization tests passed. |
+| P0-T009 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | a75ef69 | Credentialed transports, CSRF/requestId handling, malformed-response safety, Admin idempotency, tests/typechecks/builds passed. |
 | P0-T010 | Bootstrap | pending |  |  |  |  |
 | P0-T011 | Bootstrap | pending |  |  |  |  |
 | P0-T012 | Bootstrap | pending |  |  |  |  |

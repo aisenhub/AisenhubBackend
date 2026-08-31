@@ -5,12 +5,10 @@ import path from 'node:path';
 const repositoryRoot = path.resolve(import.meta.dirname, '..');
 const lockPath = path.join(repositoryRoot, 'node_modules', '.contracts-build-lock');
 const sleepBuffer = new Int32Array(new SharedArrayBuffer(4));
-let acquired = false;
 
 for (;;) {
   try {
     fs.mkdirSync(lockPath);
-    acquired = true;
     break;
   } catch (error) {
     if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') throw error;
@@ -26,5 +24,5 @@ try {
     stdio: 'inherit',
   });
 } finally {
-  if (acquired) fs.rmSync(lockPath, { recursive: true, force: true });
+  fs.rmSync(lockPath, { recursive: true, force: true });
 }
