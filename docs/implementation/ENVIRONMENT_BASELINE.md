@@ -20,7 +20,8 @@ Last verified: 2026-09-01
 | Node.js | 24.19.0 | `v24.19.0` | N/A |
 | pnpm | 11.24.0 | `11.24.0` | N/A |
 | Git | 2.55.0 or compatible | `git version 2.55.0.windows.5` | N/A; repository initialized by P0-T001 |
-| Docker Desktop | 4.88.1 | Installed, but daemon cannot start because firmware virtualization is disabled | Enable Intel VT-x/Virtualization in BIOS/UEFI, reboot, then start Docker Desktop and verify `docker version`. Future installer targets should use `D:\APP\Base` when the installer supports a custom location. |
+| Docker Desktop | 4.88.1 | Installed at `D:\APP\Base\DockerDesktop`; daemon currently blocked by outdated WSL | Update WSL using the Windows system update mechanism, then start Docker Desktop and verify `docker version`. |
+| WSL | In-box Windows 10 WSL | Installed but too old for Docker Desktop | `wsl --update` is required; the command has no custom installation-directory option and therefore needs explicit handling under the repository install-path rule. |
 | Supabase CLI | 2.116.0 | Workspace CLI verified as `2.116.0`; not installed globally | Use `pnpm exec supabase --version`. |
 | Browser for E2E | Playwright-managed Chromium | No system browser executable detected | Install the workspace Playwright browser during the E2E/bootstrap task with the repository's pinned dependency command. |
 
@@ -30,13 +31,13 @@ Last verified: 2026-09-01
 node --version       v24.19.0
 pnpm --version       11.24.0
 git --version        git version 2.55.0.windows.5
-docker               29.7.2 client installed; Linux daemon unavailable (`hasNoVirtualization=true`)
+docker               29.7.2 client installed at `D:\APP\Base\DockerDesktop\resources\bin`; Linux daemon unavailable because WSL is too old
 supabase             workspace CLI `2.116.0` via `pnpm exec supabase --version`
 ```
 
-Docker Desktop 4.88.1 was subsequently installed successfully with administrative elevation. Its installer enabled `VirtualMachinePlatform` and `Microsoft-Windows-Subsystem-Linux`, but recorded that a computer restart is required. The host reports `Virtualization Enabled In Firmware: No`, so the Linux daemon remains unavailable until BIOS/UEFI virtualization is enabled and Windows is restarted. This is a local prerequisite remediation item, not a cloud or production gate.
+Docker Desktop 4.88.1 was subsequently installed successfully with administrative elevation at `D:\APP\Base\DockerDesktop`; its registered uninstall path also points there. The installer enabled `VirtualMachinePlatform` and `Microsoft-Windows-Subsystem-Linux`. Docker now reports that the installed WSL version is too old. The WSL update command has no custom installation-directory option, so it is paused under the repository's explicit install-path rule. This is a local prerequisite remediation item, not a cloud or production gate.
 
-P0-T004 also attempted the cached Docker Desktop installer and the cached Podman installer directly. Docker Desktop is now installed, but `pnpm supabase:start` remains a reproducible failed check until firmware virtualization is available. No Docker installation was moved to `D:\APP\Base`; future installations will use that directory when supported by the installer.
+P0-T004 also attempted the cached Docker Desktop installer and the cached Podman installer directly. Docker Desktop is now installed under `D:\APP\Base\DockerDesktop`, while `pnpm supabase:start` remains a reproducible failed check until WSL is updated. The failed first installation is retained in `D:\APP\Base\_DockerDesktop_failed_install_20260901` for recovery and does not contain the other tools in `D:\APP\Base`.
 
 ## Version pinning
 
