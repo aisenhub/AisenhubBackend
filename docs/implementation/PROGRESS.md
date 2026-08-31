@@ -7,7 +7,7 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P0 — Autonomous Bootstrap  
-Current Task: P0-T004 — Retry Local Supabase start after container runtime remediation  
+Current Task: P0-T004 — Retry Local Supabase start after firmware virtualization remediation
 Overall Progress: 5 / 107 tasks completed  
 Last Successful Quality Gate: P0-T009 typed client transport checks — PASS
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P0-T009 typed client transport checks — PASS
 
 Status: IN_PROGRESS  
 Goal: Establish deterministic local workspace tooling and continue through the P0 bootstrap tasks.  
-Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004 remains in progress pending local UAC approval for a container runtime installation.
+Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004 remains in progress pending BIOS/UEFI firmware virtualization enablement and a Windows restart.
 
 ## Latest Verification
 
@@ -40,14 +40,14 @@ Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
-- P0-T004 function shell: PASS — Supabase CLI `2.116.0`, local config, four function groups, shared health handler, and static function smoke test are present; Local start is FAIL because Docker/Podman is unavailable.
+- P0-T004 function shell: PASS — Supabase CLI `2.116.0`, local config, four function groups, shared health handler, and static function smoke test are present; Docker Desktop `4.88.1` is installed, but Local start is FAIL because the Docker Linux engine reports `hasNoVirtualization=true`.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
 
 ## Current Blockers
 
-- P0-T004 local runtime: WAITING — `pnpm supabase:start` returns `docker: command not found (podman also not found)`. Docker Desktop and Podman installers were attempted; Docker's installer log records that it relaunched for UAC elevation and the operation was cancelled. Local Supabase cannot report healthy until the user approves the installer elevation or installs a Docker-compatible runtime.
+- P0-T004 local runtime: WAITING — Docker Desktop is installed, but its backend reports `hasNoVirtualization=true`; `systeminfo` reports `Virtualization Enabled In Firmware: No`. Enable Intel VT-x/Virtualization in BIOS/UEFI and restart Windows. Local Supabase cannot report healthy until the Docker Linux engine starts.
 
 ## Pending Human Gates
 
@@ -59,7 +59,7 @@ Dependencies: P0-T001, P0-T002, P0-T003, P0-T008, and P0-T009 completed. P0-T004
 
 ## Next Tasks
 
-1. P0-T004 — Retry Local Supabase start after container runtime remediation.
+1. P0-T004 — Retry Local Supabase start after firmware virtualization remediation.
 2. P0-T005 — Create platform schema, role, and idempotency baseline migration after T004.
 3. P0-T006 — Establish SQL, RLS, function, and API test harnesses.
 
