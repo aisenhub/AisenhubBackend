@@ -1183,7 +1183,7 @@ P2-T014.
 
 ## P2-T014 — Seed full deterministic AisenLens catalog and redemption fixtures
 
-Status: pending  
+Status: completed  
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: fixtures  
@@ -1244,10 +1244,10 @@ Stable IDs/counts/statuses and absence of plaintext codes.
 
 ### Acceptance Criteria
 
-- [ ] AisenLens seed matches architecture.
-- [ ] All test states are represented.
-- [ ] Two resets match.
-- [ ] No production/commercial values are implied.
+- [x] AisenLens seed matches architecture.
+- [x] All test states are represented.
+- [x] Two resets match.
+- [x] No production/commercial values are implied.
 
 ### Failure Recovery
 
@@ -1259,7 +1259,7 @@ Do not set official price/marketing promises; use obvious test values.
 
 ### Output
 
-Complete Local P2 fixtures.
+Complete Local P2 fixtures delivered in `406069c`: the base seed remains a deterministic draft catalog, while the post-Auth local fixture verifier promotes AisenLens Version 1 through the approved publish/current commands and adds active/paused/expired/closed redemption batches, digest-only codes, and active/expired/revoked entitlement states. Clean database tests passed 499/499; two reset→fixture verification cycles passed; fixture seeding is idempotent and contains no redemption plaintext.
 
 ### Human Gate
 
@@ -1267,7 +1267,7 @@ None. Local Catalog/Entitlement/Redemption work is fully autonomous.
 
 ### Commit
 
-`test(fixtures): seed catalog entitlement redemption scenarios` — Task P2-T014.
+`test(fixtures): seed catalog entitlement redemption scenarios` — Task P2-T014 (`406069c`).
 
 ### Next
 

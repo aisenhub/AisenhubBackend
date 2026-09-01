@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P2 — Catalog / Entitlement / Redemption
-Current Task: P2-T014 — Seed full deterministic AisenLens catalog and redemption fixtures
-Overall Progress: 40 / 107 tasks completed
-Last Successful Quality Gate: P2-T013 Admin catalog/redemption contracts — PASS
+Current Task: P2-T015 — Run P2 end-to-end and security flows
+Overall Progress: 41 / 107 tasks completed
+Last Successful Quality Gate: P2-T014 Deterministic Local P2 fixtures — PASS
 
 ## Phase Progress
 
@@ -74,6 +74,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T014 completed; P3-
 - P2-T011 public catalog/entitlement/redemption/feedback APIs: PASS — public product projection, session-bound access and entitlement reads, hashed redemption command, server-attributed feedback command, stable contracts/errors, database tests 499/499, RLS 29/29, integration 22/22, contract 7/7, root tests 47/47, typecheck, lint, format, boundary, function checks, and workspace build all passed.
 - P2-T012 platform-client catalog/entitlement/redemption/feedback methods: PASS — typed contract-backed methods, credentialed transport, in-memory CSRF injection, explicit stable Idempotency-Key redemption, input/response validation, no Supabase/table imports, package tests 5/5, root tests 49/49, typecheck, lint, format, boundary check, and workspace build all passed.
 - P2-T013 Admin catalog/redemption contracts: PASS — whitelisted query/filter/pagination models, dedicated product/version/batch/code/redemption projections, explicit publish/retire/current/generate/pause/close commands, reason/confirmation requirements, hash exclusion, contract tests 8/8, typecheck, lint, format, and boundary checks passed.
+- P2-T014 deterministic AisenLens catalog/redemption fixtures: PASS — clean reset database tests 499/499, two reset→fixture verification cycles passed, published/current lifetime catalog fixture, active/paused/expired/closed batches, hash-only codes, active/expired/revoked entitlement states, idempotent fixture seeding, and static quality gates passed.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -92,8 +93,8 @@ None.
 
 ## Next Tasks
 
-1. P2-T014 — Seed full deterministic AisenLens catalog and redemption fixtures.
-2. P2-T015 — Add entitlement/redemption API integration and E2E coverage.
+1. P2-T015 — Run P2 end-to-end and security flows.
+2. P2-T016 — Complete the Catalog/Entitlement/Redemption phase checkpoint.
 
 ## Recent Commits
 
@@ -101,6 +102,7 @@ None.
 - `db1584c` — feat(api): add catalog entitlement redemption feedback APIs
 - `660a95b` — feat(client): add catalog entitlement redemption methods
 - `ac132fb` — feat(contracts): add catalog redemption admin contracts
+- `406069c` — test(fixtures): seed catalog entitlement redemption scenarios
 - `dc8b2a5` — test(e2e): cover identity and platform sessions
 - `650ba7d` — feat(session): implement platform session exchange
 - `e313467` — feat(session): add validation and revocation lifecycle
