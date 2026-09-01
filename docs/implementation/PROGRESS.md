@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P5 — Commerce + Admin D
-Current Task: P5-T003
-Overall Progress: 69 / 107 tasks completed
-Last Successful Quality Gate: P5-T002 Commerce payments/payment_events schema quality gate — PASS
+Current Task: P5-T004
+Overall Progress: 70 / 107 tasks completed
+Last Successful Quality Gate: P5-T002 Commerce payments/payment_events schema quality gate — PASS; P5-T003 expected-red specification verified
 
 ## Phase Progress
 
@@ -26,7 +26,7 @@ Last Successful Quality Gate: P5-T002 Commerce payments/payment_events schema qu
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Continue Commerce + Admin D implementation at P5-T003.
+Goal: Continue Commerce + Admin D implementation at P5-T004.
 Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, and P4-T001 through P4-T014 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
@@ -39,6 +39,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - Implementation format/lint/typecheck/tests/build: PASS — format, lint, database reset, and database tests pass; P0-T005 migration checks passed 14/14 across consecutive resets.
 - P5-T001 commerce orders/order_items: PASS — database 737/737, root unit 94/94, typecheck, lint, format, workspace build, boundary check, and secret scan passed.
 - P5-T002 commerce payments/payment_events: PASS — database 775/775, RLS 29/29, unit 94/94, contract 14/14, integration 32/32, Playwright 14/14, typecheck, lint, format, workspace build, boundaries, failure propagation, and secret scan passed.
+- P5-T003 commerce state specification: PASS — focused suite produced the expected 24/29 red assertions for missing domain functions, with no harness or migration errors.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
@@ -120,10 +121,11 @@ None.
 
 ## Next Tasks
 
-1. P5-T003 — Specify Commerce state machines and rollback behavior.
+1. P5-T004 — Define Commerce and Admin Commerce API contracts.
 
 ## Recent Commits
 
+- `cd1802d` — test(commerce): specify order payment refund states
 - `78c0512` — feat(commerce): add payments and payment events
 - `57da41f` — feat(commerce): add orders and order items
 - `d3a182a` — test(e2e): cover admin catalog customer integration

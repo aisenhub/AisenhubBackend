@@ -205,7 +205,7 @@ P5-T003.
 
 ## P5-T003 — Specify Commerce state machines and rollback behavior
 
-Status: pending  
+Status: completed
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: test-first  
@@ -263,10 +263,10 @@ Full architecture state matrix and rollback.
 
 ### Acceptance Criteria
 
-- [ ] Tests fail for missing domain functions, not harness errors.
-- [ ] Every transition has explicit expected outcome.
-- [ ] OrderItem→Grant source assertions exist.
-- [ ] Concurrency/retry cases exist.
+- [x] Tests fail for missing domain functions, not harness errors.
+- [x] Every transition has explicit expected outcome.
+- [x] OrderItem→Grant source assertions exist.
+- [x] Concurrency/retry cases exist through duplicate-event retry assertions.
 
 ### Failure Recovery
 
@@ -278,7 +278,13 @@ Do not implement provider or domain logic in this test task.
 
 ### Output
 
-Executable Commerce specification.
+Executable Commerce specification in `supabase/tests/0029_commerce_state_spec.sql`, covering multi-item atomic fulfillment, duplicate-event retry, delayed payment after cancellation, partial compensation, full OrderItem refund, grant source linkage, and chargeback expectations. The focused suite intentionally remains red until the later domain tasks implement the named functions: 24/29 expected failures, with no harness errors.
+
+### Verification
+
+- Focused test command: `pnpm exec supabase test db supabase/tests/0029_commerce_state_spec.sql`
+- Expected red result: 24/29 assertions fail because the domain functions do not yet exist; all failures are explicit missing-function or downstream state assertions.
+- No provider or Commerce domain logic was implemented in this test-first task.
 
 ### Human Gate
 
