@@ -1275,7 +1275,7 @@ P2-T015.
 
 ## P2-T015 — Run P2 end-to-end and security flows
 
-Status: pending  
+Status: completed  
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: e2e-security  
@@ -1335,10 +1335,10 @@ Main and negative P2 flows.
 
 ### Acceptance Criteria
 
-- [ ] E2E and concurrency tests pass headlessly.
-- [ ] Access changes immediately after grant/revoke.
-- [ ] No plaintext/secret is captured.
-- [ ] No user action is required.
+- [x] E2E and concurrency tests pass headlessly.
+- [x] Access changes immediately after grant/revoke.
+- [x] No plaintext/secret is captured.
+- [x] No user action is required.
 
 ### Failure Recovery
 
@@ -1350,7 +1350,7 @@ Do not rely on visual/manual confirmation.
 
 ### Output
 
-Automated P2 system proof.
+Automated P2 system proof delivered in `00a5de8`: headless Playwright 3/3 covers public catalog, server-resolved entitlements/access, invalid redemption stable error redaction, and forged application rejection; the repeatable concurrency runner confirms exactly one same-code winner; fixture verification has no plaintext codes; and the secret scan passes for 164 tracked files.
 
 ### Human Gate
 
@@ -1358,7 +1358,7 @@ None. Local Catalog/Entitlement/Redemption work is fully autonomous.
 
 ### Commit
 
-`test(e2e): cover entitlement and redemption flows` — Task P2-T015.
+`test(e2e): cover entitlement and redemption flows` — Task P2-T015 (`00a5de8`).
 
 ### Next
 

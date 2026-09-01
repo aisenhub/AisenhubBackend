@@ -44,6 +44,7 @@
 | P2-T012 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 660a95b | Contract-backed platform-client methods for public products, entitlements, access, redemption, and feedback; explicit idempotency, CSRF transport, input/response validation, package tests 5/5, root tests 49/49, and full root quality gates passed. |
 | P2-T013 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | ac132fb | Whitelisted Admin catalog queries, dedicated product/version/batch/code/redemption projections, explicit named commands with reason/confirmation, code-hash exclusion, contract tests 8/8, typecheck, lint, format, and boundary checks passed. |
 | P2-T014 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 406069c | Deterministic AisenLens published/current fixture promotion after Auth setup, active/paused/expired/closed batches, hash-only codes, active/expired/revoked entitlements, idempotent local fixture verification, clean reset database tests 499/499, and two reset cycles passed. |
+| P2-T015 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 00a5de8 | Headless Playwright P2 flows passed 3/3 for public catalog, entitlements/access, invalid redemption redaction, and forged-app rejection; concurrency check passed with one winner; secret scan passed for 164 tracked files. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |
