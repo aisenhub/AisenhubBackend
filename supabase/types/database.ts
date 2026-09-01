@@ -96,11 +96,26 @@ export type Database = {
           status: string
         }[]
       }
+      publish_product_version: {
+        Args: { p_product_version_id: string }
+        Returns: {
+          product_version_id: string
+          published_at: string
+          status: string
+        }[]
+      }
       resolve_app_origin: {
         Args: { p_origin: string }
         Returns: {
           app_slug: string
           environment: string
+        }[]
+      }
+      retire_product_version: {
+        Args: { p_product_version_id: string }
+        Returns: {
+          product_version_id: string
+          status: string
         }[]
       }
       revoke_all_platform_sessions: {
@@ -117,6 +132,13 @@ export type Database = {
         Args: { p_csrf_hash: string; p_token_hash: string }
         Returns: {
           issued: boolean
+        }[]
+      }
+      set_current_product_version: {
+        Args: { p_product_id: string; p_product_version_id: string }
+        Returns: {
+          current_version_id: string
+          product_id: string
         }[]
       }
       verify_platform_csrf: {

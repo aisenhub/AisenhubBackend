@@ -171,9 +171,11 @@ select lives_ok(
 );
 select lives_ok(
   $$
+    select set_config('app.catalog_command', 'set_current', true);
     update platform.products
     set current_version_id = '26000000-0000-4000-8000-000000000001'
     where id = '25000000-0000-4000-8000-000000000001';
+    select set_config('app.catalog_command', '', true);
     update platform.products
     set status = 'active'
     where id = '25000000-0000-4000-8000-000000000001';
@@ -193,6 +195,7 @@ select lives_ok(
 );
 select throws_ok(
   $$
+    select set_config('app.catalog_command', 'set_current', true);
     update platform.products
     set current_version_id = '26000000-0000-4000-8000-000000000002'
     where id = '25000000-0000-4000-8000-000000000001';
@@ -211,6 +214,7 @@ select lives_ok(
 );
 select throws_ok(
   $$
+    select set_config('app.catalog_command', 'set_current', true);
     update platform.products
     set current_version_id = '26000000-0000-4000-8000-000000000003'
     where id = '25000000-0000-4000-8000-000000000001';

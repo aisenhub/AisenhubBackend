@@ -172,7 +172,9 @@ begin
       message = 'Published product versions are immutable; create a new version';
   end if;
 
-  if new.status in ('published', 'retired') and old.status = 'draft' and catalog_command <> 'publish' then
+  if new.status in ('published', 'retired')
+     and old.status = 'draft'
+     and coalesce(catalog_command, '') <> 'publish' then
     raise exception using
       errcode = '23514',
       message = 'Product version publication requires a controlled command';
