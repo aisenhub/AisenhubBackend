@@ -22,6 +22,7 @@ export const ErrorCodes = {
   ORIGIN_NOT_ALLOWED: 'ORIGIN_NOT_ALLOWED',
   PROFILE_NOT_FOUND: 'PROFILE_NOT_FOUND',
   REASON_REQUIRED: 'REASON_REQUIRED',
+  REDEMPTION_UNAVAILABLE: 'REDEMPTION_UNAVAILABLE',
   RESOURCE_VERSION_CONFLICT: 'RESOURCE_VERSION_CONFLICT',
   SESSION_EXPIRED: 'SESSION_EXPIRED',
   SESSION_REVOKED: 'SESSION_REVOKED',
@@ -144,3 +145,27 @@ export type {
   SessionResponse,
   UserId,
 } from './identity';
+
+export {
+  AccessResponseSchema,
+  EntitlementSummarySchema,
+  EntitlementsResponseSchema,
+  FeedbackRequestSchema,
+  FeedbackResponseSchema,
+  PublicProductSchema,
+  PublicProductsResponseSchema,
+  RedemptionRequestSchema,
+  RedemptionResponseSchema,
+} from './catalog';
+
+export type {
+  AccessResponse,
+  EntitlementSummary,
+  EntitlementsResponse,
+  FeedbackRequest,
+  FeedbackResponse,
+  PublicProduct,
+  PublicProductsResponse,
+  RedemptionRequest,
+  RedemptionResponse,
+} from './catalog';

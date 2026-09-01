@@ -1,3 +1,3 @@
-import { healthResponse } from '../_shared/health.ts';
+import { routePlatformPublic } from '../_shared/public-api.ts';
 
-Deno.serve(() => healthResponse('platform-public'));
+Deno.serve(routePlatformPublic);

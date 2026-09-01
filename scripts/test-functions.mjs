@@ -16,7 +16,11 @@ for (const functionName of functionNames) {
     if (!source.includes('../_shared/platform-api.ts')) {
       throw new Error(`Function ${functionName} does not use the platform API router.`);
     }
-  } else if (!source.includes('../_shared/health.ts')) {
+  } else if (
+    functionName === 'platform-public'
+      ? !source.includes('../_shared/public-api.ts')
+      : !source.includes('../_shared/health.ts')
+  ) {
     throw new Error(`Function ${functionName} does not use the shared health handler.`);
   }
 }

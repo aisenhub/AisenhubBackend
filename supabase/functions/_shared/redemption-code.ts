@@ -73,7 +73,7 @@ function codeHint(prefix: string, randomPart: string): string {
   return `${prefix}-****-${randomPart.slice(-4)}`;
 }
 
-async function hmacSha256Hex(value: string, pepper: string): Promise<string> {
+export async function hashRedemptionCode(value: string, pepper: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(pepper),
@@ -99,7 +99,7 @@ export async function generateRedemptionCode(
   const plaintext = formatCode(prefix, randomPart);
   return {
     plaintext,
-    codeHash: await hmacSha256Hex(plaintext, pepper),
+    codeHash: await hashRedemptionCode(plaintext, pepper),
     codeHint: codeHint(prefix, randomPart),
     pepperVersion,
   };

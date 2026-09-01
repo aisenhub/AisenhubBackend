@@ -51,6 +51,20 @@ export type Database = {
           value: Json
         }[]
       }
+      create_feedback: {
+        Args: {
+          p_app_slug: string
+          p_content: string
+          p_kind: string
+          p_title: string
+          p_user_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          status: string
+        }[]
+      }
       create_platform_session: {
         Args: {
           p_csrf_hash: string
@@ -107,6 +121,15 @@ export type Database = {
           status: string
         }[]
       }
+      get_public_products: {
+        Args: never
+        Returns: {
+          billing_type: string
+          name: string
+          sku: string
+          version: number
+        }[]
+      }
       grant_entitlement: {
         Args: {
           p_actor_id?: string
@@ -128,6 +151,15 @@ export type Database = {
           source_id: string
           starts_at: string
           status: string
+        }[]
+      }
+      list_user_entitlements: {
+        Args: { p_user_id: string }
+        Returns: {
+          expires_at: string
+          feature: string
+          source_product: string
+          value: Json
         }[]
       }
       publish_product_version: {

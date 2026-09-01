@@ -1,4 +1,5 @@
 import { healthResponse } from './health.ts';
+import { hashRedemptionCode, redemptionPepperFromEnv } from './redemption-code.ts';
 
 type PublicApp = {
   readonly slug: string;
@@ -47,6 +48,7 @@ const writeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 const apiUrl = () => Deno.env.get('SUPABASE_URL') ?? 'http://127.0.0.1:54321';
 const anonKey = () => Deno.env.get('SUPABASE_ANON_KEY');
+const serviceRoleKey = () => Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 export function requestId(): string {
   return crypto.randomUUID();
@@ -252,6 +254,49 @@ export async function rpc<T>(
   throw new Error('Supabase read entry returned an invalid shape.');
 }
 
+class ServiceRpcError extends Error {
+  readonly databaseCode: string | undefined;
+
+  constructor(databaseCode?: string) {
+    super('The server data operation failed.');
+    this.name = 'ServiceRpcError';
+    this.databaseCode = databaseCode;
+  }
+}
+
+async function serviceRpc<T>(name: string, body: Record<string, unknown>): Promise<T[]> {
+  const key = serviceRoleKey();
+  if (!key) throw new Error('Supabase service role key is not configured.');
+
+  const response = await fetch(`${apiUrl()}/rest/v1/rpc/${name}`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      authorization: `Bearer ${key}`,
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    let databaseCode: string | undefined;
+    try {
+      const payload: unknown = await response.json();
+      if (payload && typeof payload === 'object' && 'code' in payload) {
+        databaseCode = typeof payload.code === 'string' ? payload.code : undefined;
+      }
+    } catch {
+      // Deliberately discard upstream error details.
+    }
+    throw new ServiceRpcError(databaseCode);
+  }
+
+  const value: unknown = await response.json();
+  if (Array.isArray(value)) return value as T[];
+  if (value && typeof value === 'object') return [value as T];
+  throw new Error('The server data operation returned an invalid shape.');
+}
+
 function randomToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
@@ -415,6 +460,195 @@ async function sessionExchange(token: string | null, id: string): Promise<Respon
   }
 }
 
+type SessionUserRow = {
+  readonly user_id: string;
+  readonly profile_status: 'active';
+};
+
+async function sessionUserId(request: Request): Promise<string | null> {
+  const token = sessionCookie(request);
+  if (!token) return null;
+
+  const rows = await rpc<SessionUserRow>('get_platform_session', {
+    p_token_hash: await sha256Hex(token),
+  });
+  if (rows.length !== 1 || rows[0]?.profile_status !== 'active') return null;
+  return rows[0].user_id;
+}
+
+async function parseJsonObject(request: Request): Promise<Record<string, unknown> | null> {
+  try {
+    const value: unknown = await request.json();
+    return value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+type AccessRow = {
+  readonly allowed: boolean;
+  readonly feature: string;
+  readonly value: unknown;
+  readonly source_product: string | null;
+  readonly expires_at: string | null;
+  readonly decision_id: string;
+};
+
+async function accessRead(
+  request: Request,
+  featureCode: string,
+  appSlug: string,
+  id: string,
+): Promise<Response> {
+  const userId = await sessionUserId(request);
+  if (!userId)
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  if (!/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(featureCode)) {
+    return errorResponse('VALIDATION_ERROR', 'The feature code is invalid.', 400, id);
+  }
+
+  try {
+    const rows = await serviceRpc<AccessRow>('check_access', {
+      p_user_id: userId,
+      p_app_slug: appSlug,
+      p_feature_code: featureCode,
+    });
+    const row = rows.length === 1 ? rows[0] : null;
+    if (!row) return errorResponse('INTERNAL_ERROR', 'Access could not be resolved.', 502, id);
+    return jsonResponse(
+      {
+        allowed: row.allowed,
+        feature: row.feature,
+        value: row.value,
+        sourceProduct: row.source_product,
+        expiresAt: row.expires_at,
+        decisionId: row.decision_id,
+      },
+      200,
+      id,
+    );
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'Access could not be resolved.', 502, id);
+  }
+}
+
+async function entitlementsRead(request: Request, id: string): Promise<Response> {
+  const userId = await sessionUserId(request);
+  if (!userId)
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+
+  try {
+    const rows = await serviceRpc<{
+      readonly feature: string;
+      readonly value: unknown;
+      readonly source_product: string;
+      readonly expires_at: string | null;
+    }>('list_user_entitlements', { p_user_id: userId });
+    return jsonResponse(
+      {
+        entitlements: rows.map((row) => ({
+          feature: row.feature,
+          value: row.value,
+          sourceProduct: row.source_product,
+          expiresAt: row.expires_at,
+        })),
+      },
+      200,
+      id,
+    );
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'Entitlements could not be read.', 502, id);
+  }
+}
+
+async function redemptionCreate(request: Request, id: string): Promise<Response> {
+  const userId = await sessionUserId(request);
+  if (!userId)
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  const idempotencyKey = request.headers.get('idempotency-key');
+  const body = await parseJsonObject(request);
+  const code = typeof body?.code === 'string' ? body.code.trim().toUpperCase() : '';
+  const normalizedIdempotencyKey = idempotencyKey?.trim() ?? '';
+  if (
+    normalizedIdempotencyKey === '' ||
+    normalizedIdempotencyKey.length > 255 ||
+    code === '' ||
+    code.length > 512
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'A code and Idempotency-Key are required.', 400, id);
+  }
+
+  try {
+    const { pepper } = redemptionPepperFromEnv((name) => Deno.env.get(name));
+    const codeHash = await hashRedemptionCode(code, pepper);
+    const requestHash = await sha256Hex(JSON.stringify({ userId, codeHash }));
+    const rows = await serviceRpc<{
+      readonly redemption_id: string;
+      readonly grant_id: string;
+      readonly status: 'redeemed';
+    }>('redeem_code', {
+      p_code_hash: codeHash,
+      p_user_id: userId,
+      p_idempotency_key: normalizedIdempotencyKey,
+      p_request_hash: requestHash,
+    });
+    const row = rows.length === 1 ? rows[0] : null;
+    if (!row)
+      return errorResponse('INTERNAL_ERROR', 'The redemption could not be completed.', 502, id);
+    return jsonResponse(
+      { redemptionId: row.redemption_id, grantId: row.grant_id, status: row.status },
+      200,
+      id,
+    );
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '23505') {
+      return errorResponse('IDEMPOTENCY_KEY_REUSED', 'The request key was already used.', 409, id);
+    }
+    return errorResponse('REDEMPTION_UNAVAILABLE', 'The redemption code is unavailable.', 409, id);
+  }
+}
+
+async function feedbackCreate(request: Request, id: string, appSlug: string): Promise<Response> {
+  const userId = await sessionUserId(request);
+  if (!userId)
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  const body = await parseJsonObject(request);
+  const kind = typeof body?.kind === 'string' ? body.kind.trim() : '';
+  const title = typeof body?.title === 'string' ? body.title.trim() : '';
+  const content = typeof body?.content === 'string' ? body.content.trim() : '';
+  if (
+    kind === '' ||
+    kind.length > 50 ||
+    title === '' ||
+    title.length > 200 ||
+    content === '' ||
+    content.length > 20_000
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'Feedback fields are required.', 400, id);
+  }
+
+  try {
+    const rows = await serviceRpc<{
+      readonly id: string;
+      readonly status: 'open' | 'in_progress' | 'resolved' | 'closed';
+      readonly created_at: string;
+    }>('create_feedback', {
+      p_app_slug: appSlug,
+      p_user_id: userId,
+      p_kind: kind,
+      p_title: title,
+      p_content: content,
+    });
+    const row = rows.length === 1 ? rows[0] : null;
+    if (!row) return errorResponse('INTERNAL_ERROR', 'Feedback could not be created.', 502, id);
+    return jsonResponse({ id: row.id, status: row.status, createdAt: row.created_at }, 201, id);
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'Feedback could not be created.', 502, id);
+  }
+}
+
 function isPlatformSession(value: unknown): value is PlatformSession {
   if (!value || typeof value !== 'object') return false;
   const session = value as Record<string, unknown>;
@@ -541,7 +775,11 @@ async function enforceWritePreconditions(
   }
 }
 
-async function routePlatformApiRoutes(request: Request, id: string): Promise<Response> {
+async function routePlatformApiRoutes(
+  request: Request,
+  id: string,
+  resolved: ResolvedOrigin | null,
+): Promise<Response> {
   const path = apiPath(request);
 
   if (path === '/' || path === '') return healthResponse('platform-api');
@@ -560,6 +798,39 @@ async function routePlatformApiRoutes(request: Request, id: string): Promise<Res
       405,
       id,
     );
+  }
+  if (path === '/v1/me/entitlements') {
+    if (request.method !== 'GET') {
+      return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+    }
+    return entitlementsRead(request, id);
+  }
+  if (path.startsWith('/v1/access/')) {
+    if (request.method !== 'GET') {
+      return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+    }
+    if (!resolved)
+      return errorResponse('ORIGIN_NOT_ALLOWED', 'A request Origin is required.', 403, id);
+    return accessRead(
+      request,
+      decodeURIComponent(path.slice('/v1/access/'.length)),
+      resolved.appSlug,
+      id,
+    );
+  }
+  if (path === '/v1/redemptions') {
+    if (request.method !== 'POST') {
+      return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
+    }
+    return redemptionCreate(request, id);
+  }
+  if (path === '/v1/feedback') {
+    if (request.method !== 'POST') {
+      return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
+    }
+    if (!resolved)
+      return errorResponse('ORIGIN_NOT_ALLOWED', 'A request Origin is required.', 403, id);
+    return feedbackCreate(request, id, resolved.appSlug);
   }
   if (request.method !== 'GET') {
     return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
@@ -586,5 +857,5 @@ export async function routePlatformApi(request: Request): Promise<Response> {
   const path = apiPath(request);
   const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
   if (preconditionFailure) return withCors(preconditionFailure, resolved);
-  return withCors(await routePlatformApiRoutes(request, id), resolved);
+  return withCors(await routePlatformApiRoutes(request, id, resolved), resolved);
 }

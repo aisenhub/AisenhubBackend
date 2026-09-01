@@ -3,13 +3,20 @@ import { describe, expect, it } from 'vitest';
 import {
   AdminRoles,
   AdminSessionResponseSchema,
+  AccessResponseSchema,
   ApiErrorEnvelopeSchema,
   ApiSuccessEnvelopeSchema,
+  EntitlementsResponseSchema,
   ErrorCodes,
+  FeedbackRequestSchema,
+  FeedbackResponseSchema,
   MeResponseSchema,
   PaginationQuerySchema,
   PermissionActions,
   PermissionActionSchema,
+  PublicProductsResponseSchema,
+  RedemptionRequestSchema,
+  RedemptionResponseSchema,
   SessionExchangeRequestSchema,
   SessionExchangeResponseSchema,
   SessionResponseSchema,
@@ -98,6 +105,59 @@ describe('platform contract primitives', () => {
     expect(() => AdminSessionResponseSchema.parse({ ...adminSession, permissions: [] })).toThrow();
     expect(() =>
       AdminSessionResponseSchema.parse({ ...adminSession, tokenHash: 'digest' }),
+    ).toThrow();
+  });
+
+  it('validates the public catalog and product-facing command contracts', () => {
+    expect(
+      PublicProductsResponseSchema.parse({
+        products: [
+          { sku: 'AISENLENS_PRO', name: 'AisenLens Pro', billingType: 'one_time', version: 2 },
+        ],
+      }).products[0].version,
+    ).toBe(2);
+    expect(
+      AccessResponseSchema.parse({
+        allowed: true,
+        feature: 'lens.export',
+        value: { max: 10 },
+        sourceProduct: 'AISENLENS_PRO',
+        expiresAt: null,
+        decisionId: requestId,
+      }).allowed,
+    ).toBe(true);
+    expect(
+      EntitlementsResponseSchema.parse({
+        entitlements: [
+          {
+            feature: 'lens.export',
+            value: { max: 10 },
+            sourceProduct: 'AISENLENS_PRO',
+            expiresAt: null,
+          },
+        ],
+      }).entitlements,
+    ).toHaveLength(1);
+    expect(RedemptionRequestSchema.parse({ code: 'AH-PRO-ABCD-2345' }).code).toBe(
+      'AH-PRO-ABCD-2345',
+    );
+    expect(
+      RedemptionResponseSchema.parse({
+        redemptionId: requestId,
+        grantId: '00000000-0000-4000-8000-000000000002',
+        status: 'redeemed',
+      }).status,
+    ).toBe('redeemed');
+    expect(
+      FeedbackResponseSchema.parse({
+        id: requestId,
+        status: 'open',
+        createdAt: '2026-09-01T12:00:00.000Z',
+      }).status,
+    ).toBe('open');
+    expect(() => FeedbackRequestSchema.parse({ kind: 'bug', title: '', content: 'x' })).toThrow();
+    expect(() =>
+      PublicProductsResponseSchema.parse({ products: [{ sku: 'X', price: 1 }] }),
     ).toThrow();
   });
 });
