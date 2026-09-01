@@ -912,7 +912,7 @@ P2-T011.
 
 ## P2-T011 — Define and implement public catalog, entitlement, redemption, feedback contracts/APIs
 
-Status: completed  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: contracts-api  
@@ -1366,7 +1366,7 @@ P2-T016.
 
 ## P2-T016 — Execute Catalog/Entitlement/Redemption quality gate
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: quality-gate  
@@ -1416,6 +1416,8 @@ All P2 commits/tests.
 ```bash
 pnpm platform:verify
 pnpm test:e2e --grep P2
+pnpm test:redemption:concurrency
+pnpm secrets:check
 git status --short
 ```
 
@@ -1425,11 +1427,11 @@ All applicable quality categories.
 
 ### Acceptance Criteria
 
-- [ ] All applicable checks PASS.
-- [ ] One-time/concurrency/idempotency/security evidence is recorded.
-- [ ] Architecture Deviations is None or approved.
-- [ ] Human interactions used: 0.
-- [ ] Progress points to P3-T001/P4 dependency path.
+- [x] All applicable checks PASS.
+- [x] One-time/concurrency/idempotency/security evidence is recorded.
+- [x] Architecture Deviations is None or approved.
+- [x] Human interactions used: 0.
+- [x] Progress points to P3-T001/P4 dependency path.
 
 ### Failure Recovery
 
@@ -1441,7 +1443,14 @@ Do not advance on partial redemption coverage.
 
 ### Output
 
-PHASE-02 checkpoint.
+PHASE-02 checkpoint published at `docs/implementation/checkpoints/PHASE-02.md`. The clean
+quality gate passed database tests 499/499, RLS tests 29/29, function shell tests 4/4,
+unit tests 50/50, contract tests 8/8, integration tests 22/22, Playwright discovery 7/7,
+typecheck, lint, format, workspace build, boundary, and failure-propagation checks.
+The dedicated P2 Playwright suite passed 3/3, concurrent redemption produced exactly one
+winner, and the secret scan passed for 165 tracked files. The only repair was moving Local
+fixture verification after database/RLS tests and narrowing the browser fetch init type;
+both changes are covered by the final gate.
 
 ### Human Gate
 

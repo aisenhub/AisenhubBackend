@@ -96,11 +96,11 @@ function verifyGeneratedTypeStability() {
 try {
   ensureLocalSupabase();
   runStep('Local database reset and seed', ['db:reset']);
-  runStep('Local Auth fixture verification', ['fixtures:verify']);
   runStep('Supabase type generation', ['supabase:typegen']);
   verifyGeneratedTypeStability();
   runStep('Database tests', ['db:test']);
   runStep('RLS tests', ['rls:test']);
+  runStep('Local Auth fixture verification', ['fixtures:verify']);
   runStep('Edge Function shell tests', ['functions:test']);
   runStep('Unit tests', ['test']);
   runStep('Contract tests', ['test:contract']);

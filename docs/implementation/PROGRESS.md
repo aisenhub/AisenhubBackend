@@ -6,16 +6,16 @@ Last Updated: 2026-09-01
 
 Status: IN_PROGRESS
 
-Current Phase: P2 — Catalog / Entitlement / Redemption
-Current Task: P2-T016 — Execute Catalog/Entitlement/Redemption quality gate
-Overall Progress: 42 / 107 tasks completed
-Last Successful Quality Gate: P2-T015 P2 E2E/security flows — PASS
+Current Phase: P3 — Admin Foundation
+Current Task: P3-T001 — Finalize Admin workspace under repository AGENTS rules
+Overall Progress: 43 / 107 tasks completed
+Last Successful Quality Gate: P2-T016 Phase 02 Catalog/Entitlement/Redemption checkpoint — PASS
 
 ## Phase Progress
 
 - [x] P0 — Autonomous Bootstrap
 - [x] P1 — Identity / Application / Session
-- [ ] P2 — Catalog / Entitlement / Redemption
+- [x] P2 — Catalog / Entitlement / Redemption
 - [ ] P3 — Admin Foundation
 - [ ] P4 — Admin Catalog / Customer + Product Integration
 - [ ] P5 — Commerce + Admin D
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P2-T015 P2 E2E/security flows — PASS
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Implement the catalog, entitlement, and redemption boundary on Supabase Local.
-Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T014 completed; P3-T002 was completed early because its declared dependencies were satisfied. Remote repository synchronization is complete to `origin/main`.
+Goal: Finalize the Admin workspace under the repository AGENTS rules.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, and P2-T001 through P2-T016 completed; P3-T002 was completed early because its declared dependencies were satisfied. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -76,6 +76,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T014 completed; P3-
 - P2-T013 Admin catalog/redemption contracts: PASS — whitelisted query/filter/pagination models, dedicated product/version/batch/code/redemption projections, explicit publish/retire/current/generate/pause/close commands, reason/confirmation requirements, hash exclusion, contract tests 8/8, typecheck, lint, format, and boundary checks passed.
 - P2-T014 deterministic AisenLens catalog/redemption fixtures: PASS — clean reset database tests 499/499, two reset→fixture verification cycles passed, published/current lifetime catalog fixture, active/paused/expired/closed batches, hash-only codes, active/expired/revoked entitlement states, idempotent fixture seeding, and static quality gates passed.
 - P2-T015 P2 E2E/security flows: PASS — headless Playwright 3/3 covered public catalog, session-bound entitlements/access, invalid redemption error redaction, and forged-app rejection; concurrent redemption confirmed one winner; secret scan passed for 164 tracked files.
+- P2-T016 Phase 02 quality gate: PASS — clean `platform:verify` passed database 499/499, RLS 29/29, function shell 4/4, unit 50/50, contract 8/8, integration 22/22, Playwright discovery 7/7, typecheck, lint, format, build, boundary, and failure-propagation checks; P2 E2E 3/3, concurrency exactly one winner, secret scan 165 tracked files, and `PHASE-02.md` checkpoint completed.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -94,11 +95,12 @@ None.
 
 ## Next Tasks
 
-1. P2-T016 — Execute Catalog/Entitlement/Redemption quality gate.
-2. P3-T001 — Establish Admin Foundation and RBAC.
+1. P3-T001 — Finalize Admin workspace under repository AGENTS rules.
+2. P3-T003 — Define and test the complete fixed Admin Action matrix.
 
 ## Recent Commits
 
+- `d81604b` — chore(checkpoint): complete catalog entitlement redemption
 - `1c8d249` — feat(admin-api): add admin session and permission checks
 - `db1584c` — feat(api): add catalog entitlement redemption feedback APIs
 - `660a95b` — feat(client): add catalog entitlement redemption methods

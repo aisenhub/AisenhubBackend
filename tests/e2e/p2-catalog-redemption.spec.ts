@@ -6,6 +6,12 @@ const user = {
   password: 'LocalOnly-NormalUser-2026!',
 };
 
+type BrowserApiInit = {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+};
+
 async function signIn(page: import('@playwright/test').Page): Promise<void> {
   await page.goto(accountPageOrigin);
   await expect(page.getByRole('heading', { name: 'One account for your tools.' })).toBeVisible();
@@ -15,7 +21,11 @@ async function signIn(page: import('@playwright/test').Page): Promise<void> {
   await expect(page.getByRole('heading', { name: /Welcome back/ })).toBeVisible();
 }
 
-async function apiFetch(page: import('@playwright/test').Page, path: string, init?: RequestInit) {
+async function apiFetch(
+  page: import('@playwright/test').Page,
+  path: string,
+  init?: BrowserApiInit,
+) {
   return page.evaluate(
     async ({ path, init }) => {
       const response = await fetch(path, init);
