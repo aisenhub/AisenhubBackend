@@ -87,7 +87,8 @@ Production or staging resources were not touched.
 ## Git Range
 
 Phase 04 implementation runs through the P4-T013 implementation commit `d3a182a`, the P4-T013
-documentation commit `c01ba44`, and the Phase 04 checkpoint commit to follow. The backend
+documentation commit `c01ba44`, the checkpoint commit `156d9cb`, and the checkpoint ledger fix
+commit `5e40c3c`. The backend
 `origin/main` was synchronized to the completed implementation before continuing.
 
 ## Next Phase
