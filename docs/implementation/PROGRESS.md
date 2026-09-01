@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P2 — Catalog / Entitlement / Redemption
-Current Task: P2-T009 — Write complete redemption transaction tests before implementation
-Overall Progress: 35 / 107 tasks completed
-Last Successful Quality Gate: P2-T008 Secure redemption code generation — PASS
+Current Task: P2-T011 — Define and implement public catalog, entitlement, redemption, feedback contracts/APIs
+Overall Progress: 37 / 107 tasks completed
+Last Successful Quality Gate: P2-T010 Atomic redemption transaction — PASS
 
 ## Phase Progress
 
@@ -69,6 +69,8 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T014 completed; P3-
 - P2-T006 deterministic access resolution: PASS — `pnpm db:reset` and `pnpm db:test` passed 398/398, including 31 access-resolution assertions; server-only `check_access` resolves active nonexpired fixed snapshots, all-apps access, every merge strategy, deterministic latest ties, source SKUs, earliest expiry, retired history, and inactive-app denial. Integration 16, root tests 35, typecheck, lint, format, and workspace build passed.
 - P2-T007 redemption schema: PASS — `pnpm db:reset` and `pnpm db:test` passed 439/439, including 41 redemption schema/security assertions; private batches, hashed-only codes, safe prefix/pepper/status/time constraints, one-code-one-redemption uniqueness, immutable receipts, and batch/user/product/grant/idempotency consistency are covered. RLS 29 passed.
 - P2-T008 secure code generation: PASS — `pnpm functions:test -- code-generation` passed the generation security smoke check; root tests passed 40/40, including entropy/format, uniqueness, HMAC Pepper binding, plaintext-free persistence mapping, hint redaction, invalid configuration, and server-only Pepper loading. Typecheck, lint, format, and workspace build passed.
+- P2-T009 redemption transaction specification: PASS — executable SQL coverage now includes valid/invalid/paused/closed/future/expired claims, same-request and same-user retries, cross-user rejection, per-user limits, rollback/no-orphan assertions, and function security checks. The repeatable concurrency runner is committed for local verification.
+- P2-T010 atomic redemption transaction: PASS — `pnpm db:reset` and `pnpm db:test` passed 475/475; `pnpm test:redemption:concurrency` confirmed exactly one of two concurrent claims succeeds, with one code, receipt, grant, and redemption audit. Idempotency replay, different-hash rejection, generic unavailable errors, and failure rollback passed.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -87,8 +89,8 @@ None.
 
 ## Next Tasks
 
-1. P2-T009 — Write complete redemption transaction tests before implementation.
-2. P2-T010 — Implement atomic and idempotent redemption transaction.
+1. P2-T011 — Define and implement public catalog, entitlement, redemption, feedback contracts/APIs.
+2. P2-T012 — Define and implement Admin catalog/redemption contracts/APIs.
 
 ## Recent Commits
 

@@ -732,7 +732,7 @@ P2-T009.
 
 ## P2-T009 — Write complete redemption transaction tests before implementation
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: test-first  
@@ -790,10 +790,10 @@ The enumerated architecture matrix including concurrency and transaction rollbac
 
 ### Acceptance Criteria
 
-- [ ] Every required scenario has deterministic assertions.
-- [ ] Concurrency runner is noninteractive/repeatable.
-- [ ] Tests fail before implementation without harness errors.
-- [ ] No secret leaks.
+- [x] Every required scenario has deterministic assertions.
+- [x] Concurrency runner is noninteractive/repeatable.
+- [x] Tests fail before implementation without harness errors.
+- [x] No secret leaks.
 
 ### Failure Recovery
 
@@ -805,7 +805,7 @@ Do not implement transaction logic inside the test task except minimal interface
 
 ### Output
 
-Executable redemption specification.
+Executable redemption specification delivered in `supabase/tests/0017_redemption_transaction.sql` and `scripts/test-redemption-concurrency.mjs`, covering the complete transaction matrix and a repeatable two-session same-code race. The specification is now green after P2-T010; database tests passed 475/475.
 
 ### Human Gate
 
@@ -821,7 +821,7 @@ P2-T010.
 
 ## P2-T010 — Implement atomic and idempotent redemption transaction
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: domain  
@@ -881,10 +881,10 @@ Run all P2-T009 cases plus function permission/search_path checks.
 
 ### Acceptance Criteria
 
-- [ ] Exactly one concurrent claim succeeds.
-- [ ] Retry semantics match architecture.
-- [ ] Failures leave no orphan grant/redemption/audit.
-- [ ] All tests pass.
+- [x] Exactly one concurrent claim succeeds.
+- [x] Retry semantics match architecture.
+- [x] Failures leave no orphan grant/redemption/audit.
+- [x] All tests pass.
 
 ### Failure Recovery
 
@@ -896,7 +896,7 @@ Do not split grant/code/audit across independent commits or expose function to b
 
 ### Output
 
-Atomic redemption domain flow.
+Atomic redemption domain flow delivered in `supabase/migrations/20260901057000_redemption_transaction.sql`: service-role-only `redeem_code` locks idempotency/code/batch rows, validates batch state and limits, calls the common grant path, inserts the receipt and audit, updates the code, and persists replay results in one transaction. Database tests passed 475/475 and the two-session concurrency check passed.
 
 ### Human Gate
 

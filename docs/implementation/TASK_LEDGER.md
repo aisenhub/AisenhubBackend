@@ -38,6 +38,8 @@
 | P2-T006 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 293d175 | Server-only deterministic access resolution over active nonexpired fixed snapshots, app-scoped/all-apps matching, every merge strategy, latest tie-break, source/expiry output, retired history, and 31 access tests passed. |
 | P2-T007 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 8275d77 | Private redemption batches, hashed code storage, one-time code/grant/idempotency relations, state/time/format constraints, immutable receipts, cross-entity consistency checks, and 41 schema tests passed. |
 | P2-T008 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 2362087 | Cryptographically random 128-bit-plus easy-entry codes, versioned HMAC-SHA256 hashes, non-plaintext persistence mapping, Pepper configuration validation, redaction smoke checks, and 40 root tests passed. |
+| P2-T009 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 942e0fa | Executable redemption transaction matrix for valid/invalid/time/status/limit cases, retry identity, rollback, no-orphan guarantees, plus repeatable two-session concurrency runner. |
+| P2-T010 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 60b27e6 | Backend-only atomic `redeem_code` locks idempotency/code/batch, validates availability and limits, reuses grant entitlement, writes receipt/code/audit atomically, and returns saved retries. Database tests 475/475 and concurrency check passed. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |
