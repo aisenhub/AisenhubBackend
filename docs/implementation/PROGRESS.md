@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P3 — Admin Foundation
-Current Task: P3-T001 — Finalize Admin workspace under repository AGENTS rules
-Overall Progress: 43 / 107 tasks completed
-Last Successful Quality Gate: P2-T016 Phase 02 Catalog/Entitlement/Redemption checkpoint — PASS
+Current Task: P3-T003 — Define and test the complete fixed Admin Action matrix
+Overall Progress: 44 / 107 tasks completed
+Last Successful Quality Gate: P3-T001 Admin Refine/Ant Design workspace — PASS
 
 ## Phase Progress
 
@@ -77,6 +77,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, and P2-T001 thro
 - P2-T014 deterministic AisenLens catalog/redemption fixtures: PASS — clean reset database tests 499/499, two reset→fixture verification cycles passed, published/current lifetime catalog fixture, active/paused/expired/closed batches, hash-only codes, active/expired/revoked entitlement states, idempotent fixture seeding, and static quality gates passed.
 - P2-T015 P2 E2E/security flows: PASS — headless Playwright 3/3 covered public catalog, session-bound entitlements/access, invalid redemption error redaction, and forged-app rejection; concurrent redemption confirmed one winner; secret scan passed for 164 tracked files.
 - P2-T016 Phase 02 quality gate: PASS — clean `platform:verify` passed database 499/499, RLS 29/29, function shell 4/4, unit 50/50, contract 8/8, integration 22/22, Playwright discovery 7/7, typecheck, lint, format, build, boundary, and failure-propagation checks; P2 E2E 3/3, concurrency exactly one winner, secret scan 165 tracked files, and `PHASE-02.md` checkpoint completed.
+- P3-T001 Admin workspace foundation: PASS — Refine + Ant Design Admin shell was split into app, provider, layout, and overview module layers; Admin theme tokens and global error boundary were added; Admin typecheck/build, boundary scan, boundary negative tests 3/3, lint, and format checks passed. No second UI system, Tailwind, Supabase, or database imports are allowed in Admin source.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -95,8 +96,8 @@ None.
 
 ## Next Tasks
 
-1. P3-T001 — Finalize Admin workspace under repository AGENTS rules.
-2. P3-T003 — Define and test the complete fixed Admin Action matrix.
+1. P3-T003 — Define and test the complete fixed Admin Action matrix.
+2. P3-T004 — Implement admin-client Resource transport and Data Provider.
 
 ## Recent Commits
 

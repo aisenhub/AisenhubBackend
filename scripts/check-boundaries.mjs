@@ -29,6 +29,17 @@ const forbiddenAdminClientPatterns = [
   'prisma',
   'drizzle-orm',
 ];
+const forbiddenAdminSourcePatterns = [
+  ...forbiddenAdminUiDependencies,
+  '@supabase/',
+  'supabase-js',
+  'postgres',
+  'postgresql',
+  'prisma',
+  'drizzle-orm',
+  'tailwindcss',
+  '@tailwind',
+];
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -138,6 +149,17 @@ if (admin) {
   }
   const adminAgents = path.join(path.dirname(admin.manifestPath), 'AGENTS.md');
   if (!fs.existsSync(adminAgents)) fail('apps/admin/AGENTS.md is missing');
+
+  for (const filePath of sourceFiles(path.dirname(admin.manifestPath))) {
+    const contents = fs.readFileSync(filePath, 'utf8').toLowerCase();
+    for (const pattern of forbiddenAdminSourcePatterns) {
+      if (contents.includes(pattern.toLowerCase())) {
+        fail(
+          `Admin source ${path.relative(scanRoot, filePath)} contains forbidden reference ${pattern}`,
+        );
+      }
+    }
+  }
 }
 
 if (admin) {
