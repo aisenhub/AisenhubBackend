@@ -96,6 +96,29 @@ export type Database = {
           status: string
         }[]
       }
+      grant_entitlement: {
+        Args: {
+          p_actor_id?: string
+          p_actor_type?: string
+          p_expires_at?: string
+          p_product_version_id: string
+          p_reason?: string
+          p_request_id?: string
+          p_restores_grant_id?: string
+          p_source_id?: string
+          p_source_type: string
+          p_starts_at?: string
+          p_user_id: string
+        }
+        Returns: {
+          audit_log_id: string
+          expires_at: string
+          grant_id: string
+          source_id: string
+          starts_at: string
+          status: string
+        }[]
+      }
       publish_product_version: {
         Args: { p_product_version_id: string }
         Returns: {
@@ -111,6 +134,22 @@ export type Database = {
           environment: string
         }[]
       }
+      restore_entitlement: {
+        Args: {
+          p_actor_id: string
+          p_grant_id: string
+          p_reason: string
+          p_request_id?: string
+        }
+        Returns: {
+          audit_log_id: string
+          expires_at: string
+          grant_id: string
+          source_id: string
+          starts_at: string
+          status: string
+        }[]
+      }
       retire_product_version: {
         Args: { p_product_version_id: string }
         Returns: {
@@ -121,6 +160,21 @@ export type Database = {
       revoke_all_platform_sessions: {
         Args: { p_reason: string; p_user_id: string }
         Returns: number
+      }
+      revoke_entitlement: {
+        Args: {
+          p_actor_id: string
+          p_actor_type: string
+          p_grant_id: string
+          p_reason: string
+          p_request_id?: string
+        }
+        Returns: {
+          audit_log_id: string
+          grant_id: string
+          revoked_at: string
+          status: string
+        }[]
       }
       revoke_platform_session: {
         Args: { p_reason?: string; p_token_hash: string }
