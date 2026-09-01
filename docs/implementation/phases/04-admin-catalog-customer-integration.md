@@ -595,7 +595,7 @@ P4-T007.
 
 ## P4-T007 — Build Redemption operations UI and one-time download handling
 
-Status: pending  
+Status: completed  
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: frontend-security  
@@ -657,10 +657,17 @@ Generate/download, retry, navigation/history, permission roles, no plaintext sto
 
 ### Acceptance Criteria
 
-- [ ] Plaintext exists only in immediate response/download flow.
-- [ ] Reload cannot reveal it.
-- [ ] Support query-only and Finance deny work.
-- [ ] Tests pass.
+- [x] Plaintext exists only in immediate response/download flow.
+- [x] Reload cannot reveal it.
+- [x] Support query-only and Finance deny work.
+- [x] Tests pass.
+
+### Verification
+
+- Added server-driven Redemption batch, code-hint, and redemption receipt pages with explicit Generate/Pause/Close command affordances.
+- Added one-time download handling that consumes the response object once, uses an in-memory Blob, revokes the object URL immediately, and never writes plaintext to localStorage, cache, analytics, logs, or history projections.
+- Support sees query-only Redemption surfaces; Finance is denied at the Admin route/menu boundary; owner/admin command buttons remain protected by the backend MFA and permission checks.
+- Admin Redemption tests: 9/9; root tests: 86/86; Admin typecheck/build, lint, format, secret scan, and Impeccable detector passed.
 
 ### Failure Recovery
 
@@ -680,7 +687,7 @@ None. All Local operations and E2E are autonomous; commercial values remain dete
 
 ### Commit
 
-`feat(admin): add redemption operations` — Task P4-T007.
+`41ccf5c feat(admin): add redemption operations` — Task P4-T007.
 
 ### Next
 
