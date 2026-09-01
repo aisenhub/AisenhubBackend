@@ -424,6 +424,14 @@ export type AdminSetCurrentProductVersionRequest = z.infer<
   typeof AdminSetCurrentProductVersionRequestSchema
 >;
 
+export const AdminChangeProductionOriginRequestSchema = AdminCommandMetadataSchema.extend({
+  origin: z.string().regex(/^https?:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:[0-9]{1,5})?$/),
+  appSlug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+}).strict();
+export type AdminChangeProductionOriginRequest = z.infer<
+  typeof AdminChangeProductionOriginRequestSchema
+>;
+
 export const AdminGenerateRedemptionCodesRequestSchema = AdminCommandMetadataSchema.extend({
   quantity: z.number().int().min(1).max(10_000),
 }).strict();
@@ -461,10 +469,39 @@ export const AdminProductVersionCommandResponseSchema = z
     productVersionId: UuidSchema,
     status: z.enum(['published', 'retired']),
     publishedAt: IsoDateTimeSchema.nullable(),
+    auditLogId: UuidSchema,
   })
   .strict();
 export type AdminProductVersionCommandResponse = z.infer<
   typeof AdminProductVersionCommandResponseSchema
+>;
+
+export const AdminCurrentProductVersionCommandResponseSchema = z
+  .object({
+    productId: UuidSchema,
+    currentVersionId: UuidSchema,
+    auditLogId: UuidSchema,
+  })
+  .strict();
+export type AdminCurrentProductVersionCommandResponse = z.infer<
+  typeof AdminCurrentProductVersionCommandResponseSchema
+>;
+
+export const AdminProductionOriginCommandResponseSchema = z
+  .object({
+    originId: UuidSchema,
+    applicationId: UuidSchema,
+    appSlug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    environment: z.literal('production'),
+    origin: z.string().url(),
+    isActive: z.boolean(),
+    createdAt: IsoDateTimeSchema,
+    updatedAt: IsoDateTimeSchema,
+    auditLogId: UuidSchema,
+  })
+  .strict();
+export type AdminProductionOriginCommandResponse = z.infer<
+  typeof AdminProductionOriginCommandResponseSchema
 >;
 
 export const AdminRedemptionBatchCommandResponseSchema = z

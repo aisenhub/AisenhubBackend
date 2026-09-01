@@ -1,18 +1,24 @@
 import {
   AdminCloseRedemptionBatchRequestSchema,
+  AdminChangeProductionOriginRequestSchema,
+  AdminCurrentProductVersionCommandResponseSchema,
   AdminGenerateRedemptionCodesRequestSchema,
   AdminGenerateRedemptionCodesResponseSchema,
   AdminPauseRedemptionBatchRequestSchema,
   AdminProductVersionCommandResponseSchema,
+  AdminProductionOriginCommandResponseSchema,
   AdminPublishProductVersionRequestSchema,
   AdminRedemptionBatchCommandResponseSchema,
   AdminRetireProductVersionRequestSchema,
   AdminSetCurrentProductVersionRequestSchema,
   type AdminCloseRedemptionBatchRequest,
+  type AdminChangeProductionOriginRequest,
+  type AdminCurrentProductVersionCommandResponse,
   type AdminGenerateRedemptionCodesRequest,
   type AdminGenerateRedemptionCodesResponse,
   type AdminPauseRedemptionBatchRequest,
   type AdminProductVersionCommandResponse,
+  type AdminProductionOriginCommandResponse,
   type AdminPublishProductVersionRequest,
   type AdminRedemptionBatchCommandResponse,
   type AdminRetireProductVersionRequest,
@@ -51,10 +57,15 @@ export interface AisenHubBusinessCommandClient {
     options?: AdminCommandOptions,
   ): Promise<AdminCommandResult<AdminProductVersionCommandResponse>>;
   setCurrentProductVersion(
-    productVersionId: string,
+    productId: string,
     input: AdminSetCurrentProductVersionRequest,
     options?: AdminCommandOptions,
-  ): Promise<AdminCommandResult<AdminProductVersionCommandResponse>>;
+  ): Promise<AdminCommandResult<AdminCurrentProductVersionCommandResponse>>;
+  changeProductionOrigin(
+    originId: string,
+    input: AdminChangeProductionOriginRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminProductionOriginCommandResponse>>;
   generateRedemptionCodes(
     batchId: string,
     input: AdminGenerateRedemptionCodesRequest,
@@ -155,16 +166,29 @@ export function createBusinessCommandClient(client: AdminClient): AisenHubBusine
         options,
       );
     },
-    setCurrentProductVersion(productVersionId, input, options) {
-      const id = encodeCommandId(productVersionId);
+    setCurrentProductVersion(productId, input, options) {
+      const id = encodeCommandId(productId);
       return runCommand(
         client,
-        `/v1/admin/product-versions/${id}/set-current`,
+        `/v1/admin/products/${id}/set-current-version`,
         input,
         AdminSetCurrentProductVersionRequestSchema,
-        AdminProductVersionCommandResponseSchema,
-        { resource: 'productVersions', id: productVersionId },
+        AdminCurrentProductVersionCommandResponseSchema,
+        { resource: 'products', id: productId },
         ['products', 'productVersions'],
+        options,
+      );
+    },
+    changeProductionOrigin(originId, input, options) {
+      const id = encodeCommandId(originId);
+      return runCommand(
+        client,
+        `/v1/admin/app-origins/${id}/change-production-origin`,
+        input,
+        AdminChangeProductionOriginRequestSchema,
+        AdminProductionOriginCommandResponseSchema,
+        { resource: 'origins', id: originId },
+        ['applications', 'origins'],
         options,
       );
     },

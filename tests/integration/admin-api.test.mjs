@@ -132,6 +132,19 @@ async function mockedFetch(url, init) {
       { headers: { 'content-type': 'application/json' } },
     );
   }
+  if (pathname.endsWith('/admin_catalog_command')) {
+    return new Response(
+      JSON.stringify([
+        {
+          productVersionId: '22000000-0000-4000-8000-000000000002',
+          status: 'published',
+          publishedAt: '2026-09-01T12:00:00.000Z',
+          auditLogId: '22000000-0000-4000-8000-000000000003',
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
   throw new Error(`Unexpected mocked request: ${pathname}`);
 }
 
@@ -351,5 +364,48 @@ describe('platform Admin API', () => {
 
     expect(response.status).toBe(201);
     expect((await response.json()).data.slug).toBe('draft-app');
+  });
+
+  it('protects high-risk Catalog commands with typed confirmation and permission-specific MFA', async () => {
+    const missingMfa = await routePlatformAdmin(
+      new Request(
+        'http://api.local/v1/admin/product-versions/22000000-0000-4000-8000-000000000002/publish',
+        {
+          method: 'POST',
+          headers: {
+            Origin: adminOrigin,
+            'X-AisenHub-App': 'admin',
+            'X-CSRF-Token': 'csrf-token',
+            'Idempotency-Key': 'publish-without-mfa',
+            Cookie: '__Host-aisenhub_session=valid-admin-session',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({ reason: 'release', confirmation: true }),
+        },
+      ),
+    );
+    expect(missingMfa.status).toBe(403);
+    expect((await missingMfa.json()).error.code).toBe('MFA_REQUIRED');
+
+    adminSessionState = 'mfa-ok';
+    const response = await routePlatformAdmin(
+      new Request(
+        'http://api.local/v1/admin/product-versions/22000000-0000-4000-8000-000000000002/publish',
+        {
+          method: 'POST',
+          headers: {
+            Origin: adminOrigin,
+            'X-AisenHub-App': 'admin',
+            'X-CSRF-Token': 'csrf-token',
+            'Idempotency-Key': 'publish-with-mfa',
+            Cookie: '__Host-aisenhub_session=valid-admin-session',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({ reason: 'release', confirmation: true }),
+        },
+      ),
+    );
+    expect(response.status).toBe(200);
+    expect((await response.json()).data.auditLogId).toBe('22000000-0000-4000-8000-000000000003');
   });
 });

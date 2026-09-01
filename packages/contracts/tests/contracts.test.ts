@@ -5,6 +5,7 @@ import {
   AdminActionMatrix,
   AdminCatalogListQuerySchema,
   AdminCatalogResourceQuerySchema,
+  AdminChangeProductionOriginRequestSchema,
   AdminCreateApplicationRequestSchema,
   AdminCreateOriginRequestSchema,
   AdminCreatePriceRequestSchema,
@@ -24,10 +25,12 @@ import {
   AdminUserListResponseSchema,
   AdminGenerateRedemptionCodesRequestSchema,
   AdminProductListResponseSchema,
+  AdminProductionOriginCommandResponseSchema,
   AdminSessionResponseSchema,
   AdminPublishProductVersionRequestSchema,
   AdminRedemptionCodeSummarySchema,
   AdminSetCurrentProductVersionRequestSchema,
+  AdminCurrentProductVersionCommandResponseSchema,
   AccessResponseSchema,
   ApiErrorEnvelopeSchema,
   ApiSuccessEnvelopeSchema,
@@ -233,6 +236,41 @@ describe('platform contract primitives', () => {
         productVersionId: '00000000-0000-4000-8000-000000000002',
       }).confirmation,
     ).toBe(true);
+    expect(
+      AdminChangeProductionOriginRequestSchema.parse({
+        reason: 'switch production host',
+        confirmation: true,
+        appSlug: 'account',
+        origin: 'https://account.example.com',
+      }).appSlug,
+    ).toBe('account');
+    expect(() =>
+      AdminChangeProductionOriginRequestSchema.parse({
+        reason: 'switch production host',
+        confirmation: true,
+        appSlug: 'account',
+        origin: 'https://account.example.com/path',
+      }),
+    ).toThrow();
+    expect(
+      AdminCurrentProductVersionCommandResponseSchema.parse({
+        productId: requestId,
+        currentVersionId: '00000000-0000-4000-8000-000000000002',
+        auditLogId: '00000000-0000-4000-8000-000000000004',
+      }).currentVersionId,
+    ).toBe('00000000-0000-4000-8000-000000000002');
+    expect(() =>
+      AdminProductionOriginCommandResponseSchema.parse({
+        originId: requestId,
+        applicationId: requestId,
+        appSlug: 'account',
+        environment: 'production',
+        origin: 'https://account.example.com',
+        isActive: true,
+        createdAt: '2026-09-01T12:00:00.000Z',
+        updatedAt: '2026-09-01T12:00:00.000Z',
+      }),
+    ).toThrow();
   });
 
   it('validates Catalog and Product overview projections without secret fields', () => {

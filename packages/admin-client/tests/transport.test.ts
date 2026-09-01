@@ -299,7 +299,12 @@ describe('admin client transport', () => {
         receivedBody = String(init?.body);
         return new Response(
           JSON.stringify({
-            data: { productVersionId, status: 'published', publishedAt: null },
+            data: {
+              productVersionId,
+              status: 'published',
+              publishedAt: null,
+              auditLogId: '00000000-0000-4000-8000-000000000012',
+            },
             requestId,
           }),
           { headers: { 'content-type': 'application/json' }, status: 200 },
@@ -382,6 +387,58 @@ describe('admin client transport', () => {
       requestId,
       status: 403,
     });
+  });
+
+  it('uses architecture-named routes for Set Current and production Origin commands', async () => {
+    const productId = '00000000-0000-4000-8000-000000000013';
+    const originId = '00000000-0000-4000-8000-000000000014';
+    const paths: string[] = [];
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async (input) => {
+        const url = new URL(String(input));
+        paths.push(url.pathname);
+        const data = url.pathname.includes('set-current-version')
+          ? {
+              productId,
+              currentVersionId: '00000000-0000-4000-8000-000000000015',
+              auditLogId: '00000000-0000-4000-8000-000000000016',
+            }
+          : {
+              originId,
+              applicationId: '00000000-0000-4000-8000-000000000017',
+              appSlug: 'account',
+              environment: 'production',
+              origin: 'https://account.example.com',
+              isActive: true,
+              createdAt: '2026-09-01T12:00:00.000Z',
+              updatedAt: '2026-09-01T12:00:00.000Z',
+              auditLogId: '00000000-0000-4000-8000-000000000018',
+            };
+        return new Response(JSON.stringify({ data, requestId }), {
+          headers: { 'content-type': 'application/json' },
+          status: 200,
+        });
+      },
+    });
+    const commands = createBusinessCommandClient(client);
+
+    await commands.setCurrentProductVersion(productId, {
+      productVersionId: '00000000-0000-4000-8000-000000000015',
+      reason: 'switch current version',
+      confirmation: true,
+    });
+    await commands.changeProductionOrigin(originId, {
+      appSlug: 'account',
+      origin: 'https://account.example.com',
+      reason: 'switch production host',
+      confirmation: true,
+    });
+
+    expect(paths).toEqual([
+      `/v1/admin/products/${productId}/set-current-version`,
+      `/v1/admin/app-origins/${originId}/change-production-origin`,
+    ]);
   });
 
   it('rejects missing command reason before transport and refuses non-UUID targets', async () => {

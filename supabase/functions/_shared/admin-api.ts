@@ -293,6 +293,158 @@ type DraftMutationRoute = {
   readonly creates: boolean;
 };
 
+type CatalogCommandRoute = {
+  readonly action: string;
+  readonly permission: string;
+  readonly resourceId: string;
+};
+
+function catalogCommandRoute(request: Request, path: string): CatalogCommandRoute | null {
+  if (request.method !== 'POST') return null;
+
+  const publish = path.match(/^\/v1\/admin\/product-versions\/([^/]+)\/(publish|retire)$/);
+  if (publish) {
+    return {
+      action: `${publish[2]}_product_version`,
+      permission: `product_versions.${publish[2]}`,
+      resourceId: publish[1],
+    };
+  }
+
+  const setCurrent = path.match(/^\/v1\/admin\/products\/([^/]+)\/set-current-version$/);
+  if (setCurrent) {
+    return {
+      action: 'set_current_product_version',
+      permission: 'product_versions.set_current',
+      resourceId: setCurrent[1],
+    };
+  }
+
+  const productionOrigin = path.match(
+    /^\/v1\/admin\/app-origins\/([^/]+)\/change-production-origin$/,
+  );
+  if (productionOrigin) {
+    return {
+      action: 'change_production_origin',
+      permission: 'applications.change_production_origin',
+      resourceId: productionOrigin[1],
+    };
+  }
+
+  return null;
+}
+
+async function adminCatalogCommand(
+  request: Request,
+  route: CatalogCommandRoute,
+  id: string,
+): Promise<Response> {
+  const body = await parseJsonObject(request);
+  if (!body) return errorResponse('VALIDATION_ERROR', 'A JSON object body is required.', 400, id);
+  const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+  const confirmation = body.confirmation;
+  const payload = { ...body };
+  delete payload.reason;
+  delete payload.confirmation;
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  if (!idempotencyKey || idempotencyKey.length > 255 || !reason || reason.length > 1000) {
+    return errorResponse('VALIDATION_ERROR', 'A reason and Idempotency-Key are required.', 400, id);
+  }
+  if (confirmation !== true) {
+    return errorResponse('VALIDATION_ERROR', 'Explicit command confirmation is required.', 400, id);
+  }
+
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const decision = authorizeAdminAction(
+      { role: session.role, status: 'active', aal: session.aal, mfaState: session.mfa_state },
+      route.permission,
+    );
+    if (!decision.allowed) {
+      return errorResponse(
+        decision.reason === 'mfa_required' ? 'MFA_REQUIRED' : 'ADMIN_ACCESS_DENIED',
+        decision.reason === 'mfa_required'
+          ? 'MFA is required for this Catalog command.'
+          : 'Admin access is denied.',
+        403,
+        id,
+      );
+    }
+    const requestHash = await sha256Hex(
+      JSON.stringify({
+        action: route.action,
+        resourceId: route.resourceId,
+        payload,
+        reason,
+        confirmation,
+      }),
+    );
+    const rows = await serviceRpc<unknown>('admin_catalog_command', {
+      p_actor_id: session.user_id,
+      p_action: route.action,
+      p_resource_id: route.resourceId,
+      p_payload: payload,
+      p_reason: reason,
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: requestHash,
+      p_request_id: id,
+    });
+    if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The Catalog command returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '40001') {
+      return errorResponse(
+        'RESOURCE_VERSION_CONFLICT',
+        'The Catalog command is already in progress or the resource changed.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
+      return errorResponse(
+        'IDEMPOTENCY_KEY_REUSED',
+        'The request key was already used for another request.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse(
+        'ADMIN_RESOURCE_NOT_FOUND',
+        'The Admin resource was not found.',
+        404,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The Catalog state transition is invalid.',
+        409,
+        id,
+      );
+    }
+    if (
+      error instanceof ServiceRpcError &&
+      ['22023', '22P02', '23503', '23505'].includes(error.databaseCode ?? '')
+    ) {
+      return errorResponse('VALIDATION_ERROR', 'The Catalog command is invalid.', 400, id);
+    }
+    return errorResponse('INTERNAL_ERROR', 'The Catalog command could not be completed.', 502, id);
+  }
+}
+
 function draftMutationRoute(request: Request, path: string): DraftMutationRoute | null {
   if (request.method === 'POST') {
     if (path === '/v1/admin/applications')
@@ -516,6 +668,12 @@ export async function routePlatformAdmin(
   const productOverviewMatch = path.match(/^\/v1\/admin\/products\/([^/]+)\/overview$/);
   if (productOverviewMatch) {
     return withCors(await adminProductOverviewRead(request, productOverviewMatch[1], id), resolved);
+  }
+  const commandRoute = catalogCommandRoute(request, path);
+  if (commandRoute) {
+    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
+    if (preconditionFailure) return withCors(preconditionFailure, resolved);
+    return withCors(await adminCatalogCommand(request, commandRoute, id), resolved);
   }
   const draftRoute = draftMutationRoute(request, path);
   if (draftRoute) {

@@ -20,6 +20,12 @@ const adminQueryMigration = path.join(
   'migrations',
   '20260901059000_admin_query_projections.sql',
 );
+const adminCatalogCommandMigration = path.join(
+  repositoryRoot,
+  'supabase',
+  'migrations',
+  '20260901110632_admin_catalog_commands.sql',
+);
 
 for (const functionName of functionNames) {
   const entrypoint = path.join(functionsRoot, functionName, 'index.ts');
@@ -69,10 +75,12 @@ if (process.argv.includes('admin-permissions')) {
 if (
   process.argv.includes('admin-query') ||
   process.argv.includes('admin-catalog-query') ||
-  process.argv.includes('catalog-drafts')
+  process.argv.includes('catalog-drafts') ||
+  process.argv.includes('catalog-commands')
 ) {
   const source = fs.readFileSync(adminApiSource, 'utf8');
   const migration = fs.readFileSync(adminQueryMigration, 'utf8');
+  const commandMigration = fs.readFileSync(adminCatalogCommandMigration, 'utf8');
   for (const required of [
     '/v1/admin/system-health',
     'applications|users|origins|features|products|product-versions|prices|redemption-batches|redemption-codes|entitlements|redemptions|feedback|audit-logs',
@@ -81,9 +89,14 @@ if (
     'admin_product_overview',
     'admin_catalog_resource_detail',
     ...(process.argv.includes('catalog-drafts') ? ['admin_catalog_draft_command'] : []),
+    ...(process.argv.includes('catalog-commands') ? ['admin_catalog_command'] : []),
     'ServiceRpcError',
   ]) {
-    if (!source.includes(required) && !migration.includes(required)) {
+    if (
+      !source.includes(required) &&
+      !migration.includes(required) &&
+      !commandMigration.includes(required)
+    ) {
       throw new Error(`Admin query surface is missing ${required}.`);
     }
   }
