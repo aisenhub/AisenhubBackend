@@ -74,32 +74,19 @@ export const ApiSuccessEnvelopeSchema = <T>(
 export { PageMetaSchema, PaginationQuerySchema } from './pagination';
 export type { PageMeta, PaginationQuery } from './pagination';
 
-export const PermissionActions = [
-  'applications.read',
-  'applications.change_production_origin',
-  'products.read',
-  'products.create',
-  'product_versions.publish',
-  'product_versions.retire',
-  'product_versions.set_current',
-  'redemption_batches.generate_codes',
-  'redemption_batches.pause',
-  'redemption_batches.close',
-  'entitlements.grant',
-  'entitlements.revoke',
-  'entitlements.restore',
-  'orders.read',
-  'order_items.refund',
-  'admin_members.manage',
-  'audit_logs.read',
-] as const;
-
-export const PermissionActionSchema = z.enum(PermissionActions);
-export type PermissionAction = (typeof PermissionActions)[number];
-
-export const AdminRoles = ['owner', 'admin', 'support', 'finance'] as const;
-export const AdminRoleSchema = z.enum(AdminRoles);
-export type AdminRole = (typeof AdminRoles)[number];
+export {
+  AdminRoles,
+  AdminRoleSchema,
+  PermissionActions,
+  PermissionActionSchema,
+} from './admin-registry';
+export type { AdminRole, PermissionAction } from './admin-registry';
+export { AdminActionMatrix, evaluateAdminAction, getAdminActionPolicy } from './admin-permissions';
+export type {
+  AdminActionPolicy,
+  AdminAuthorizationContext,
+  AdminAuthorizationDecision,
+} from './admin-permissions';
 
 export {
   AdminAalSchema,

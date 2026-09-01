@@ -1,0 +1,77 @@
+{
+  "actions": {
+    "applications.read": {
+      "roles": ["owner", "admin", "support"],
+      "requiresMfa": false,
+      "reasonRoles": []
+    },
+    "applications.change_production_origin": {
+      "roles": ["owner", "admin"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
+    "products.read": {
+      "roles": ["owner", "admin", "support", "finance"],
+      "requiresMfa": false,
+      "reasonRoles": []
+    },
+    "products.create": { "roles": ["owner", "admin"], "requiresMfa": true, "reasonRoles": [] },
+    "product_versions.publish": {
+      "roles": ["owner", "admin"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
+    "product_versions.retire": {
+      "roles": ["owner", "admin"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
+    "product_versions.set_current": {
+      "roles": ["owner", "admin"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
+    "redemption_batches.generate_codes": {
+      "roles": ["owner", "admin"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
+    "redemption_batches.pause": {
+      "roles": ["owner", "admin"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
+    "redemption_batches.close": {
+      "roles": ["owner", "admin"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
+    "entitlements.grant": {
+      "roles": ["owner", "admin", "support"],
+      "requiresMfa": true,
+      "reasonRoles": ["support"]
+    },
+    "entitlements.revoke": {
+      "roles": ["owner", "admin", "support"],
+      "requiresMfa": true,
+      "reasonRoles": ["support"]
+    },
+    "entitlements.restore": { "roles": ["owner", "admin"], "requiresMfa": true, "reasonRoles": [] },
+    "orders.read": {
+      "roles": ["owner", "admin", "support", "finance"],
+      "requiresMfa": false,
+      "reasonRoles": []
+    },
+    "order_items.refund": {
+      "roles": ["owner", "admin", "finance"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
+    "admin_members.manage": { "roles": ["owner"], "requiresMfa": true, "reasonRoles": [] },
+    "audit_logs.read": {
+      "roles": ["owner", "admin", "support", "finance"],
+      "requiresMfa": false,
+      "reasonRoles": []
+    }
+  }
+}

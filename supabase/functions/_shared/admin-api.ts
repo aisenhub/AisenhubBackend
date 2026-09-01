@@ -1,5 +1,10 @@
 import { healthResponse } from './health.ts';
 import {
+  evaluateBackendAdminAction,
+  type BackendAdminAuthorizationContext,
+  type BackendAdminAuthorizationDecision,
+} from './admin-permissions.ts';
+import {
   apiPath,
   errorResponse,
   jsonResponse,
@@ -20,6 +25,13 @@ type AdminSessionRow = {
   readonly mfa_state: 'not_required' | 'required' | 'verified';
   readonly expires_at: string;
 };
+
+export function authorizeAdminAction(
+  context: BackendAdminAuthorizationContext,
+  action: unknown,
+): BackendAdminAuthorizationDecision {
+  return evaluateBackendAdminAction(context, action);
+}
 
 function isAdminSessionRow(value: unknown): value is AdminSessionRow {
   if (!value || typeof value !== 'object') return false;

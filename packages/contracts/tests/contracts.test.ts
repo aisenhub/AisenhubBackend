@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   AdminRoles,
+  AdminActionMatrix,
   AdminCatalogListQuerySchema,
   AdminGenerateRedemptionCodesRequestSchema,
   AdminProductListResponseSchema,
@@ -20,6 +21,7 @@ import {
   PaginationQuerySchema,
   PermissionActions,
   PermissionActionSchema,
+  evaluateAdminAction,
   PublicProductsResponseSchema,
   RedemptionRequestSchema,
   RedemptionResponseSchema,
@@ -213,5 +215,52 @@ describe('platform contract primitives', () => {
         productVersionId: '00000000-0000-4000-8000-000000000002',
       }).confirmation,
     ).toBe(true);
+  });
+
+  it('covers every fixed Admin role/action cell from one matrix source', () => {
+    for (const role of AdminRoles) {
+      for (const action of PermissionActions) {
+        const decision = evaluateAdminAction(
+          { role, status: 'active', aal: 'aal2', mfaState: 'verified' },
+          action,
+        );
+        expect(decision.allowed).toBe(AdminActionMatrix[action].roles.includes(role));
+      }
+    }
+  });
+
+  it('denies unknown, inactive, and insufficient-assurance requests', () => {
+    expect(evaluateAdminAction({ role: 'owner', status: 'active' }, 'admin.unknown').reason).toBe(
+      'unknown_action',
+    );
+    expect(evaluateAdminAction({ role: 'owner', status: 'disabled' }, 'products.read').reason).toBe(
+      'inactive_member',
+    );
+    expect(
+      evaluateAdminAction(
+        { role: 'finance', status: 'active', aal: 'aal1', mfaState: 'required' },
+        'order_items.refund',
+      ).reason,
+    ).toBe('mfa_required');
+  });
+
+  it('keeps Support and Finance high-risk boundaries explicit', () => {
+    const supportGrant = evaluateAdminAction(
+      { role: 'support', status: 'active', aal: 'aal2', mfaState: 'verified' },
+      'entitlements.grant',
+    );
+    expect(supportGrant).toMatchObject({ allowed: true, requiresMfa: true, requiresReason: true });
+
+    const supportRestore = evaluateAdminAction(
+      { role: 'support', status: 'active', aal: 'aal2', mfaState: 'verified' },
+      'entitlements.restore',
+    );
+    expect(supportRestore.reason).toBe('role_denied');
+
+    const financePublish = evaluateAdminAction(
+      { role: 'finance', status: 'active', aal: 'aal2', mfaState: 'verified' },
+      'product_versions.publish',
+    );
+    expect(financePublish.reason).toBe('role_denied');
   });
 });

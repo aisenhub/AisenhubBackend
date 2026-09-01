@@ -197,7 +197,7 @@ P3-T003.
 
 ## P3-T003 — Define and test the complete fixed Admin Action matrix
 
-Status: pending  
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: contracts-security  
@@ -258,10 +258,10 @@ Every role×Action cell, unknown action, disabled member, MFA-gated action polic
 
 ### Acceptance Criteria
 
-- [ ] One matrix source drives fixtures without making client authoritative.
-- [ ] Unknown actions deny.
-- [ ] Support/Finance cannot exceed architecture.
-- [ ] Tests pass.
+- [x] One matrix source drives fixtures without making client authoritative.
+- [x] Unknown actions deny.
+- [x] Support/Finance cannot exceed architecture.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -273,7 +273,14 @@ Do not add configurable roles/OpenFGA.
 
 ### Output
 
-Fixed tested Admin Action matrix.
+Fixed tested Admin Action matrix delivered from
+`packages/contracts/src/admin-permissions.matrix.json`, with a typed contracts evaluator and a
+Backend adapter. All 17 approved actions are covered for owner/admin/support/finance; unknown
+actions, unknown roles, inactive members, and insufficient AAL2/MFA deny. Support entitlement
+grant/revoke requires reason plus MFA; Support cannot restore; Finance cannot publish and can
+refund only with MFA. Contract tests passed 11/11, the Admin permission smoke check covered 17
+actions, the Edge Function runtime loaded the shared matrix, root tests passed 54/54, and
+typecheck/lint/format/boundary checks passed.
 
 ### Human Gate
 

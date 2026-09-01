@@ -5,6 +5,14 @@ const repositoryRoot = path.resolve(import.meta.dirname, '..');
 const functionsRoot = path.join(repositoryRoot, 'supabase', 'functions');
 const functionNames = ['platform-api', 'platform-public', 'platform-admin', 'payment-webhook'];
 const codeGenerationSource = path.join(functionsRoot, '_shared', 'redemption-code.ts');
+const adminPermissionsSource = path.join(functionsRoot, '_shared', 'admin-permissions.ts');
+const adminPermissionsMatrix = path.join(
+  repositoryRoot,
+  'packages',
+  'contracts',
+  'src',
+  'admin-permissions.matrix.json',
+);
 
 for (const functionName of functionNames) {
   const entrypoint = path.join(functionsRoot, functionName, 'index.ts');
@@ -36,6 +44,19 @@ if (process.argv.includes('code-generation')) {
     throw new Error('Redemption code generation must not log code material.');
   }
   console.log('Redemption code generation security smoke check passed.');
+}
+
+if (process.argv.includes('admin-permissions')) {
+  const matrix = JSON.parse(fs.readFileSync(adminPermissionsMatrix, 'utf8'));
+  const actions = Object.keys(matrix.actions ?? {});
+  const source = fs.readFileSync(adminPermissionsSource, 'utf8');
+  if (actions.length !== 17 || !source.includes('admin-permissions.matrix.json')) {
+    throw new Error('Admin permission adapter is missing the complete shared action matrix.');
+  }
+  if (!source.includes('evaluateBackendAdminAction')) {
+    throw new Error('Admin permission adapter does not expose the backend evaluator.');
+  }
+  console.log(`Admin permission mapping smoke check passed for ${actions.length} actions.`);
 }
 
 console.log(`Function shell smoke check passed for ${functionNames.length} functions.`);
