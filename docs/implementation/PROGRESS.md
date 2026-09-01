@@ -6,15 +6,15 @@ Last Updated: 2026-09-01
 
 Status: IN_PROGRESS
 
-Current Phase: P1 — Identity / Application / Session
-Current Task: P1-T014 — Execute Identity/Application/Session quality gate
-Overall Progress: 26 / 107 tasks completed
-Last Successful Quality Gate: P1-T013 P1 security and Admin Session matrix — PASS
+Current Phase: P2 — Catalog / Entitlement / Redemption
+Current Task: P2-T001 — Create features, products, and product versions schema
+Overall Progress: 27 / 107 tasks completed
+Last Successful Quality Gate: P1-T014 Identity/Application/Session phase checkpoint — PASS
 
 ## Phase Progress
 
 - [x] P0 — Autonomous Bootstrap
-- [ ] P1 — Identity / Application / Session
+- [x] P1 — Identity / Application / Session
 - [ ] P2 — Catalog / Entitlement / Redemption
 - [ ] P3 — Admin Foundation
 - [ ] P4 — Admin Catalog / Customer + Product Integration
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P1-T013 P1 security and Admin Session matrix — P
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Implement the unified identity/application/session boundary on Supabase Local.
-Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T013 completed; P3-T002 was also completed early because its declared dependencies were satisfied. Remote repository synchronization is complete to `origin/main`.
+Goal: Implement the catalog, entitlement, and redemption boundary on Supabase Local.
+Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T014 completed; P3-T002 was completed early because its declared dependencies were satisfied. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -60,6 +60,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T013 completed; P3-
 - P1-T011 Account session shell: PASS — Account-only Auth boundary with password and PKCE-compatible token exchange, typed platform-client session methods, in-memory CSRF bootstrap, accessible loading/error/login/authenticated states, Account tests 3/3, platform-client tests 3/3, root tests 26/26, full build, and real Local login/session/logout smoke passed.
 - P1-T012 Local Auth and multi-session E2E: PASS — Playwright headless Local startup passed 3/3: UI login and session exchange, independent browser session isolation with one-context logout, invalid Origin/application rejection, and revoked/unknown session error redaction. Account Auth browser `fetch` binding was repaired; the E2E harness uses a test-only Vite proxy without weakening browser security flags.
 - P1-T013 security and Admin Session matrix: PASS — database 187, RLS 29, Function shell 4, Contract 6, Integration 16, E2E 3/3, root typecheck/lint/format/unit/build all passed. Admin fixture HTTP returned 200, normal-user fixture returned 403 `ADMIN_ACCESS_DENIED`, and no sensitive fields were exposed. Coverage report is `docs/implementation/reports/P1-T013-security-matrix.md`.
+- P1-T014 Phase 01 checkpoint: PASS — clean-state `pnpm platform:verify` completed all applicable Local checks: database 187, RLS 29, Function shell 4, root tests 35, Contract 6, Integration 16, Playwright 4/4, stable type generation, typecheck, lint, format, build, boundary, and failure-propagation checks. Checkpoint: `docs/implementation/checkpoints/PHASE-01.md`.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -78,8 +79,8 @@ None.
 
 ## Next Tasks
 
-1. P1-T014 — Execute Identity/Application/Session quality gate.
-2. P2-T001 — Create features, products, and product versions schema.
+1. P2-T001 — Create features, products, and product versions schema.
+2. P2-T002 — Create catalog read contracts and API boundary.
 
 ## Recent Commits
 

@@ -735,7 +735,7 @@ P1-T009.
 
 ## P1-T009 — Implement exact Origin, CORS, and app declaration validation
 
-Status: completed  
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: security-test-first  
@@ -1200,7 +1200,7 @@ P1-T014.
 
 ## P1-T014 — Execute Identity/Application/Session quality gate
 
-Status: pending  
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: quality-gate  
@@ -1259,11 +1259,11 @@ All applicable phase quality categories.
 
 ### Acceptance Criteria
 
-- [ ] All applicable checks PASS.
-- [ ] Checkpoint truthfully records evidence.
-- [ ] Architecture Deviations is None or approved.
-- [ ] Human interactions used: 0.
-- [ ] Progress marks P2-T001 next and P3 waits for its declared P1 dependencies.
+- [x] All applicable checks PASS.
+- [x] Checkpoint truthfully records evidence.
+- [x] Architecture Deviations is None or approved.
+- [x] Human interactions used: 0.
+- [x] Progress marks P2-T001 next and P3 waits for its declared P1 dependencies.
 
 ### Failure Recovery
 
@@ -1275,7 +1275,7 @@ Do not advance with red/skipped applicable checks.
 
 ### Output
 
-PHASE-01 checkpoint.
+PHASE-01 checkpoint recorded in `docs/implementation/checkpoints/PHASE-01.md`.
 
 ### Human Gate
 

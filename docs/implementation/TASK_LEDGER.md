@@ -29,6 +29,7 @@
 | P1-T011 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 90260df | Account-only Auth boundary, password/PKCE-compatible token exchange, typed platform-client session methods, in-memory CSRF bootstrap, accessible shell, frontend tests, build, and Local HTTP smoke passed. |
 | P1-T012 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | dc8b2a5 | Playwright headless Local E2E passed 3/3 for login/exchange, independent sessions, one-context logout, invalid Origin/application rejection, and revoked/unknown session error redaction; browser Auth fetch binding and test-only proxy were delivered. |
 | P1-T013 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 1c8d249 | P1 route and Admin Session security matrix passed: database 187, RLS 29, Function shell 4, Contract 6, Integration 16, isolated-port E2E 3/3, root quality gates, and real Local Admin 200/normal-user 403 verification. |
+| P1-T014 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | ea1cbe2 | Phase 01 clean-state checkpoint passed: platform:verify completed database 187, RLS 29, function 4, root 35, Contract 6, Integration 16, Playwright 4/4, stable type generation, typecheck, lint, format, build, boundary, and failure-propagation checks. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |
