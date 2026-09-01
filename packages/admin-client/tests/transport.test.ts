@@ -347,7 +347,14 @@ describe('admin client transport', () => {
           JSON.stringify({
             data: {
               batchId,
-              codes: [{ code: 'AH-LOCAL-ABCD-2345', codeHint: 'AH-****-2345' }],
+              codes: [
+                {
+                  codeId: '00000000-0000-4000-8000-000000000019',
+                  code: 'AH-LOCAL-ABCD-2345',
+                  codeHint: 'AH-****-2345',
+                },
+              ],
+              auditLogId: '00000000-0000-4000-8000-000000000020',
             },
             requestId,
           }),
@@ -387,6 +394,72 @@ describe('admin client transport', () => {
       requestId,
       status: 403,
     });
+  });
+
+  it('creates redemption batches and uses the architecture generate route', async () => {
+    const batchId = '00000000-0000-4000-8000-000000000021';
+    const paths: string[] = [];
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async (input) => {
+        const url = new URL(String(input));
+        paths.push(url.pathname);
+        const data =
+          url.pathname === '/v1/admin/redemption-batches'
+            ? {
+                id: batchId,
+                name: 'Local codes',
+                productSku: 'AISENLENS_PRO',
+                productVersion: 1,
+                status: 'draft',
+                codePrefix: 'AH-LOCAL',
+                quantity: 1,
+                issuedCount: 0,
+                redeemedCount: 0,
+                startsAt: '2026-09-01T12:00:00.000Z',
+                expiresAt: null,
+                createdAt: '2026-09-01T12:00:00.000Z',
+                auditLogId: '00000000-0000-4000-8000-000000000022',
+              }
+            : {
+                batchId,
+                codes: [
+                  {
+                    codeId: '00000000-0000-4000-8000-000000000023',
+                    code: 'AH-LOCAL-ABCD-2345',
+                    codeHint: 'AH-****-2345',
+                  },
+                ],
+                auditLogId: '00000000-0000-4000-8000-000000000024',
+              };
+        return new Response(JSON.stringify({ data, requestId }), {
+          headers: { 'content-type': 'application/json' },
+          status: url.pathname === '/v1/admin/redemption-batches' ? 201 : 200,
+        });
+      },
+    });
+    const commands = createBusinessCommandClient(client);
+    const created = await commands.createRedemptionBatch({
+      name: 'Local codes',
+      productId: '00000000-0000-4000-8000-000000000025',
+      productVersionId: '00000000-0000-4000-8000-000000000026',
+      codePrefix: 'AH-LOCAL',
+      quantity: 1,
+      source: 'manual',
+      reason: 'create local batch',
+      confirmation: true,
+    });
+    const generated = await commands.generateRedemptionCodes(batchId, {
+      reason: 'generate local code',
+      confirmation: true,
+      quantity: 1,
+    });
+    expect(created.command.entity).toEqual({ resource: 'redemptionBatches', id: batchId });
+    expect(generated.data.codes[0].code).toBe('AH-LOCAL-ABCD-2345');
+    expect(paths).toEqual([
+      '/v1/admin/redemption-batches',
+      `/v1/admin/redemption-batches/${batchId}/generate`,
+    ]);
   });
 
   it('uses architecture-named routes for Set Current and production Origin commands', async () => {

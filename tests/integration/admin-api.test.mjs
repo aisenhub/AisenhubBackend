@@ -99,6 +99,20 @@ async function mockedFetch(url, init) {
     );
   }
   if (pathname.endsWith('/admin_catalog_resource_detail')) {
+    const body = JSON.parse(init?.body ?? '{}');
+    if (body.p_resource === 'redemption-batches') {
+      return new Response(
+        JSON.stringify([
+          {
+            id: body.p_id,
+            codePrefix: 'AH-LOCAL',
+            quantity: 1,
+            status: 'draft',
+          },
+        ]),
+        { headers: { 'content-type': 'application/json' } },
+      );
+    }
     return new Response(
       JSON.stringify([
         {
@@ -145,13 +159,72 @@ async function mockedFetch(url, init) {
       { headers: { 'content-type': 'application/json' } },
     );
   }
+  if (pathname.endsWith('/admin_redemption_command')) {
+    const body = JSON.parse(init?.body ?? '{}');
+    if (body.p_action === 'create_redemption_batch') {
+      return new Response(
+        JSON.stringify([
+          {
+            id: '22000000-0000-4000-8000-000000000020',
+            name: 'Local Codes',
+            productSku: 'AISENLENS_PRO',
+            productVersion: 1,
+            status: 'draft',
+            codePrefix: 'AH-LOCAL',
+            quantity: 1,
+            issuedCount: 0,
+            redeemedCount: 0,
+            startsAt: '2026-09-01T12:00:00.000Z',
+            expiresAt: null,
+            createdAt: '2026-09-01T12:00:00.000Z',
+            auditLogId: '22000000-0000-4000-8000-000000000021',
+          },
+        ]),
+        { headers: { 'content-type': 'application/json' } },
+      );
+    }
+    if (body.p_action === 'generate_redemption_codes') {
+      return new Response(
+        JSON.stringify([
+          {
+            batchId: body.p_resource_id,
+            codes: [
+              {
+                codeId: '22000000-0000-4000-8000-000000000022',
+                codeHint: 'AH-LOCAL-****-AAAA',
+              },
+            ],
+            auditLogId: '22000000-0000-4000-8000-000000000023',
+          },
+        ]),
+        { headers: { 'content-type': 'application/json' } },
+      );
+    }
+    return new Response(
+      JSON.stringify([
+        {
+          batchId: body.p_resource_id,
+          status: body.p_action === 'pause_redemption_batch' ? 'paused' : 'closed',
+          auditLogId: '22000000-0000-4000-8000-000000000024',
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
   throw new Error(`Unexpected mocked request: ${pathname}`);
 }
 
 vi.stubGlobal('Deno', {
   env: {
     get(name) {
-      return name === 'SUPABASE_URL' ? 'http://local.supabase' : 'local-anon-key';
+      const values = {
+        SUPABASE_URL: 'http://local.supabase',
+        SUPABASE_ANON_KEY: 'local-anon-key',
+        SUPABASE_SERVICE_ROLE_KEY: 'local-service-role-key',
+        REDEMPTION_PEPPER: 'local-redemption-pepper',
+        REDEMPTION_PEPPER_VERSION: '1',
+      };
+      return values[name];
     },
   },
 });
@@ -407,5 +480,49 @@ describe('platform Admin API', () => {
     );
     expect(response.status).toBe(200);
     expect((await response.json()).data.auditLogId).toBe('22000000-0000-4000-8000-000000000003');
+  });
+
+  it('protects Redemption batch lifecycle and keeps retries plaintext-free', async () => {
+    const batchId = '22000000-0000-4000-8000-000000000020';
+    const headers = {
+      Origin: adminOrigin,
+      'X-AisenHub-App': 'admin',
+      'X-CSRF-Token': 'csrf-token',
+      'Idempotency-Key': 'redemption-create-1',
+      Cookie: '__Host-aisenhub_session=valid-admin-session',
+      'content-type': 'application/json',
+    };
+    const missingMfa = await routePlatformAdmin(
+      new Request('http://api.local/v1/admin/redemption-batches', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          name: 'Local codes',
+          productId: '23000000-0000-4000-8000-000000000001',
+          productVersionId: '24000000-0000-4000-8000-000000000001',
+          codePrefix: 'AH-LOCAL',
+          quantity: 1,
+          source: 'manual',
+          reason: 'create local batch',
+          confirmation: true,
+        }),
+      }),
+    );
+    expect(missingMfa.status).toBe(403);
+    expect((await missingMfa.json()).error.code).toBe('MFA_REQUIRED');
+
+    adminSessionState = 'mfa-ok';
+    const generated = await routePlatformAdmin(
+      new Request(`http://api.local/v1/admin/redemption-batches/${batchId}/generate`, {
+        method: 'POST',
+        headers: { ...headers, 'Idempotency-Key': 'redemption-generate-1' },
+        body: JSON.stringify({ quantity: 1, reason: 'generate local code', confirmation: true }),
+      }),
+    );
+    const generatedBody = await generated.json();
+    expect(generated.status).toBe(200);
+    expect(generatedBody.data.codes[0].codeId).toBe('22000000-0000-4000-8000-000000000022');
+    expect(generatedBody.data.codes[0]).not.toHaveProperty('code');
+    expect(JSON.stringify(generatedBody)).not.toMatch(/plaintext|hash|secret/i);
   });
 });

@@ -20,6 +20,7 @@ import {
   sha256Hex,
   withCors,
 } from './platform-api.ts';
+import { generateRedemptionCodes, redemptionPepperFromEnv } from './redemption-code.ts';
 
 type AdminSessionRow = {
   readonly user_id: string;
@@ -298,6 +299,248 @@ type CatalogCommandRoute = {
   readonly permission: string;
   readonly resourceId: string;
 };
+
+type RedemptionCommandRoute = {
+  readonly action:
+    | 'create_redemption_batch'
+    | 'generate_redemption_codes'
+    | 'pause_redemption_batch'
+    | 'close_redemption_batch';
+  readonly permission: string;
+  readonly resourceId: string | null;
+  readonly creates: boolean;
+};
+
+function redemptionCommandRoute(request: Request, path: string): RedemptionCommandRoute | null {
+  if (request.method !== 'POST') return null;
+  if (path === '/v1/admin/redemption-batches') {
+    return {
+      action: 'create_redemption_batch',
+      permission: 'redemption_batches.generate_codes',
+      resourceId: null,
+      creates: true,
+    };
+  }
+  const command = path.match(/^\/v1\/admin\/redemption-batches\/([^/]+)\/(generate|pause|close)$/);
+  if (!command) return null;
+  return {
+    action:
+      `${command[2]}_redemption_${command[2] === 'generate' ? 'codes' : 'batch'}` as RedemptionCommandRoute['action'],
+    permission: `redemption_batches.${command[2] === 'generate' ? 'generate_codes' : command[2]}`,
+    resourceId: command[1],
+    creates: false,
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+async function adminRedemptionCommand(
+  request: Request,
+  route: RedemptionCommandRoute,
+  id: string,
+): Promise<Response> {
+  const body = await parseJsonObject(request);
+  if (!body) return errorResponse('VALIDATION_ERROR', 'A JSON object body is required.', 400, id);
+  const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+  const confirmation = body.confirmation;
+  const payload = { ...body };
+  delete payload.reason;
+  delete payload.confirmation;
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  if (!idempotencyKey || idempotencyKey.length > 255 || !reason || reason.length > 1000) {
+    return errorResponse('VALIDATION_ERROR', 'A reason and Idempotency-Key are required.', 400, id);
+  }
+  if (confirmation !== true) {
+    return errorResponse('VALIDATION_ERROR', 'Explicit command confirmation is required.', 400, id);
+  }
+
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const decision = authorizeAdminAction(
+      { role: session.role, status: 'active', aal: session.aal, mfaState: session.mfa_state },
+      route.permission,
+    );
+    if (!decision.allowed) {
+      return errorResponse(
+        decision.reason === 'mfa_required' ? 'MFA_REQUIRED' : 'ADMIN_ACCESS_DENIED',
+        decision.reason === 'mfa_required'
+          ? 'MFA is required for this Redemption command.'
+          : 'Admin access is denied.',
+        403,
+        id,
+      );
+    }
+
+    let commandPayload = payload;
+    if (route.action === 'generate_redemption_codes') {
+      if (!route.resourceId)
+        return errorResponse('VALIDATION_ERROR', 'A batch ID is required.', 400, id);
+      const detailRows = await serviceRpc<unknown>('admin_catalog_resource_detail', {
+        p_actor_id: session.user_id,
+        p_resource: 'redemption-batches',
+        p_id: route.resourceId,
+      });
+      const detail = detailRows[0];
+      if (
+        !isRecord(detail) ||
+        typeof detail.codePrefix !== 'string' ||
+        typeof detail.quantity !== 'number'
+      ) {
+        return errorResponse('INTERNAL_ERROR', 'The Redemption batch detail is invalid.', 502, id);
+      }
+      const requestedQuantity =
+        typeof payload.quantity === 'number' ? payload.quantity : detail.quantity;
+      const { pepper, pepperVersion } = redemptionPepperFromEnv((name) => Deno.env.get(name));
+      const materials = await generateRedemptionCodes(
+        detail.codePrefix,
+        requestedQuantity,
+        pepper,
+        pepperVersion,
+      );
+      commandPayload = {
+        quantity: requestedQuantity,
+        codeRecords: materials.map(({ codeHash, codeHint, pepperVersion: version }) => ({
+          codeHash,
+          codeHint,
+          pepperVersion: version,
+        })),
+      };
+      const requestHash = await sha256Hex(
+        JSON.stringify({
+          action: route.action,
+          resourceId: route.resourceId,
+          payload,
+          reason,
+          confirmation,
+        }),
+      );
+      const rows = await serviceRpc<unknown>('admin_redemption_command', {
+        p_actor_id: session.user_id,
+        p_action: route.action,
+        p_resource_id: route.resourceId,
+        p_payload: commandPayload,
+        p_reason: reason,
+        p_idempotency_key: idempotencyKey,
+        p_request_hash: requestHash,
+        p_request_id: id,
+      });
+      if (rows.length !== 1 || !isRecord(rows[0])) {
+        return errorResponse(
+          'INTERNAL_ERROR',
+          'The Redemption command returned an invalid result.',
+          502,
+          id,
+        );
+      }
+      const safe = rows[0];
+      const safeCodes = Array.isArray(safe.codes) ? safe.codes : [];
+      const freshByHint = new Map(
+        materials.map((material) => [material.codeHint, material.plaintext]),
+      );
+      const response = {
+        ...safe,
+        codes: safeCodes.map((code) => {
+          if (!isRecord(code)) return code;
+          const plaintext =
+            typeof code.codeHint === 'string' ? freshByHint.get(code.codeHint) : undefined;
+          return plaintext ? { ...code, code: plaintext } : code;
+        }),
+      };
+      return jsonResponse(response, 200, id);
+    }
+
+    const requestHash = await sha256Hex(
+      JSON.stringify({
+        action: route.action,
+        resourceId: route.resourceId,
+        payload,
+        reason,
+        confirmation,
+      }),
+    );
+    const rows = await serviceRpc<unknown>('admin_redemption_command', {
+      p_actor_id: session.user_id,
+      p_action: route.action,
+      p_resource_id: route.resourceId,
+      p_payload: commandPayload,
+      p_reason: reason,
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: requestHash,
+      p_request_id: id,
+    });
+    if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The Redemption command returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], route.creates ? 201 : 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '40001') {
+      return errorResponse(
+        'RESOURCE_VERSION_CONFLICT',
+        'The Redemption command is already in progress or the resource changed.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
+      return errorResponse(
+        'IDEMPOTENCY_KEY_REUSED',
+        'The request key was already used for another request.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse(
+        'ADMIN_RESOURCE_NOT_FOUND',
+        'The Admin resource was not found.',
+        404,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The Redemption state transition is invalid.',
+        409,
+        id,
+      );
+    }
+    if (
+      error instanceof ServiceRpcError &&
+      ['22023', '22P02', '23503', '23505'].includes(error.databaseCode ?? '')
+    ) {
+      return errorResponse('VALIDATION_ERROR', 'The Redemption command is invalid.', 400, id);
+    }
+    if (
+      error instanceof Error &&
+      /REDEMPTION_PEPPER|redemption code count|valid uppercase/i.test(error.message)
+    ) {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'Redemption code generation is not configured correctly.',
+        502,
+        id,
+      );
+    }
+    return errorResponse(
+      'INTERNAL_ERROR',
+      'The Redemption command could not be completed.',
+      502,
+      id,
+    );
+  }
+}
 
 function catalogCommandRoute(request: Request, path: string): CatalogCommandRoute | null {
   if (request.method !== 'POST') return null;
@@ -668,6 +911,12 @@ export async function routePlatformAdmin(
   const productOverviewMatch = path.match(/^\/v1\/admin\/products\/([^/]+)\/overview$/);
   if (productOverviewMatch) {
     return withCors(await adminProductOverviewRead(request, productOverviewMatch[1], id), resolved);
+  }
+  const redemptionRoute = redemptionCommandRoute(request, path);
+  if (redemptionRoute) {
+    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
+    if (preconditionFailure) return withCors(preconditionFailure, resolved);
+    return withCors(await adminRedemptionCommand(request, redemptionRoute, id), resolved);
   }
   const commandRoute = catalogCommandRoute(request, path);
   if (commandRoute) {

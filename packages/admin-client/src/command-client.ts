@@ -2,6 +2,8 @@ import {
   AdminCloseRedemptionBatchRequestSchema,
   AdminChangeProductionOriginRequestSchema,
   AdminCurrentProductVersionCommandResponseSchema,
+  AdminCreateRedemptionBatchRequestSchema,
+  AdminCreateRedemptionBatchResponseSchema,
   AdminGenerateRedemptionCodesRequestSchema,
   AdminGenerateRedemptionCodesResponseSchema,
   AdminPauseRedemptionBatchRequestSchema,
@@ -14,6 +16,8 @@ import {
   type AdminCloseRedemptionBatchRequest,
   type AdminChangeProductionOriginRequest,
   type AdminCurrentProductVersionCommandResponse,
+  type AdminCreateRedemptionBatchRequest,
+  type AdminCreateRedemptionBatchResponse,
   type AdminGenerateRedemptionCodesRequest,
   type AdminGenerateRedemptionCodesResponse,
   type AdminPauseRedemptionBatchRequest,
@@ -46,6 +50,10 @@ export type AdminCommandResult<T> = AdminResponse<T> & {
 };
 
 export interface AisenHubBusinessCommandClient {
+  createRedemptionBatch(
+    input: AdminCreateRedemptionBatchRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminCreateRedemptionBatchResponse>>;
   publishProductVersion(
     productVersionId: string,
     input: AdminPublishProductVersionRequest,
@@ -106,7 +114,9 @@ async function runCommand<TInput, TOutput>(
   input: TInput,
   inputSchema: ContractSchema<TInput>,
   outputSchema: ContractSchema<TOutput>,
-  entity: { resource: AdminResourceName; id: string },
+  entity:
+    | { resource: AdminResourceName; id: string }
+    | ((output: TOutput) => { resource: AdminResourceName; id: string }),
   invalidates: readonly AdminResourceName[],
   options: AdminCommandOptions | undefined,
 ): Promise<AdminCommandResult<TOutput>> {
@@ -127,9 +137,10 @@ async function runCommand<TInput, TOutput>(
   while (true) {
     try {
       const response = await client.request(path, outputSchema, init);
+      const resolvedEntity = typeof entity === 'function' ? entity(response.data) : entity;
       return {
         ...response,
-        command: { idempotencyKey, entity, invalidates },
+        command: { idempotencyKey, entity: resolvedEntity, invalidates },
       };
     } catch (error) {
       attempt += 1;
@@ -140,6 +151,18 @@ async function runCommand<TInput, TOutput>(
 
 export function createBusinessCommandClient(client: AdminClient): AisenHubBusinessCommandClient {
   return {
+    createRedemptionBatch(input, options) {
+      return runCommand(
+        client,
+        '/v1/admin/redemption-batches',
+        input,
+        AdminCreateRedemptionBatchRequestSchema,
+        AdminCreateRedemptionBatchResponseSchema,
+        (output) => ({ resource: 'redemptionBatches', id: output.id }),
+        ['redemptionBatches'],
+        options,
+      );
+    },
     publishProductVersion(productVersionId, input, options) {
       const id = encodeCommandId(productVersionId);
       return runCommand(
@@ -196,7 +219,7 @@ export function createBusinessCommandClient(client: AdminClient): AisenHubBusine
       const id = encodeCommandId(batchId);
       return runCommand(
         client,
-        `/v1/admin/redemption-batches/${id}/generate-codes`,
+        `/v1/admin/redemption-batches/${id}/generate`,
         input,
         AdminGenerateRedemptionCodesRequestSchema,
         AdminGenerateRedemptionCodesResponseSchema,

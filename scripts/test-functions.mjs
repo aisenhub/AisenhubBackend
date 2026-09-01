@@ -26,6 +26,12 @@ const adminCatalogCommandMigration = path.join(
   'migrations',
   '20260901110632_admin_catalog_commands.sql',
 );
+const adminRedemptionCommandMigration = path.join(
+  repositoryRoot,
+  'supabase',
+  'migrations',
+  '20260901112513_admin_redemption_commands.sql',
+);
 
 for (const functionName of functionNames) {
   const entrypoint = path.join(functionsRoot, functionName, 'index.ts');
@@ -104,6 +110,26 @@ if (
     throw new Error('Admin query projection must not accept arbitrary SQL or table names.');
   }
   console.log('Admin query projection smoke check passed.');
+}
+
+if (process.argv.includes('redemption-admin')) {
+  const source = fs.readFileSync(adminApiSource, 'utf8');
+  const migration = fs.readFileSync(adminRedemptionCommandMigration, 'utf8');
+  for (const required of [
+    '/v1/admin/redemption-batches',
+    'redemptionCommandRoute',
+    'admin_redemption_command',
+    'redemptionPepperFromEnv',
+    'codeRecords',
+  ]) {
+    if (!source.includes(required) && !migration.includes(required)) {
+      throw new Error(`Redemption Admin command surface is missing ${required}.`);
+    }
+  }
+  if (migration.includes('plaintext') && migration.includes('code_plaintext')) {
+    throw new Error('Redemption command migration must not store plaintext code material.');
+  }
+  console.log('Redemption Admin command smoke check passed.');
 }
 
 console.log(`Function shell smoke check passed for ${functionNames.length} functions.`);

@@ -102,6 +102,19 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_redemption_command: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_idempotency_key?: string
+          p_payload?: Json
+          p_reason?: string
+          p_request_hash?: string
+          p_request_id?: string
+          p_resource_id?: string
+        }
+        Returns: Json
+      }
       check_access: {
         Args: { p_app_slug: string; p_feature_code: string; p_user_id: string }
         Returns: {

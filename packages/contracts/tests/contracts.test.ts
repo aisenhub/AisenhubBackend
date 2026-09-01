@@ -6,6 +6,8 @@ import {
   AdminCatalogListQuerySchema,
   AdminCatalogResourceQuerySchema,
   AdminChangeProductionOriginRequestSchema,
+  AdminCreateRedemptionBatchRequestSchema,
+  AdminCreateRedemptionBatchResponseSchema,
   AdminCreateApplicationRequestSchema,
   AdminCreateOriginRequestSchema,
   AdminCreatePriceRequestSchema,
@@ -229,6 +231,35 @@ describe('platform contract primitives', () => {
 
     expect(() => AdminPublishProductVersionRequestSchema.parse({ confirmation: true })).toThrow();
     expect(() => AdminGenerateRedemptionCodesRequestSchema.parse({ reason: 'test' })).toThrow();
+    expect(
+      AdminCreateRedemptionBatchRequestSchema.parse({
+        name: 'Local codes',
+        productId: requestId,
+        productVersionId: '00000000-0000-4000-8000-000000000002',
+        codePrefix: 'AH-LOCAL',
+        quantity: 10,
+        source: 'manual',
+        reason: 'create test batch',
+        confirmation: true,
+      }).quantity,
+    ).toBe(10);
+    expect(() =>
+      AdminCreateRedemptionBatchResponseSchema.parse({
+        id: requestId,
+        name: 'Local codes',
+        productSku: 'AISENLENS_PRO',
+        productVersion: 1,
+        status: 'draft',
+        codePrefix: 'AH-LOCAL',
+        quantity: 1,
+        issuedCount: 0,
+        redeemedCount: 0,
+        startsAt: '2026-09-01T12:00:00.000Z',
+        expiresAt: null,
+        createdAt: '2026-09-01T12:00:00.000Z',
+        auditLogId: '00000000-0000-4000-8000-000000000004',
+      }),
+    ).not.toThrow();
     expect(
       AdminSetCurrentProductVersionRequestSchema.parse({
         reason: 'publish replacement',

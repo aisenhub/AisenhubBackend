@@ -407,6 +407,21 @@ export const AdminCommandMetadataSchema = z
   .strict();
 export type AdminCommandMetadata = z.infer<typeof AdminCommandMetadataSchema>;
 
+export const AdminCreateRedemptionBatchRequestSchema = AdminCommandMetadataSchema.extend({
+  name: z.string().trim().min(1).max(200),
+  productId: UuidSchema,
+  productVersionId: UuidSchema,
+  codePrefix: z.string().regex(/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/),
+  quantity: z.number().int().min(1).max(10_000),
+  perUserLimit: z.number().int().min(1).max(10_000).optional(),
+  startsAt: IsoDateTimeSchema.optional(),
+  expiresAt: IsoDateTimeSchema.nullable().optional(),
+  source: z.string().trim().min(1).max(100),
+}).strict();
+export type AdminCreateRedemptionBatchRequest = z.infer<
+  typeof AdminCreateRedemptionBatchRequestSchema
+>;
+
 export const AdminPublishProductVersionRequestSchema = AdminCommandMetadataSchema;
 export type AdminPublishProductVersionRequest = z.infer<
   typeof AdminPublishProductVersionRequestSchema
@@ -450,7 +465,11 @@ export type AdminCloseRedemptionBatchRequest = z.infer<
 >;
 
 export const AdminGeneratedRedemptionCodeSchema = z
-  .object({ code: z.string().min(1).max(512), codeHint: z.string().min(1).max(200) })
+  .object({
+    codeId: UuidSchema,
+    code: z.string().min(1).max(512).optional(),
+    codeHint: z.string().min(1).max(200),
+  })
   .strict();
 export type AdminGeneratedRedemptionCode = z.infer<typeof AdminGeneratedRedemptionCodeSchema>;
 
@@ -458,6 +477,7 @@ export const AdminGenerateRedemptionCodesResponseSchema = z
   .object({
     batchId: UuidSchema,
     codes: z.array(AdminGeneratedRedemptionCodeSchema).min(1).max(10_000),
+    auditLogId: UuidSchema,
   })
   .strict();
 export type AdminGenerateRedemptionCodesResponse = z.infer<
@@ -505,8 +525,15 @@ export type AdminProductionOriginCommandResponse = z.infer<
 >;
 
 export const AdminRedemptionBatchCommandResponseSchema = z
-  .object({ batchId: UuidSchema, status: z.enum(['paused', 'closed']) })
+  .object({ batchId: UuidSchema, status: z.enum(['paused', 'closed']), auditLogId: UuidSchema })
   .strict();
 export type AdminRedemptionBatchCommandResponse = z.infer<
   typeof AdminRedemptionBatchCommandResponseSchema
+>;
+
+export const AdminCreateRedemptionBatchResponseSchema = AdminRedemptionBatchSummarySchema.extend({
+  auditLogId: UuidSchema,
+}).strict();
+export type AdminCreateRedemptionBatchResponse = z.infer<
+  typeof AdminCreateRedemptionBatchResponseSchema
 >;
