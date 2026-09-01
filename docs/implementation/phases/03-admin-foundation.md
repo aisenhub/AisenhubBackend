@@ -392,7 +392,7 @@ P3-T006.
 
 ## P3-T005 — Implement typed Business Command Client foundation
 
-Status: pending  
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: client-security  
@@ -451,10 +451,10 @@ Missing reason, key reuse, double submit, timeout retry, state conflict, MFA, re
 
 ### Acceptance Criteria
 
-- [ ] Pages need no idempotency implementation.
-- [ ] Retries cannot duplicate logical command.
-- [ ] Stable errors are typed.
-- [ ] Tests pass.
+- [x] Pages need no idempotency implementation.
+- [x] Retries cannot duplicate logical command.
+- [x] Stable errors are typed.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -466,7 +466,13 @@ Do not place domain state machines in client.
 
 ### Output
 
-Business Command transport foundation.
+Business Command transport foundation delivered in `packages/admin-client/src/command-client.ts`.
+Six available catalog/redemption commands have typed methods, contract-validated inputs and
+outputs, UUID-only targets, automatic logical idempotency keys, same-key safe retry for
+transport failures, typed stable errors, requestId propagation, entity metadata, and explicit
+cache invalidation signals. No state machine logic is present in the client. Admin-client tests
+passed 8/8; root tests passed 60/60; typecheck, lint, format, workspace build, boundaries, and
+secret scan passed.
 
 ### Human Gate
 

@@ -3,6 +3,7 @@ import {
   parseApiError,
   type ApiErrorEnvelope,
   type ContractSchema,
+  type ErrorCode,
   type RequestId,
 } from '@aisenhub/contracts';
 
@@ -20,7 +21,7 @@ export interface AdminResponse<T> {
 export type AdminApiError = ApiErrorEnvelope;
 
 export class AdminClientError extends Error {
-  readonly code: string;
+  readonly code: ErrorCode | 'MALFORMED_API_RESPONSE';
   readonly requestId?: string;
   readonly status: number;
   readonly details?: Readonly<Record<string, unknown>>;
@@ -28,7 +29,7 @@ export class AdminClientError extends Error {
   constructor(
     message: string,
     options: {
-      code: string;
+      code: ErrorCode | 'MALFORMED_API_RESPONSE';
       requestId?: string;
       status: number;
       details?: Readonly<Record<string, unknown>>;
@@ -139,3 +140,10 @@ export type {
   AdminResourceName,
   AisenHubAdminDataProvider,
 } from './data-provider';
+
+export { createBusinessCommandClient } from './command-client';
+export type {
+  AdminCommandOptions,
+  AdminCommandResult,
+  AisenHubBusinessCommandClient,
+} from './command-client';

@@ -4,6 +4,7 @@ import {
   AdminClientError,
   createAdminClient,
   createAdminDataProvider,
+  createBusinessCommandClient,
   withIdempotencyKey,
 } from '../src/index';
 
@@ -136,7 +137,7 @@ describe('admin client transport', () => {
   it('maps getOne to an explicit resource path and rejects arbitrary resources or ids', async () => {
     const client = createAdminClient({
       baseUrl: 'https://api.example.test',
-      fetch: async (input) =>
+      fetch: async () =>
         new Response(
           JSON.stringify({
             data: {
@@ -183,5 +184,127 @@ describe('admin client transport', () => {
       code: 'MALFORMED_API_RESPONSE',
       status: 200,
     });
+  });
+
+  it('validates and sends typed publish commands with invalidation metadata', async () => {
+    const productVersionId = '00000000-0000-4000-8000-000000000010';
+    let receivedUrl = '';
+    let receivedBody = '';
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      csrfToken: () => 'csrf-memory-token',
+      fetch: async (input, init) => {
+        receivedUrl = String(input);
+        receivedBody = String(init?.body);
+        return new Response(
+          JSON.stringify({
+            data: { productVersionId, status: 'published', publishedAt: null },
+            requestId,
+          }),
+          { headers: { 'content-type': 'application/json' }, status: 200 },
+        );
+      },
+    });
+
+    const commands = createBusinessCommandClient(client);
+    const result = await commands.publishProductVersion(
+      productVersionId,
+      { reason: 'release local version', confirmation: true },
+      { idempotencyKey: 'publish-local-001' },
+    );
+
+    expect(receivedUrl).toBe(
+      `https://api.example.test/v1/admin/product-versions/${productVersionId}/publish`,
+    );
+    expect(JSON.parse(receivedBody)).toEqual({
+      reason: 'release local version',
+      confirmation: true,
+    });
+    expect(result.command).toEqual({
+      idempotencyKey: 'publish-local-001',
+      entity: { resource: 'productVersions', id: productVersionId },
+      invalidates: ['products', 'productVersions'],
+    });
+  });
+
+  it('retries a transport timeout with the same idempotency key and maps MFA errors', async () => {
+    const batchId = '00000000-0000-4000-8000-000000000011';
+    const keys: string[] = [];
+    let attempts = 0;
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async (_input, init) => {
+        attempts += 1;
+        keys.push(new Headers(init?.headers).get('Idempotency-Key') ?? '');
+        if (attempts === 1) throw new TypeError('network timeout');
+        return new Response(
+          JSON.stringify({
+            data: {
+              batchId,
+              codes: [{ code: 'AH-LOCAL-ABCD-2345', codeHint: 'AH-****-2345' }],
+            },
+            requestId,
+          }),
+          { headers: { 'content-type': 'application/json' }, status: 200 },
+        );
+      },
+    });
+    const commands = createBusinessCommandClient(client);
+
+    const result = await commands.generateRedemptionCodes(batchId, {
+      reason: 'generate local codes',
+      confirmation: true,
+      quantity: 1,
+    });
+    expect(attempts).toBe(2);
+    expect(keys[0]).toBeTruthy();
+    expect(keys[1]).toBe(keys[0]);
+    expect(result.command.invalidates).toEqual(['redemptionBatches', 'redemptionCodes']);
+
+    const errorClient = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async () =>
+        new Response(
+          JSON.stringify({
+            error: { code: 'MFA_REQUIRED', message: 'MFA is required.', requestId },
+          }),
+          { status: 403 },
+        ),
+    });
+    await expect(
+      createBusinessCommandClient(errorClient).pauseRedemptionBatch(batchId, {
+        reason: 'pause local batch',
+        confirmation: true,
+      }),
+    ).rejects.toMatchObject<Partial<AdminClientError>>({
+      code: 'MFA_REQUIRED',
+      requestId,
+      status: 403,
+    });
+  });
+
+  it('rejects missing command reason before transport and refuses non-UUID targets', async () => {
+    let called = false;
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async () => {
+        called = true;
+        return new Response('{}', { status: 500 });
+      },
+    });
+    const commands = createBusinessCommandClient(client);
+
+    await expect(
+      commands.retireProductVersion('00000000-0000-4000-8000-000000000010', {
+        confirmation: true,
+      } as never),
+    ).rejects.toThrow();
+    expect(() =>
+      commands.closeRedemptionBatch('not-a-uuid', {
+        reason: 'close',
+        confirmation: true,
+      }),
+    ).toThrow('Admin command targets must be UUIDs.');
+    expect(called).toBe(false);
   });
 });
