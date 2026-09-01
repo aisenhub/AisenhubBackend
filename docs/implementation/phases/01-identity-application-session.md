@@ -645,7 +645,7 @@ P1-T008.
 
 ## P1-T008 — Implement session read, logout, revocation, and lifecycle
 
-Status: completed  
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: api-test-first  
@@ -920,7 +920,7 @@ P1-T011.
 
 ## P1-T011 — Implement account login and session shell
 
-Status: in_progress  
+Status: completed  
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: frontend  
@@ -983,10 +983,10 @@ Client methods, login state reducer/hooks, token non-persistence, logout/error r
 
 ### Acceptance Criteria
 
-- [ ] Account never shares Supabase browser storage with tools/Admin.
-- [ ] Platform client validates responses.
-- [ ] Build/tests pass.
-- [ ] No product-role logic exists.
+- [x] Account never shares Supabase browser storage with tools/Admin.
+- [x] Platform client validates responses.
+- [x] Build/tests pass.
+- [x] No product-role logic exists.
 
 ### Failure Recovery
 
@@ -1014,7 +1014,7 @@ P1-T012.
 
 ## P1-T012 — Add automated Local Auth and multi-session E2E
 
-Status: pending  
+Status: in_progress
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: e2e  
