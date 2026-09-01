@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P4 — Admin Catalog / Customer + Integration
-Current Task: P4-T001
-Overall Progress: 53 / 107 tasks completed
-Last Successful Quality Gate: P3-T011 Admin Foundation — PASS
+Current Task: P4-T002
+Overall Progress: 54 / 107 tasks completed
+Last Successful Quality Gate: P4-T001 Catalog and Redemption Queries — PASS
 
 ## Phase Progress
 
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P3-T011 Admin Foundation — PASS
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Execute the Admin Foundation quality gate.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T010 completed. Remote repository synchronization is complete to `origin/main`.
+Goal: Implement safe Catalog draft mutations.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T011 completed; P4-T001 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -87,6 +87,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P3-T009 Admin query surface: PASS — allowlisted Applications/Users/Entitlements/Redemptions/Feedback/Audit Logs projections, System Health, stable contracts, opaque cursor pagination, role-based redaction, unknown resource/sort rejection, private service-role-only SQL function, database tests 514/514, contract tests 12/12, integration tests 23/23, query smoke, typecheck, lint, format, build, boundaries, and secrets passed.
 - P3-T010 Admin read-only operations workspace: PASS — Applications, Users, Audit Logs, and System Health pages use Refine/Ant Design with backend query state; reusable DataTable, FilterBar, and AuditTimeline components handle read-only states; all four role flows passed headlessly, Finance direct Applications access returned backend 403, unfinished Platform remained disabled, Admin-client tests 8/8, Admin tests 5/5, root tests 72/72, E2E 5/5, typecheck/build, formatting, and boundary checks passed.
 - P3-T011 Admin Foundation checkpoint: PASS — clean `pnpm platform:verify` passed database 514/514, RLS 29/29, function 4/4, root 72/72, Contract 12/12, Integration 23/23, Playwright 12/12 including ADM-A 5/5, stable type generation, typecheck, lint, format, build, boundaries, secret scan, and failure propagation; `PHASE-03.md` published with Architecture Deviations: None.
+- P4-T001 Catalog and Redemption queries: PASS — explicit typed list/detail projections for Catalog and Redemption resources, Product 360 overview aggregation from existing facts, code-hint-only redaction, stable Admin resource-not-found error, database tests 537/537, RLS 29/29, unit 75/75, contract 13/13, integration 24/24, Playwright 12/12, typecheck, lint, format, build, boundaries, and failure-propagation checks passed; commit `f4ac227`.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -105,11 +106,11 @@ None.
 
 ## Next Tasks
 
-1. P4-T001 — Begin Admin Catalog / Customer + Integration.
-2. P4-T002 — Continue Admin Catalog / Customer + Integration.
+1. P4-T002 — Implement safe Catalog draft mutations.
 
 ## Recent Commits
 
+- `f4ac227` — feat(admin-api): add catalog redemption queries
 - `94c05cc` — feat(admin-client): add command transport foundation
 - `4c702ef` — feat(admin): add read-only operations workspace
 - `6c520ee` — chore(checkpoint): complete admin foundation

@@ -4,7 +4,7 @@ Goal: deliver Admin Phase B/C, account workflows, and AisenLens migration to pla
 
 ## P4-T001 — Implement complete Catalog and Redemption Resource Queries
 
-Status: pending  
+Status: completed
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: api-contract  
@@ -65,10 +65,10 @@ Every resource/role/filter/page/detail/overview, invalid filter, sensitive code/
 
 ### Acceptance Criteria
 
-- [ ] All IA resources have typed queries.
-- [ ] Product overview uses existing facts only.
-- [ ] No plaintext/hash leaks.
-- [ ] Tests pass.
+- [x] All IA resources have typed queries.
+- [x] Product overview uses existing facts only.
+- [x] No plaintext/hash leaks.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -82,13 +82,20 @@ Do not add a generic table endpoint or second read store.
 
 Catalog/Redemption query API.
 
+### Verification
+
+- Explicit list projections cover Applications, Origins, Features, Products, Product Versions, Prices, Redemption Batches, Redemption Code hints, Redemptions, and Entitlements; detail routes cover the same Catalog/Redemption resources and Product 360 has a dedicated overview route.
+- Product overview aggregates existing Product, Version, Price, Feature Snapshot, Redemption Batch, and Audit facts without introducing a second read store.
+- Redemption list/detail projections expose `codeHint` only; plaintext codes and hashes are excluded by SQL tests and response contracts.
+- `pnpm platform:verify` passed: database 537/537, RLS 29/29, function shell 4/4, unit 75/75, contract 13/13, integration 24/24, Playwright 12/12, typecheck, lint, format, build, boundaries, and failure propagation.
+
 ### Human Gate
 
 None. All Local operations and E2E are autonomous; commercial values remain deterministic test fixtures.
 
 ### Commit
 
-`feat(admin-api): add catalog redemption queries` — Task P4-T001.
+`feat(admin-api): add catalog redemption queries` — `f4ac227`.
 
 ### Next
 
