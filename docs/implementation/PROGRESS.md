@@ -4,12 +4,12 @@ Last Updated: 2026-09-01
 
 ## Overall
 
-Status: IN_PROGRESS
+Status: PAUSED
 
 Current Phase: P5 — Commerce + Admin D
-Current Task: P5-T005
-Overall Progress: 71 / 107 tasks completed
-Last Successful Quality Gate: P5-T004 Commerce/Admin contract quality gate — PASS
+Current Task: P5-T006 (paused after P5-T005)
+Overall Progress: 72 / 107 tasks completed
+Last Successful Quality Gate: P5-T005 atomic paid-order fulfillment — PASS
 
 ## Phase Progress
 
@@ -25,9 +25,9 @@ Last Successful Quality Gate: P5-T004 Commerce/Admin contract quality gate — P
 
 ## Current Work
 
-Status: IN_PROGRESS
-Goal: Continue Commerce + Admin D implementation at P5-T005.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, and P4-T001 through P4-T014 completed. Remote repository synchronization is complete to `origin/main`.
+Status: PAUSED
+Goal: Resume Commerce + Admin D implementation at P5-T006 after user instruction.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, and P5-T001 through P5-T005 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -36,11 +36,12 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - Dependency graph: PASS — 107 dependency blocks, no missing Task ID, no self-dependency, no cycle
 - Human Interaction design: PASS — 102 AUTONOMOUS tasks, 5 conditional/explicit HUMAN_GATE tasks; Local budget remains 0
 - Markdown/local links: PASS — balanced code fences and no broken local links
-- Implementation format/lint/typecheck/tests/build: PASS — format, lint, database reset, and database tests pass; P0-T005 migration checks passed 14/14 across consecutive resets.
+- Implementation baseline and quality gates: PASS — format, lint, typecheck, unit tests, build, and database reset checks pass where applicable; P0-T005 migration checks passed 14/14 across consecutive resets. Current Commerce state-suite exceptions are explicitly recorded under P5-T003/P5-T005 until P5-T007/P5-T008.
 - P5-T001 commerce orders/order_items: PASS — database 737/737, root unit 94/94, typecheck, lint, format, workspace build, boundary check, and secret scan passed.
 - P5-T002 commerce payments/payment_events: PASS — database 775/775, RLS 29/29, unit 94/94, contract 14/14, integration 32/32, Playwright 14/14, typecheck, lint, format, workspace build, boundaries, failure propagation, and secret scan passed.
-- P5-T003 commerce state specification: PASS — focused suite produced the expected 24/29 red assertions for missing domain functions, with no harness or migration errors.
+- P5-T003 commerce state specification: PASS — initial test-first run produced the expected 24/29 red assertions for missing domain functions; after P5-T005, all 26 fulfillment/rollback assertions pass and the shared 35-assertion suite retains 9 expected failures reserved for P5-T007/P5-T008, with no harness or migration errors.
 - P5-T004 commerce/Admin contracts: PASS — Contract 15/15, root unit 95/95, typecheck, lint, format, workspace build, boundaries, and secret scan passed.
+- P5-T005 atomic paid-order fulfillment: PASS — multi-item grants, duplicate-event idempotency, cancelled-order rejection, and all-or-nothing rollback pass in the focused suite (26/26 fulfillment assertions); root unit 95/95, RLS 29/29, typecheck, lint, format, workspace build, boundaries, and secret scan passed. The shared state suite has 9 expected future refund/chargeback failures for P5-T007/P5-T008.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
@@ -122,10 +123,11 @@ None.
 
 ## Next Tasks
 
-1. P5-T005 — Implement atomic paid-order fulfillment.
+1. P5-T006 — Implement manual order verification Command (paused; resume on user instruction).
 
 ## Recent Commits
 
+- `6e3fca2` — feat(commerce): implement paid order fulfillment
 - `bcbebd0` — feat(contracts): add commerce and refund APIs
 - `cd1802d` — test(commerce): specify order payment refund states
 - `78c0512` — feat(commerce): add payments and payment events

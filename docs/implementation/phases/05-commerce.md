@@ -278,12 +278,13 @@ Do not implement provider or domain logic in this test task.
 
 ### Output
 
-Executable Commerce specification in `supabase/tests/0029_commerce_state_spec.sql`, covering multi-item atomic fulfillment, duplicate-event retry, delayed payment after cancellation, partial compensation, full OrderItem refund, grant source linkage, and chargeback expectations. The focused suite intentionally remains red until the later domain tasks implement the named functions: 24/29 expected failures, with no harness errors.
+Executable Commerce specification in `supabase/tests/0029_commerce_state_spec.sql`, covering multi-item atomic fulfillment, duplicate-event retry, delayed payment after cancellation, partial compensation, full OrderItem refund, grant source linkage, and chargeback expectations. The initial focused suite intentionally remained red until the later domain tasks implement the named functions: 24/29 expected failures, with no harness errors. After P5-T005, the fulfillment portion is green; the shared suite has 9 expected failures reserved for P5-T007/P5-T008 refund/chargeback functions.
 
 ### Verification
 
 - Focused test command: `pnpm exec supabase test db supabase/tests/0029_commerce_state_spec.sql`
-- Expected red result: 24/29 assertions fail because the domain functions do not yet exist; all failures are explicit missing-function or downstream state assertions.
+- Initial expected red result: 24/29 assertions failed because the domain functions did not yet exist; all failures were explicit missing-function or downstream state assertions.
+- Current shared-suite result after P5-T005: 26/35 assertions pass, including every fulfillment, duplicate-event, delayed-cancellation, and rollback assertion; the remaining 9 failures are the explicitly deferred `refund_order_item` and `chargeback_order` expectations for P5-T007/P5-T008.
 - No provider or Commerce domain logic was implemented in this test-first task.
 
 ### Human Gate
@@ -398,7 +399,7 @@ P5-T005,P5-T006.
 
 ## P5-T005 — Implement atomic paid-order fulfillment
 
-Status: pending  
+Status: completed
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: domain  
@@ -456,10 +457,10 @@ Multi-item success, duplicate event, one item failure rollback, source uniquenes
 
 ### Acceptance Criteria
 
-- [ ] Each item gets one independent Grant.
-- [ ] Duplicate fulfillment adds nothing.
-- [ ] Partial failure commits nothing.
-- [ ] Tests pass.
+- [x] Each item gets one independent Grant.
+- [x] Duplicate fulfillment adds nothing.
+- [x] Partial failure commits nothing.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -471,7 +472,15 @@ Do not enqueue first-version fulfillment or source grants from order.id.
 
 ### Output
 
-Atomic Commerce fulfillment.
+Atomic Commerce fulfillment in `supabase/migrations/20260901180000_commerce_fulfillment.sql`, using payment-event idempotency, locked order items, `source_type=order_item`, and one transaction for all grants and state changes.
+
+### Verification
+
+- Focused state specification: all 26 P5-T005 fulfillment/rollback assertions pass.
+- Root unit suite: 95/95; RLS suite: 29/29.
+- Typecheck, lint, format check, workspace build, boundary check, and secret scan: PASS.
+- The shared state specification retains 9 expected P5-T007/P5-T008 refund/chargeback failures; this is deferred coverage, not a P5-T005 failure.
+- Grant source IDs use `order_items.id`; no grant is sourced from `orders.id`.
 
 ### Human Gate
 
