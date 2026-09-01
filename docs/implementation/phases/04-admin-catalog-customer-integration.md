@@ -103,7 +103,7 @@ P4-T002 and P4-T006.
 
 ## P4-T002 — Implement safe Catalog draft mutations
 
-Status: completed  
+Status: completed
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: api-domain  
@@ -1089,7 +1089,7 @@ P4-T012.
 
 ## P4-T012 — Integrate account and AisenLens with platform-client
 
-Status: pending  
+Status: completed
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: product-integration  
@@ -1152,10 +1152,10 @@ Account flows, AisenLens free/paid/revoked session behavior, no platform table n
 
 ### Acceptance Criteria
 
-- [ ] AisenLens uses platform-client only.
-- [ ] No platform migration remains in product repository when switch completes.
-- [ ] Local media/project data is unchanged.
-- [ ] Tests pass.
+- [x] AisenLens uses `@aisenhub/platform-client` adapters for session, profile, entitlement, access, redemption, and feedback; Supabase Auth remains only the credential provider.
+- [x] No platform migration remains in the AisenLens product repository when the switch completes.
+- [x] Local media/project data is unchanged.
+- [x] Account and AisenLens focused tests/builds pass; platform E2E remains green.
 
 ### Failure Recovery
 
@@ -1168,6 +1168,16 @@ Do not broaden edits to AisenLens local media features or discard user changes.
 ### Output
 
 Account and first-product integration.
+
+### Verification
+
+- Account tests 3/3 and production build passed.
+- AisenLens platform integration tests 2/2, existing auto-shot contract tests 6/6, lint, typecheck, and production build passed.
+- Platform E2E passed 12/12 after adding the Account and AisenLens public API proxy configuration.
+- Platform database reset/test passed 699/699; root tests 94/94; platform-client tests 6/6; typecheck, lint, format, boundaries, and secrets passed.
+- Added the deterministic Local AisenLens origin `http://localhost:5175` to the platform seed and separated public catalog traffic from authenticated API traffic.
+- AisenLens implementation commit: `01fbe49`; platform implementation commit: `1c2e6f2`.
+- AisenLens pre-existing dirty changes in `reference-projects/REFERENCE_PROJECT_INDEX.md` and `.agents/` were preserved and were not included in the integration commit.
 
 ### Human Gate
 
