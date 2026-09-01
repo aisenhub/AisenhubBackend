@@ -158,6 +158,20 @@ export type Database = {
         Args: { p_actor_id: string; p_user_id: string }
         Returns: Json
       }
+      admin_verify_order: {
+        Args: {
+          p_actor_id: string
+          p_amount: number
+          p_currency: string
+          p_idempotency_key: string
+          p_order_id: string
+          p_payment_reference: string
+          p_reason: string
+          p_request_hash: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
       cancel_account_deletion: {
         Args: { p_request_id?: string; p_user_id: string }
         Returns: {
@@ -241,6 +255,10 @@ export type Database = {
           next_attempt_at: string
           status: string
         }[]
+      }
+      fulfill_paid_order: {
+        Args: { p_payment_event_id: string }
+        Returns: Json
       }
       get_admin_session: {
         Args: { p_token_hash: string }

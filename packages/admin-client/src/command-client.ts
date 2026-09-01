@@ -23,6 +23,8 @@ import {
   AdminRevokeEntitlementRequestSchema,
   AdminRevokedEntitlementCommandResponseSchema,
   AdminSetCurrentProductVersionRequestSchema,
+  AdminVerifyOrderRequestSchema,
+  AdminVerifyOrderResponseSchema,
   type AdminCloseRedemptionBatchRequest,
   type AdminDisableUserRequest,
   type AdminDisabledUserCommandResponse,
@@ -47,6 +49,8 @@ import {
   type AdminRevokeEntitlementRequest,
   type AdminRevokedEntitlementCommandResponse,
   type AdminSetCurrentProductVersionRequest,
+  type AdminVerifyOrderRequest,
+  type AdminVerifyOrderResponse,
   type ContractSchema,
 } from '@aisenhub/contracts';
 
@@ -134,6 +138,11 @@ export interface AisenHubBusinessCommandClient {
     input: AdminProcessDeletionRequest,
     options?: AdminCommandOptions,
   ): Promise<AdminCommandResult<AdminProcessedDeletionCommandResponse>>;
+  verifyOrder(
+    orderId: string,
+    input: AdminVerifyOrderRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminVerifyOrderResponse>>;
 }
 
 function encodeCommandId(id: string): string {
@@ -361,6 +370,19 @@ export function createBusinessCommandClient(client: AdminClient): AisenHubBusine
         AdminProcessedDeletionCommandResponseSchema,
         { resource: 'accountDeletionRequests', id: requestId },
         ['accountDeletionRequests', 'users'],
+        options,
+      );
+    },
+    verifyOrder(orderId, input, options) {
+      const id = encodeCommandId(orderId);
+      return runCommand(
+        client,
+        `/v1/admin/orders/${id}/verify`,
+        input,
+        AdminVerifyOrderRequestSchema,
+        AdminVerifyOrderResponseSchema,
+        { resource: 'orders', id: orderId },
+        ['orders', 'payments', 'entitlements', 'auditLogs'],
         options,
       );
     },

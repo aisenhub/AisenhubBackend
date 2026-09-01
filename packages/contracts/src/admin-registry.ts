@@ -17,6 +17,7 @@ export const PermissionActions = [
   'users.disable',
   'account_deletion.process',
   'orders.read',
+  'orders.verify',
   'order_items.refund',
   'admin_members.manage',
   'audit_logs.read',

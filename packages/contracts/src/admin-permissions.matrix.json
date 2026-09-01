@@ -68,6 +68,11 @@
       "requiresMfa": false,
       "reasonRoles": []
     },
+    "orders.verify": {
+      "roles": ["owner", "finance"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
     "order_items.refund": {
       "roles": ["owner", "admin", "finance"],
       "requiresMfa": true,

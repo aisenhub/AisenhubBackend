@@ -646,6 +646,67 @@ describe('admin client transport', () => {
     ]);
   });
 
+  it('maps manual order verification to its named command route and preserves retry metadata', async () => {
+    const orderId = '00000000-0000-4000-8000-000000000041';
+    let receivedUrl = '';
+    let receivedBody = '';
+    let receivedHeaders: Headers | undefined;
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      csrfToken: () => 'csrf-memory-token',
+      fetch: async (input, init) => {
+        receivedUrl = String(input);
+        receivedBody = String(init?.body);
+        receivedHeaders = new Headers(init?.headers);
+        return new Response(
+          JSON.stringify({
+            data: {
+              orderId,
+              paymentId: '00000000-0000-4000-8000-000000000042',
+              paymentEventId: '00000000-0000-4000-8000-000000000043',
+              status: 'fulfilled',
+              grantIds: ['00000000-0000-4000-8000-000000000044'],
+              idempotent: false,
+              auditLogId: '00000000-0000-4000-8000-000000000045',
+              fulfillmentAuditLogId: '00000000-0000-4000-8000-000000000046',
+              overviewPath: `/v1/admin/orders/${orderId}/overview`,
+              auditPath: '/v1/admin/audit-logs/00000000-0000-4000-8000-000000000045',
+            },
+            requestId,
+          }),
+          { headers: { 'content-type': 'application/json' }, status: 200 },
+        );
+      },
+    });
+    const result = await createBusinessCommandClient(client).verifyOrder(
+      orderId,
+      {
+        paymentReference: 'manual-proof-001',
+        amountMinor: 2000,
+        currency: 'USD',
+        reason: 'verify cash receipt',
+        confirmation: true,
+      },
+      { idempotencyKey: 'manual-verify-001' },
+    );
+
+    expect(receivedUrl).toBe(`https://api.example.test/v1/admin/orders/${orderId}/verify`);
+    expect(JSON.parse(receivedBody)).toEqual({
+      paymentReference: 'manual-proof-001',
+      amountMinor: 2000,
+      currency: 'USD',
+      reason: 'verify cash receipt',
+      confirmation: true,
+    });
+    expect(receivedHeaders?.get('Idempotency-Key')).toBe('manual-verify-001');
+    expect(receivedHeaders?.get('X-CSRF-Token')).toBe('csrf-memory-token');
+    expect(result.command).toEqual({
+      idempotencyKey: 'manual-verify-001',
+      entity: { resource: 'orders', id: orderId },
+      invalidates: ['orders', 'payments', 'entitlements', 'auditLogs'],
+    });
+  });
+
   it('rejects missing command reason before transport and refuses non-UUID targets', async () => {
     let called = false;
     const client = createAdminClient({

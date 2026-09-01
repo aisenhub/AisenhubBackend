@@ -362,6 +362,20 @@ type CustomerCommandRoute = {
   readonly resourceId: string;
 };
 
+type OrderCommandRoute = {
+  readonly action: 'verify_order';
+  readonly permission: 'orders.verify';
+  readonly resourceId: string;
+};
+
+function orderCommandRoute(request: Request, path: string): OrderCommandRoute | null {
+  if (request.method !== 'POST') return null;
+  const match = path.match(/^\/v1\/admin\/orders\/([^/]+)\/verify$/);
+  return match
+    ? { action: 'verify_order', permission: 'orders.verify', resourceId: match[1] }
+    : null;
+}
+
 function customerCommandRoute(request: Request, path: string): CustomerCommandRoute | null {
   if (request.method !== 'POST') return null;
 
@@ -514,6 +528,187 @@ async function adminCustomerCommand(
       return errorResponse('VALIDATION_ERROR', 'The Customer command is invalid.', 400, id);
     }
     return errorResponse('INTERNAL_ERROR', 'The Customer command could not be completed.', 502, id);
+  }
+}
+
+async function adminOrderCommand(
+  request: Request,
+  route: OrderCommandRoute,
+  id: string,
+): Promise<Response> {
+  const body = await parseJsonObject(request);
+  if (!body) return errorResponse('VALIDATION_ERROR', 'A JSON object body is required.', 400, id);
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      route.resourceId,
+    )
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'The Order command target is invalid.', 400, id);
+  }
+
+  const allowedKeys = new Set([
+    'paymentReference',
+    'amountMinor',
+    'currency',
+    'reason',
+    'confirmation',
+  ]);
+  if (Object.keys(body).some((key) => !allowedKeys.has(key))) {
+    return errorResponse('VALIDATION_ERROR', 'The manual payment evidence is invalid.', 400, id);
+  }
+  const paymentReference =
+    typeof body.paymentReference === 'string' ? body.paymentReference.trim() : '';
+  const amountMinor = body.amountMinor;
+  const currency = typeof body.currency === 'string' ? body.currency : '';
+  const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+  const confirmation = body.confirmation;
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  if (
+    !paymentReference ||
+    paymentReference.length > 200 ||
+    /\s/.test(paymentReference) ||
+    typeof amountMinor !== 'number' ||
+    !Number.isSafeInteger(amountMinor) ||
+    amountMinor < 0 ||
+    !/^[A-Z]{3}$/.test(currency) ||
+    !idempotencyKey ||
+    idempotencyKey.length > 255 ||
+    !reason ||
+    reason.length > 1000
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'The manual payment evidence is invalid.', 400, id);
+  }
+  if (confirmation !== true) {
+    return errorResponse('VALIDATION_ERROR', 'Explicit command confirmation is required.', 400, id);
+  }
+
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const decision = authorizeAdminAction(
+      { role: session.role, status: 'active', aal: session.aal, mfaState: session.mfa_state },
+      route.permission,
+    );
+    if (!decision.allowed) {
+      return errorResponse(
+        decision.reason === 'mfa_required' ? 'MFA_REQUIRED' : 'ADMIN_ACCESS_DENIED',
+        decision.reason === 'mfa_required'
+          ? 'MFA is required for this Order command.'
+          : 'Admin access is denied.',
+        403,
+        id,
+      );
+    }
+
+    const requestHash = await sha256Hex(
+      JSON.stringify({
+        action: route.action,
+        resourceId: route.resourceId,
+        paymentReference,
+        amountMinor,
+        currency,
+        reason,
+        confirmation,
+      }),
+    );
+    const rows = await serviceRpc<unknown>('admin_verify_order', {
+      p_actor_id: session.user_id,
+      p_order_id: route.resourceId,
+      p_payment_reference: paymentReference,
+      p_amount: amountMinor,
+      p_currency: currency,
+      p_reason: reason,
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: requestHash,
+      p_request_id: id,
+    });
+    if (rows.length !== 1 || !isRecord(rows[0])) {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The Order command returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '40001') {
+      return errorResponse(
+        'RESOURCE_VERSION_CONFLICT',
+        'The Order command is already in progress or the resource changed.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
+      return errorResponse(
+        'IDEMPOTENCY_KEY_REUSED',
+        'The request key was already used for another request.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse('ORDER_NOT_FOUND', 'The Order was not found.', 404, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0003') {
+      return errorResponse(
+        'PAYMENT_AMOUNT_MISMATCH',
+        'The payment evidence does not match the Order amount or currency.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0004') {
+      return errorResponse(
+        'ORDER_NOT_FULFILLABLE',
+        'The Order is not eligible for verification.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0005') {
+      return errorResponse(
+        'VALIDATION_ERROR',
+        'The payment reference does not match the Order.',
+        400,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0006') {
+      return errorResponse(
+        'PAYMENT_NOT_FOUND',
+        'A pending payment was not found for the Order.',
+        404,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0007') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The Order fulfillment audit could not be confirmed.',
+        502,
+        id,
+      );
+    }
+    if (
+      error instanceof ServiceRpcError &&
+      ['22023', '22P02', '23503'].includes(error.databaseCode ?? '')
+    ) {
+      return errorResponse('VALIDATION_ERROR', 'The manual payment evidence is invalid.', 400, id);
+    }
+    if (error instanceof ServiceRpcError && ['23505', '23514'].includes(error.databaseCode ?? '')) {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The Order state transition is invalid.',
+        409,
+        id,
+      );
+    }
+    return errorResponse('INTERNAL_ERROR', 'The Order command could not be completed.', 502, id);
   }
 }
 
@@ -1138,6 +1333,12 @@ export async function routePlatformAdmin(
     const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
     if (preconditionFailure) return withCors(preconditionFailure, resolved);
     return withCors(await adminRedemptionCommand(request, redemptionRoute, id), resolved);
+  }
+  const orderRoute = orderCommandRoute(request, path);
+  if (orderRoute) {
+    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
+    if (preconditionFailure) return withCors(preconditionFailure, resolved);
+    return withCors(await adminOrderCommand(request, orderRoute, id), resolved);
   }
   const customerRoute = customerCommandRoute(request, path);
   if (customerRoute) {

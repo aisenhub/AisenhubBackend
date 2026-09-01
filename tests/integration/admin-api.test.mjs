@@ -18,14 +18,27 @@ async function mockedFetch(url, init) {
   if (pathname.endsWith('/get_admin_session')) {
     return new Response(
       JSON.stringify(
-        adminSessionState === 'active' || adminSessionState === 'mfa-ok'
+        adminSessionState === 'active' ||
+          adminSessionState === 'mfa-ok' ||
+          adminSessionState === 'finance-mfa-required' ||
+          adminSessionState === 'finance-mfa-ok'
           ? [
               {
                 user_id: '10000000-0000-4000-0000-000000000002',
                 display_name: 'Local Admin',
-                role: 'admin',
-                aal: adminSessionState === 'mfa-ok' ? 'aal2' : 'aal1',
-                mfa_state: adminSessionState === 'mfa-ok' ? 'verified' : 'required',
+                role:
+                  adminSessionState === 'finance-mfa-required' ||
+                  adminSessionState === 'finance-mfa-ok'
+                    ? 'finance'
+                    : 'admin',
+                aal:
+                  adminSessionState === 'mfa-ok' || adminSessionState === 'finance-mfa-ok'
+                    ? 'aal2'
+                    : 'aal1',
+                mfa_state:
+                  adminSessionState === 'mfa-ok' || adminSessionState === 'finance-mfa-ok'
+                    ? 'verified'
+                    : 'required',
                 expires_at: '2026-09-01T12:15:00.000Z',
               },
             ]
@@ -305,6 +318,25 @@ async function mockedFetch(url, init) {
     return new Response(JSON.stringify([results[body.p_action]]), {
       headers: { 'content-type': 'application/json' },
     });
+  }
+  if (pathname.endsWith('/admin_verify_order')) {
+    return new Response(
+      JSON.stringify([
+        {
+          orderId: '27000000-0000-4000-8000-000000000001',
+          paymentId: '27000000-0000-4000-8000-000000000002',
+          paymentEventId: '27000000-0000-4000-8000-000000000003',
+          status: 'fulfilled',
+          grantIds: ['27000000-0000-4000-8000-000000000004'],
+          idempotent: false,
+          auditLogId: '27000000-0000-4000-8000-000000000005',
+          fulfillmentAuditLogId: '27000000-0000-4000-8000-000000000006',
+          overviewPath: '/v1/admin/orders/27000000-0000-4000-8000-000000000001/overview',
+          auditPath: '/v1/admin/audit-logs/27000000-0000-4000-8000-000000000005',
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
   }
   throw new Error(`Unexpected mocked request: ${pathname}`);
 }
@@ -651,6 +683,72 @@ describe('platform Admin API', () => {
     expect(body.data.status).toBe('disabled');
     expect(body.data.revokedSessionCount).toBe(2);
     expect(JSON.stringify(body)).not.toMatch(/token|secret|password|stack/i);
+  });
+
+  it('protects manual order verification with Finance-only MFA and the shared command path', async () => {
+    const orderId = '27000000-0000-4000-8000-000000000001';
+    const headers = {
+      Origin: adminOrigin,
+      'X-AisenHub-App': 'admin',
+      'X-CSRF-Token': 'csrf-token',
+      'Idempotency-Key': 'manual-verify-001',
+      Cookie: '__Host-aisenhub_session=valid-admin-session',
+      'content-type': 'application/json',
+    };
+    adminSessionState = 'finance-mfa-required';
+    const missingMfa = await routePlatformAdmin(
+      new Request(`http://api.local/v1/admin/orders/${orderId}/verify`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          paymentReference: 'manual-proof-001',
+          amountMinor: 2000,
+          currency: 'USD',
+          reason: 'verify cash receipt',
+          confirmation: true,
+        }),
+      }),
+    );
+    expect(missingMfa.status).toBe(403);
+    expect((await missingMfa.json()).error.code).toBe('MFA_REQUIRED');
+
+    adminSessionState = 'active';
+    const forbiddenAdmin = await routePlatformAdmin(
+      new Request(`http://api.local/v1/admin/orders/${orderId}/verify`, {
+        method: 'POST',
+        headers: { ...headers, 'Idempotency-Key': 'manual-verify-admin-1' },
+        body: JSON.stringify({
+          paymentReference: 'manual-proof-001',
+          amountMinor: 2000,
+          currency: 'USD',
+          reason: 'admin attempt',
+          confirmation: true,
+        }),
+      }),
+    );
+    expect(forbiddenAdmin.status).toBe(403);
+    expect((await forbiddenAdmin.json()).error.code).toBe('ADMIN_ACCESS_DENIED');
+
+    adminSessionState = 'finance-mfa-ok';
+    const response = await routePlatformAdmin(
+      new Request(`http://api.local/v1/admin/orders/${orderId}/verify`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          paymentReference: 'manual-proof-001',
+          amountMinor: 2000,
+          currency: 'USD',
+          reason: 'verify cash receipt',
+          confirmation: true,
+        }),
+      }),
+    );
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.data.status).toBe('fulfilled');
+    expect(body.data.overviewPath).toContain(`/v1/admin/orders/${orderId}/overview`);
+    expect(body.data).not.toHaveProperty('rawPayload');
+    expect(JSON.stringify(body)).not.toMatch(/token|secret|password|stack|card/i);
   });
 
   it('protects Redemption batch lifecycle and keeps retries plaintext-free', async () => {

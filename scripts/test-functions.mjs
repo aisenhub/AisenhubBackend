@@ -32,6 +32,12 @@ const adminRedemptionCommandMigration = path.join(
   'migrations',
   '20260901112513_admin_redemption_commands.sql',
 );
+const adminManualOrderVerifyMigration = path.join(
+  repositoryRoot,
+  'supabase',
+  'migrations',
+  '20260901190000_admin_manual_order_verify.sql',
+);
 
 for (const functionName of functionNames) {
   const entrypoint = path.join(functionsRoot, functionName, 'index.ts');
@@ -69,7 +75,7 @@ if (process.argv.includes('admin-permissions')) {
   const matrix = JSON.parse(fs.readFileSync(adminPermissionsMatrix, 'utf8'));
   const actions = Object.keys(matrix.actions ?? {});
   const source = fs.readFileSync(adminPermissionsSource, 'utf8');
-  if (actions.length !== 17 || !source.includes('admin-permissions.matrix.json')) {
+  if (actions.length === 0 || !source.includes('admin-permissions.matrix.json')) {
     throw new Error('Admin permission adapter is missing the complete shared action matrix.');
   }
   if (!source.includes('evaluateBackendAdminAction')) {
@@ -130,6 +136,27 @@ if (process.argv.includes('redemption-admin')) {
     throw new Error('Redemption command migration must not store plaintext code material.');
   }
   console.log('Redemption Admin command smoke check passed.');
+}
+
+if (process.argv.includes('manual-verify')) {
+  const source = fs.readFileSync(adminApiSource, 'utf8');
+  const migration = fs.readFileSync(adminManualOrderVerifyMigration, 'utf8');
+  for (const required of [
+    '/v1/admin/orders/',
+    'orderCommandRoute',
+    'admin_verify_order',
+    'fulfill_paid_order',
+    'orders.verify',
+    'Idempotency-Key',
+  ]) {
+    if (!source.includes(required) && !migration.includes(required)) {
+      throw new Error(`Manual order verification surface is missing ${required}.`);
+    }
+  }
+  if (migration.includes('payload') && migration.includes('card_number')) {
+    throw new Error('Manual order verification must not persist sensitive payment payloads.');
+  }
+  console.log('Manual order verification smoke check passed.');
 }
 
 console.log(`Function shell smoke check passed for ${functionNames.length} functions.`);

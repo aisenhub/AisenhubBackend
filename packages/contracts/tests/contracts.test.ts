@@ -29,6 +29,7 @@ import {
   AdminProductOverviewSchema,
   AdminUserListResponseSchema,
   AdminVerifyOrderRequestSchema,
+  AdminVerifyOrderResponseSchema,
   AdminGenerateRedemptionCodesRequestSchema,
   AdminProductListResponseSchema,
   AdminProductionOriginCommandResponseSchema,
@@ -89,8 +90,34 @@ describe('platform contract primitives', () => {
 
   it('keeps Commerce contracts item-oriented and excludes raw payment data', () => {
     expect(
-      AdminVerifyOrderRequestSchema.parse({ reason: 'verify manual payment', confirmation: true }),
-    ).toEqual({ reason: 'verify manual payment', confirmation: true });
+      AdminVerifyOrderRequestSchema.parse({
+        paymentReference: 'manual-proof-001',
+        amountMinor: 2000,
+        currency: 'USD',
+        reason: 'verify manual payment',
+        confirmation: true,
+      }),
+    ).toEqual({
+      paymentReference: 'manual-proof-001',
+      amountMinor: 2000,
+      currency: 'USD',
+      reason: 'verify manual payment',
+      confirmation: true,
+    });
+    expect(() =>
+      AdminVerifyOrderResponseSchema.parse({
+        orderId: requestId,
+        paymentId: '00000000-0000-4000-8000-000000000002',
+        paymentEventId: '00000000-0000-4000-8000-000000000003',
+        status: 'fulfilled',
+        grantIds: ['00000000-0000-4000-8000-000000000004'],
+        idempotent: false,
+        auditLogId: '00000000-0000-4000-8000-000000000005',
+        fulfillmentAuditLogId: '00000000-0000-4000-8000-000000000006',
+        overviewPath: `/v1/admin/orders/${requestId}/overview`,
+        auditPath: '/v1/admin/audit-logs/00000000-0000-4000-8000-000000000005',
+      }),
+    ).not.toThrow();
     expect(
       AdminRefundOrderItemRequestSchema.parse({
         amountMinor: 250,
@@ -117,6 +144,15 @@ describe('platform contract primitives', () => {
     ).toBe('payment.succeeded');
     expect(() =>
       AdminRefundOrderItemRequestSchema.parse({ amountMinor: 1, mode: 'return' }),
+    ).toThrow();
+    expect(() =>
+      AdminVerifyOrderRequestSchema.parse({
+        paymentReference: 'manual proof with spaces',
+        amountMinor: 2000,
+        currency: 'USD',
+        reason: 'verify',
+        confirmation: true,
+      }),
     ).toThrow();
     expect(() =>
       PaymentWebhookEventSchema.parse({

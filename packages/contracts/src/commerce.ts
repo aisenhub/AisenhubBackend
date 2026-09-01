@@ -149,8 +149,28 @@ const AdminCommandMetadataSchema = z
   })
   .strict();
 
-export const AdminVerifyOrderRequestSchema = AdminCommandMetadataSchema;
+export const AdminVerifyOrderRequestSchema = AdminCommandMetadataSchema.extend({
+  paymentReference: z.string().trim().min(1).max(200).regex(/^\S+$/),
+  amountMinor: MoneyMinorSchema,
+  currency: CurrencySchema,
+}).strict();
 export type AdminVerifyOrderRequest = z.infer<typeof AdminVerifyOrderRequestSchema>;
+
+export const AdminVerifyOrderResponseSchema = z
+  .object({
+    orderId: UuidSchema,
+    paymentId: UuidSchema,
+    paymentEventId: UuidSchema,
+    status: z.literal('fulfilled'),
+    grantIds: z.array(UuidSchema),
+    idempotent: z.boolean(),
+    auditLogId: UuidSchema,
+    fulfillmentAuditLogId: UuidSchema,
+    overviewPath: z.string().regex(/^\/v1\/admin\/orders\/[0-9a-f-]+\/overview$/i),
+    auditPath: z.string().regex(/^\/v1\/admin\/audit-logs\/[0-9a-f-]+$/i),
+  })
+  .strict();
+export type AdminVerifyOrderResponse = z.infer<typeof AdminVerifyOrderResponseSchema>;
 
 export const AdminRefundOrderItemRequestSchema = AdminCommandMetadataSchema.extend({
   amountMinor: MoneyMinorSchema.refine((value) => value > 0, 'Refund amount must be positive.'),

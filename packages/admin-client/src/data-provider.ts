@@ -45,6 +45,12 @@ import {
   AdminUpdatePriceRequestSchema,
   AdminUpdateProductRequestSchema,
   AdminUpdateProductVersionRequestSchema,
+  AdminOrderListResponseSchema,
+  AdminOrderSummarySchema,
+  AdminPaymentListResponseSchema,
+  PaymentSummarySchema,
+  type AdminOrderSummary,
+  type PaymentSummary,
   type AdminApplicationSummary,
   type AdminCreateApplicationRequest,
   type AdminCreateFeatureRequest,
@@ -95,6 +101,8 @@ export const AdminResourceNames = [
   'feedback',
   'auditLogs',
   'accountDeletionRequests',
+  'orders',
+  'payments',
 ] as const;
 
 export type AdminResourceName = (typeof AdminResourceNames)[number];
@@ -114,6 +122,8 @@ export type AdminResourceItem = {
   feedback: AdminFeedbackSummary;
   auditLogs: AdminAuditLogSummary;
   accountDeletionRequests: AdminAccountDeletionRequestSummary;
+  orders: AdminOrderSummary;
+  payments: PaymentSummary;
 };
 
 export type AdminResourceQuery = {
@@ -243,6 +253,20 @@ const definitions: {
     itemPath: '/v1/admin/account-deletion-requests',
     listSchema: AdminAccountDeletionRequestListResponseSchema,
     itemSchema: AdminAccountDeletionRequestSummarySchema,
+    querySchema: AdminQueryListQuerySchema,
+  },
+  orders: {
+    listPath: '/v1/admin/orders',
+    itemPath: '/v1/admin/orders',
+    listSchema: AdminOrderListResponseSchema,
+    itemSchema: AdminOrderSummarySchema,
+    querySchema: AdminQueryListQuerySchema,
+  },
+  payments: {
+    listPath: '/v1/admin/payments',
+    itemPath: '/v1/admin/payments',
+    listSchema: AdminPaymentListResponseSchema,
+    itemSchema: PaymentSummarySchema,
     querySchema: AdminQueryListQuerySchema,
   },
 };
