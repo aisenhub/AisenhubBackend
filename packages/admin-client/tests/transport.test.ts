@@ -226,6 +226,68 @@ describe('admin client transport', () => {
     );
   });
 
+  it('maps Customer deletion queries and User 360 to dedicated backend projections', async () => {
+    const requestedUrls: string[] = [];
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async (input) => {
+        const url = String(input);
+        requestedUrls.push(url);
+        const data = url.includes('/overview')
+          ? {
+              profile: {
+                userId: '00000000-0000-4000-8000-000000000010',
+                displayName: 'Overview User',
+                avatarUrl: null,
+                locale: 'en-US',
+                status: 'active',
+                createdAt: '2026-09-01T12:00:00.000Z',
+                updatedAt: '2026-09-01T12:00:00.000Z',
+              },
+              adminRole: null,
+              entitlements: [],
+              redemptions: [],
+              feedback: [],
+              sessionSummary: { activeCount: 0, totalCount: 0, lastSeenAt: null },
+              deletionRequests: [],
+              auditTimeline: [],
+            }
+          : {
+              items: [
+                {
+                  id: '00000000-0000-4000-8000-000000000011',
+                  userId: '00000000-0000-4000-8000-000000000010',
+                  status: 'pending',
+                  executeAfter: '2026-09-01T12:00:00.000Z',
+                  attemptCount: 0,
+                  lastErrorCode: null,
+                  nextAttemptAt: null,
+                  requestedAt: '2026-09-01T12:00:00.000Z',
+                  completedAt: null,
+                  cancelledAt: null,
+                },
+              ],
+              page: { hasMore: false, nextCursor: null },
+            };
+        return new Response(JSON.stringify({ data, requestId }), {
+          headers: { 'content-type': 'application/json' },
+        });
+      },
+    });
+    const provider = createAdminDataProvider(client);
+
+    await expect(provider.getList('accountDeletionRequests')).resolves.toMatchObject({
+      data: { items: [{ status: 'pending' }] },
+    });
+    await expect(
+      provider.getUserOverview('00000000-0000-4000-8000-000000000010'),
+    ).resolves.toMatchObject({ data: { profile: { displayName: 'Overview User' } } });
+    expect(new URL(requestedUrls[0]).pathname).toBe('/v1/admin/account-deletion-requests');
+    expect(new URL(requestedUrls[1]).pathname).toBe(
+      '/v1/admin/users/00000000-0000-4000-8000-000000000010/overview',
+    );
+  });
+
   it('maps draft mutations to named endpoints with a stable idempotency key', async () => {
     let receivedUrl = '';
     let receivedInit: RequestInit | undefined;

@@ -61,6 +61,55 @@ async function mockedFetch(url, init) {
       { headers: { 'content-type': 'application/json' } },
     );
   }
+  if (pathname.endsWith('/admin_query_customer_resource')) {
+    return new Response(
+      JSON.stringify([
+        {
+          items: [
+            {
+              id: '25000000-0000-4000-8000-000000000001',
+              userId: '25000000-0000-4000-8000-000000000002',
+              status: 'failed',
+              executeAfter: '2026-09-01T12:00:00.000Z',
+              attemptCount: 2,
+              lastErrorCode: 'DATABASE_STEP_FAILED',
+              nextAttemptAt: '2026-09-01T12:05:00.000Z',
+              requestedAt: '2026-09-01T11:00:00.000Z',
+              completedAt: null,
+              cancelledAt: null,
+            },
+          ],
+          page: { hasMore: false, nextCursor: null },
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
+  if (pathname.endsWith('/admin_user_overview')) {
+    return new Response(
+      JSON.stringify([
+        {
+          profile: {
+            userId: '25000000-0000-4000-8000-000000000002',
+            displayName: 'Overview User',
+            avatarUrl: null,
+            locale: 'en-US',
+            status: 'active',
+            createdAt: '2026-09-01T11:00:00.000Z',
+            updatedAt: '2026-09-01T11:00:00.000Z',
+          },
+          adminRole: null,
+          entitlements: [],
+          redemptions: [],
+          feedback: [],
+          sessionSummary: { activeCount: 1, totalCount: 1, lastSeenAt: null },
+          deletionRequests: [],
+          auditTimeline: [],
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
   if (pathname.endsWith('/admin_query_catalog_resource')) {
     return new Response(
       JSON.stringify([
@@ -370,6 +419,37 @@ describe('platform Admin API', () => {
     expect(health.status).toBe(200);
     expect(healthBody.data.status).toBe('healthy');
     expect(healthBody.data.checks).toHaveLength(3);
+  });
+
+  it('serves Customer deletion queries and one-request User 360 aggregates', async () => {
+    const deletionRequests = await routePlatformAdmin(
+      new Request('http://api.local/v1/admin/account-deletion-requests?limit=10&sort=createdAt', {
+        headers: {
+          Origin: adminOrigin,
+          'X-AisenHub-App': 'admin',
+          Cookie: '__Host-aisenhub_session=valid-admin-session',
+        },
+      }),
+    );
+    expect(deletionRequests.status).toBe(200);
+    expect((await deletionRequests.json()).data.items[0].lastErrorCode).toBe(
+      'DATABASE_STEP_FAILED',
+    );
+
+    const overview = await routePlatformAdmin(
+      new Request('http://api.local/v1/admin/users/25000000-0000-4000-8000-000000000002/overview', {
+        headers: {
+          Origin: adminOrigin,
+          'X-AisenHub-App': 'admin',
+          Cookie: '__Host-aisenhub_session=valid-admin-session',
+        },
+      }),
+    );
+    const body = await overview.json();
+    expect(overview.status).toBe(200);
+    expect(body.data.profile.displayName).toBe('Overview User');
+    expect(body.data.sessionSummary.activeCount).toBe(1);
+    expect(JSON.stringify(body)).not.toMatch(/token|ip_hash|password|secret/i);
   });
 
   it('serves Catalog projections and Product overview through explicit Admin routes', async () => {

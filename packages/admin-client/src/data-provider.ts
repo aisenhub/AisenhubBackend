@@ -22,6 +22,8 @@ import {
   AdminApplicationSummarySchema,
   AdminAuditLogListResponseSchema,
   AdminAuditLogSummarySchema,
+  AdminAccountDeletionRequestListResponseSchema,
+  AdminAccountDeletionRequestSummarySchema,
   AdminEntitlementListResponseSchema,
   AdminEntitlementSummarySchema,
   AdminFeedbackListResponseSchema,
@@ -30,6 +32,7 @@ import {
   AdminSystemHealthResponseSchema,
   AdminUserListResponseSchema,
   AdminUserSummarySchema,
+  AdminUserOverviewSchema,
   AdminRedemptionBatchListResponseSchema,
   AdminRedemptionBatchSummarySchema,
   AdminRedemptionCodeListResponseSchema,
@@ -50,6 +53,7 @@ import {
   type AdminCreateProductRequest,
   type AdminCreateProductVersionRequest,
   type AdminAuditLogSummary,
+  type AdminAccountDeletionRequestSummary,
   type AdminEntitlementSummary,
   type AdminFeedbackSummary,
   type AdminFeatureSummary,
@@ -58,6 +62,7 @@ import {
   type AdminProductOverview,
   type AdminSystemHealthResponse,
   type AdminUserSummary,
+  type AdminUserOverview,
   type AdminProductSummary,
   type AdminProductVersionSummary,
   type AdminRedemptionBatchSummary,
@@ -89,6 +94,7 @@ export const AdminResourceNames = [
   'entitlements',
   'feedback',
   'auditLogs',
+  'accountDeletionRequests',
 ] as const;
 
 export type AdminResourceName = (typeof AdminResourceNames)[number];
@@ -107,6 +113,7 @@ export type AdminResourceItem = {
   entitlements: AdminEntitlementSummary;
   feedback: AdminFeedbackSummary;
   auditLogs: AdminAuditLogSummary;
+  accountDeletionRequests: AdminAccountDeletionRequestSummary;
 };
 
 export type AdminResourceQuery = {
@@ -231,6 +238,13 @@ const definitions: {
     itemSchema: AdminAuditLogSummarySchema,
     querySchema: AdminQueryListQuerySchema,
   },
+  accountDeletionRequests: {
+    listPath: '/v1/admin/account-deletion-requests',
+    itemPath: '/v1/admin/account-deletion-requests',
+    listSchema: AdminAccountDeletionRequestListResponseSchema,
+    itemSchema: AdminAccountDeletionRequestSummarySchema,
+    querySchema: AdminQueryListQuerySchema,
+  },
 };
 
 function resourceDefinition<R extends AdminResourceName>(resource: R): AdminResourceDefinition<R> {
@@ -314,6 +328,7 @@ export interface AisenHubAdminDataProvider {
   ): Promise<AdminResponse<AdminResourceItem[R]>>;
   getSystemHealth(): Promise<AdminResponse<AdminSystemHealthResponse>>;
   getProductOverview(id: string): Promise<AdminResponse<AdminProductOverview>>;
+  getUserOverview(id: string): Promise<AdminResponse<AdminUserOverview>>;
   createApplication(
     input: AdminCreateApplicationRequest,
     options?: AdminDraftMutationOptions,
@@ -406,6 +421,13 @@ export function createAdminDataProvider(client: AdminClient): AisenHubAdminDataP
       return client.request(
         `/v1/admin/products/${encodeResourceId(id)}/overview`,
         AdminProductOverviewSchema,
+      );
+    },
+
+    async getUserOverview(id: string): Promise<AdminResponse<AdminUserOverview>> {
+      return client.request(
+        `/v1/admin/users/${encodeResourceId(id)}/overview`,
+        AdminUserOverviewSchema,
       );
     },
 

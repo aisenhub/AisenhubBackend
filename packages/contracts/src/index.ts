@@ -199,6 +199,30 @@ export {
 } from './admin-catalog';
 
 export {
+  AdminAccountDeletionRequestListResponseSchema,
+  AdminAccountDeletionRequestSummarySchema,
+  AdminUserOverviewAuditEventSchema,
+  AdminUserOverviewEntitlementSchema,
+  AdminUserOverviewFeedbackSchema,
+  AdminUserOverviewProfileSchema,
+  AdminUserOverviewRedemptionSchema,
+  AdminUserOverviewSchema,
+  AdminUserSessionSummarySchema,
+} from './admin-user-overview';
+
+export type {
+  AdminAccountDeletionRequestListResponse,
+  AdminAccountDeletionRequestSummary,
+  AdminUserOverview,
+  AdminUserOverviewAuditEvent,
+  AdminUserOverviewEntitlement,
+  AdminUserOverviewFeedback,
+  AdminUserOverviewProfile,
+  AdminUserOverviewRedemption,
+  AdminUserSessionSummary,
+} from './admin-user-overview';
+
+export {
   AccountDeletionRequestSchema,
   AccountDeletionStatusSchema,
   CreateAccountDeletionRequestSchema,

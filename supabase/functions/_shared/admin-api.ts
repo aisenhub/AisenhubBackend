@@ -161,8 +161,13 @@ async function adminQueryRead(request: Request, resource: string, id: string): P
       'redemption-batches',
       'redemption-codes',
     ]);
+    const customerResources = new Set(['account-deletion-requests']);
     const rows = await serviceRpc<unknown>(
-      catalogResources.has(resource) ? 'admin_query_catalog_resource' : 'admin_query_resource',
+      catalogResources.has(resource)
+        ? 'admin_query_catalog_resource'
+        : customerResources.has(resource)
+          ? 'admin_query_customer_resource'
+          : 'admin_query_resource',
       {
         p_actor_id: session.user_id,
         p_resource: resource,
@@ -191,6 +196,50 @@ async function adminQueryRead(request: Request, resource: string, id: string): P
       return errorResponse('VALIDATION_ERROR', 'The Admin query is invalid.', 400, id);
     }
     return errorResponse('INTERNAL_ERROR', 'The Admin query could not be read.', 502, id);
+  }
+}
+
+async function adminUserOverviewRead(
+  request: Request,
+  userId: string,
+  id: string,
+): Promise<Response> {
+  if (request.method !== 'GET') {
+    return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+  }
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
+    return errorResponse('VALIDATION_ERROR', 'The User ID is invalid.', 400, id);
+  }
+  if (!sessionCookie(request)) {
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  }
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const rows = await serviceRpc<unknown>('admin_user_overview', {
+      p_actor_id: session.user_id,
+      p_user_id: userId,
+    });
+    if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The User overview returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse('ADMIN_RESOURCE_NOT_FOUND', 'The User was not found.', 404, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '22023') {
+      return errorResponse('VALIDATION_ERROR', 'The User overview request is invalid.', 400, id);
+    }
+    return errorResponse('INTERNAL_ERROR', 'The User overview could not be read.', 502, id);
   }
 }
 
@@ -912,6 +961,10 @@ export async function routePlatformAdmin(
   if (productOverviewMatch) {
     return withCors(await adminProductOverviewRead(request, productOverviewMatch[1], id), resolved);
   }
+  const userOverviewMatch = path.match(/^\/v1\/admin\/users\/([^/]+)\/overview$/);
+  if (userOverviewMatch) {
+    return withCors(await adminUserOverviewRead(request, userOverviewMatch[1], id), resolved);
+  }
   const redemptionRoute = redemptionCommandRoute(request, path);
   if (redemptionRoute) {
     const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
@@ -940,7 +993,7 @@ export async function routePlatformAdmin(
     );
   }
   const queryMatch = path.match(
-    /^\/v1\/admin\/(applications|users|origins|features|products|product-versions|prices|redemption-batches|redemption-codes|entitlements|redemptions|feedback|audit-logs)$/,
+    /^\/v1\/admin\/(applications|users|origins|features|products|product-versions|prices|redemption-batches|redemption-codes|entitlements|redemptions|feedback|account-deletion-requests|audit-logs)$/,
   );
   if (queryMatch) {
     return withCors(await adminQueryRead(request, queryMatch[1], id), resolved);

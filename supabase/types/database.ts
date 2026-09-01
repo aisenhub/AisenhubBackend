@@ -89,6 +89,19 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_query_customer_resource: {
+        Args: {
+          p_actor_id: string
+          p_cursor?: string
+          p_direction?: string
+          p_limit?: number
+          p_resource: string
+          p_search?: string
+          p_sort?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
       admin_query_resource: {
         Args: {
           p_actor_id: string
@@ -113,6 +126,10 @@ export type Database = {
           p_request_id?: string
           p_resource_id?: string
         }
+        Returns: Json
+      }
+      admin_user_overview: {
+        Args: { p_actor_id: string; p_user_id: string }
         Returns: Json
       }
       cancel_account_deletion: {
