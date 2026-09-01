@@ -115,6 +115,16 @@ export type Database = {
         }
         Returns: Json
       }
+      cancel_account_deletion: {
+        Args: { p_request_id?: string; p_user_id: string }
+        Returns: {
+          completed_at: string
+          deletion_request_id: string
+          execute_after: string
+          requested_at: string
+          status: string
+        }[]
+      }
       check_access: {
         Args: { p_app_slug: string; p_feature_code: string; p_user_id: string }
         Returns: {
@@ -124,6 +134,17 @@ export type Database = {
           feature: string
           source_product: string
           value: Json
+        }[]
+      }
+      claim_account_deletion_request: {
+        Args: { p_worker_id: string }
+        Returns: {
+          attempt_count: number
+          deletion_request_id: string
+          execute_after: string
+          processing_started_at: string
+          status: string
+          user_id: string
         }[]
       }
       create_feedback: {
@@ -162,6 +183,20 @@ export type Database = {
           locale: string
           status: string
           updated_at: string
+        }[]
+      }
+      fail_account_deletion_request: {
+        Args: {
+          p_error_code: string
+          p_request_id: string
+          p_worker_id: string
+        }
+        Returns: {
+          attempt_count: number
+          deletion_request_id: string
+          last_error_code: string
+          next_attempt_at: string
+          status: string
         }[]
       }
       get_admin_session: {
@@ -260,6 +295,21 @@ export type Database = {
           idempotency_record_id: string
           redeemed_at: string
           redemption_id: string
+          status: string
+        }[]
+      }
+      request_account_deletion: {
+        Args: {
+          p_idempotency_key: string
+          p_request_hash: string
+          p_request_id?: string
+          p_user_id: string
+        }
+        Returns: {
+          completed_at: string
+          deletion_request_id: string
+          execute_after: string
+          requested_at: string
           status: string
         }[]
       }

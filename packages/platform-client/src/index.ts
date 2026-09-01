@@ -1,5 +1,6 @@
 import {
   AccessResponseSchema,
+  AccountDeletionRequestSchema,
   ApiSuccessEnvelopeSchema,
   EntitlementsResponseSchema,
   FeedbackRequestSchema,
@@ -7,6 +8,7 @@ import {
   PublicProductsResponseSchema,
   RedemptionRequestSchema,
   RedemptionResponseSchema,
+  type AccountDeletionRequest,
   SessionDeleteResponseSchema,
   SessionExchangeResponseSchema,
   SessionResponseSchema,
@@ -77,6 +79,11 @@ export interface PlatformClient {
   checkAccess(featureCode: string): Promise<PlatformResponse<AccessResponse>>;
   redeem(code: string, idempotencyKey: string): Promise<PlatformResponse<RedemptionResponse>>;
   submitFeedback(input: FeedbackRequest): Promise<PlatformResponse<FeedbackResponse>>;
+  requestAccountDeletion(
+    accessToken: string,
+    idempotencyKey: string,
+  ): Promise<PlatformResponse<AccountDeletionRequest>>;
+  cancelAccountDeletion(accessToken: string): Promise<PlatformResponse<AccountDeletionRequest>>;
 }
 
 export function createPlatformClient(options: PlatformClientOptions): PlatformClient {
@@ -192,6 +199,31 @@ export function createPlatformClient(options: PlatformClientOptions): PlatformCl
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(request),
+      });
+    },
+    requestAccountDeletion(accessToken: string, idempotencyKey: string) {
+      const normalizedToken = accessToken.trim();
+      const normalizedIdempotencyKey = idempotencyKey.trim();
+      if (normalizedToken === '') throw new Error('A reauthentication access token is required.');
+      if (normalizedIdempotencyKey === '' || normalizedIdempotencyKey.length > 255) {
+        throw new Error('A valid Idempotency-Key is required.');
+      }
+      return this.request('/v1/me/deletion-requests', AccountDeletionRequestSchema, {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${normalizedToken}`,
+          'idempotency-key': normalizedIdempotencyKey,
+          'content-type': 'application/json',
+        },
+        body: '{}',
+      });
+    },
+    cancelAccountDeletion(accessToken: string) {
+      const normalizedToken = accessToken.trim();
+      if (normalizedToken === '') throw new Error('A reauthentication access token is required.');
+      return this.request('/v1/me/deletion-requests', AccountDeletionRequestSchema, {
+        method: 'DELETE',
+        headers: { authorization: `Bearer ${normalizedToken}` },
       });
     },
   };

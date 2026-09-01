@@ -226,4 +226,39 @@ describe('platform client transport', () => {
     expect(() => client.checkAccess('Invalid Feature')).toThrow(/feature code/);
     expect(() => client.submitFeedback({ kind: 'bug', title: '', content: 'x' })).toThrow();
   });
+
+  it('sends fresh reauthentication tokens for deletion request commands', async () => {
+    const calls: Array<{ path: string; init?: RequestInit }> = [];
+    const client = createPlatformClient({
+      baseUrl: 'https://api.example.test',
+      appSlug: 'account',
+      csrfToken: () => 'csrf-memory-token',
+      fetch: async (input, init) => {
+        calls.push({ path: new URL(String(input)).pathname, init });
+        const data = {
+          deletionRequestId: '00000000-0000-4000-8000-000000000050',
+          status: init?.method === 'DELETE' ? 'cancelled' : 'pending',
+          executeAfter: '2026-09-01T12:00:00.000Z',
+          requestedAt: '2026-09-01T12:00:00.000Z',
+          completedAt: null,
+        };
+        return new Response(JSON.stringify({ data, requestId }), {
+          headers: { 'content-type': 'application/json' },
+        });
+      },
+    });
+
+    await client.requestAccountDeletion('fresh-token', 'deletion-key');
+    await client.cancelAccountDeletion('fresh-token');
+
+    expect(calls.map(({ path }) => path)).toEqual([
+      '/v1/me/deletion-requests',
+      '/v1/me/deletion-requests',
+    ]);
+    expect(new Headers(calls[0].init?.headers).get('authorization')).toBe('Bearer fresh-token');
+    expect(new Headers(calls[0].init?.headers).get('idempotency-key')).toBe('deletion-key');
+    expect(calls[0].init?.method).toBe('POST');
+    expect(calls[1].init?.method).toBe('DELETE');
+    expect(new Headers(calls[1].init?.headers).get('authorization')).toBe('Bearer fresh-token');
+  });
 });

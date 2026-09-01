@@ -465,6 +465,14 @@ type SessionUserRow = {
   readonly profile_status: 'active';
 };
 
+type AccountDeletionRow = {
+  readonly deletion_request_id: string;
+  readonly status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  readonly execute_after: string;
+  readonly requested_at: string;
+  readonly completed_at: string | null;
+};
+
 async function sessionUserId(request: Request): Promise<string | null> {
   const token = sessionCookie(request);
   if (!token) return null;
@@ -649,6 +657,143 @@ async function feedbackCreate(request: Request, id: string, appSlug: string): Pr
   }
 }
 
+function isAccountDeletionRow(value: unknown): value is AccountDeletionRow {
+  if (!value || typeof value !== 'object') return false;
+  const row = value as Record<string, unknown>;
+  return (
+    typeof row.deletion_request_id === 'string' &&
+    ['pending', 'processing', 'completed', 'failed', 'cancelled'].includes(String(row.status)) &&
+    typeof row.execute_after === 'string' &&
+    typeof row.requested_at === 'string' &&
+    (typeof row.completed_at === 'string' || row.completed_at === null)
+  );
+}
+
+function accountDeletionPayload(row: AccountDeletionRow) {
+  return {
+    deletionRequestId: row.deletion_request_id,
+    status: row.status,
+    executeAfter: row.execute_after,
+    requestedAt: row.requested_at,
+    completedAt: row.completed_at,
+  };
+}
+
+async function accountDeletionCreate(request: Request, id: string): Promise<Response> {
+  const token = bearerToken(request);
+  if (!token) {
+    return errorResponse(
+      'REAUTHENTICATION_REQUIRED',
+      'A fresh authentication token is required to request account deletion.',
+      401,
+      id,
+    );
+  }
+  const userId = await authenticatedUser(token);
+  if (!userId) {
+    return errorResponse(
+      'REAUTHENTICATION_REQUIRED',
+      'A fresh authentication token is required to request account deletion.',
+      401,
+      id,
+    );
+  }
+  const body = await parseJsonObject(request);
+  if (!body || Object.keys(body).length !== 0) {
+    return errorResponse('VALIDATION_ERROR', 'The deletion request body must be empty.', 400, id);
+  }
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  if (idempotencyKey === '' || idempotencyKey.length > 255) {
+    return errorResponse('VALIDATION_ERROR', 'A valid Idempotency-Key is required.', 400, id);
+  }
+
+  try {
+    const rows = await serviceRpc<AccountDeletionRow>('request_account_deletion', {
+      p_user_id: userId,
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: await sha256Hex(JSON.stringify({ operation: 'account-deletion', userId })),
+      p_request_id: id,
+    });
+    const row = rows.length === 1 && isAccountDeletionRow(rows[0]) ? rows[0] : null;
+    if (!row) return errorResponse('INTERNAL_ERROR', 'The deletion request is invalid.', 502, id);
+    return jsonResponse(accountDeletionPayload(row), 202, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
+      return errorResponse('IDEMPOTENCY_KEY_REUSED', 'The request key was already used.', 409, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '23505') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'An account deletion request is already open.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse('PROFILE_NOT_FOUND', 'The account profile was not found.', 404, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The account cannot request deletion in its current state.',
+        409,
+        id,
+      );
+    }
+    return errorResponse('INTERNAL_ERROR', 'The deletion request could not be created.', 502, id);
+  }
+}
+
+async function accountDeletionCancel(request: Request, id: string): Promise<Response> {
+  const token = bearerToken(request);
+  if (!token) {
+    return errorResponse(
+      'REAUTHENTICATION_REQUIRED',
+      'A fresh authentication token is required to cancel account deletion.',
+      401,
+      id,
+    );
+  }
+  const userId = await authenticatedUser(token);
+  if (!userId) {
+    return errorResponse(
+      'REAUTHENTICATION_REQUIRED',
+      'A fresh authentication token is required to cancel account deletion.',
+      401,
+      id,
+    );
+  }
+
+  try {
+    const rows = await serviceRpc<AccountDeletionRow>('cancel_account_deletion', {
+      p_user_id: userId,
+      p_request_id: id,
+    });
+    const row = rows.length === 1 && isAccountDeletionRow(rows[0]) ? rows[0] : null;
+    if (!row)
+      return errorResponse('INTERNAL_ERROR', 'The cancellation response is invalid.', 502, id);
+    return jsonResponse(accountDeletionPayload(row), 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'There is no account deletion request to cancel.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The account deletion request cannot be cancelled in its current state.',
+        409,
+        id,
+      );
+    }
+    return errorResponse('INTERNAL_ERROR', 'The deletion request could not be cancelled.', 502, id);
+  }
+}
+
 function isPlatformSession(value: unknown): value is PlatformSession {
   if (!value || typeof value !== 'object') return false;
   const session = value as Record<string, unknown>;
@@ -750,6 +895,13 @@ export async function enforceWritePreconditions(
     );
   }
 
+  if (
+    path === '/v1/me/deletion-requests' &&
+    (request.method === 'POST' || request.method === 'DELETE')
+  ) {
+    return null;
+  }
+
   const rawToken = sessionCookie(request);
   const rawCsrf = request.headers.get('x-csrf-token');
   if (!rawToken || !rawCsrf) {
@@ -831,6 +983,16 @@ async function routePlatformApiRoutes(
     if (!resolved)
       return errorResponse('ORIGIN_NOT_ALLOWED', 'A request Origin is required.', 403, id);
     return feedbackCreate(request, id, resolved.appSlug);
+  }
+  if (path === '/v1/me/deletion-requests') {
+    if (request.method === 'POST') return accountDeletionCreate(request, id);
+    if (request.method === 'DELETE') return accountDeletionCancel(request, id);
+    return errorResponse(
+      'VALIDATION_ERROR',
+      'Only POST and DELETE requests are supported.',
+      405,
+      id,
+    );
   }
   if (request.method !== 'GET') {
     return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);

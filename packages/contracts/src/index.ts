@@ -24,6 +24,7 @@ export const ErrorCodes = {
   PROFILE_NOT_FOUND: 'PROFILE_NOT_FOUND',
   REASON_REQUIRED: 'REASON_REQUIRED',
   REDEMPTION_UNAVAILABLE: 'REDEMPTION_UNAVAILABLE',
+  REAUTHENTICATION_REQUIRED: 'REAUTHENTICATION_REQUIRED',
   RESOURCE_VERSION_CONFLICT: 'RESOURCE_VERSION_CONFLICT',
   SESSION_EXPIRED: 'SESSION_EXPIRED',
   SESSION_REVOKED: 'SESSION_REVOKED',
@@ -196,6 +197,18 @@ export {
   AdminUpdateProductRequestSchema,
   AdminUpdateProductVersionRequestSchema,
 } from './admin-catalog';
+
+export {
+  AccountDeletionRequestSchema,
+  AccountDeletionStatusSchema,
+  CreateAccountDeletionRequestSchema,
+} from './deletion';
+
+export type {
+  AccountDeletionRequest,
+  AccountDeletionStatus,
+  CreateAccountDeletionRequest,
+} from './deletion';
 
 export {
   AdminApplicationListResponseSchema,

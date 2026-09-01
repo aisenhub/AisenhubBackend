@@ -21,6 +21,9 @@ async function mockedFetch(url, init) {
       body.p_origin === accountOrigin ? [{ app_slug: 'account', environment: 'development' }] : [],
     );
   }
+  if (pathname.endsWith('/auth/v1/user')) {
+    return response({ id: userId });
+  }
   if (pathname.endsWith('/get_platform_session')) {
     return response([
       {
@@ -82,6 +85,30 @@ async function mockedFetch(url, init) {
         id: '00000000-0000-4000-8000-000000000040',
         status: 'open',
         created_at: '2026-09-01T12:00:00.000Z',
+      },
+    ]);
+  }
+  if (pathname.endsWith('/request_account_deletion')) {
+    lastServiceCall = { pathname, body };
+    return response([
+      {
+        deletion_request_id: '00000000-0000-4000-8000-000000000050',
+        status: 'pending',
+        execute_after: '2026-09-01T12:00:00.000Z',
+        requested_at: '2026-09-01T12:00:00.000Z',
+        completed_at: null,
+      },
+    ]);
+  }
+  if (pathname.endsWith('/cancel_account_deletion')) {
+    lastServiceCall = { pathname, body };
+    return response([
+      {
+        deletion_request_id: '00000000-0000-4000-8000-000000000050',
+        status: 'cancelled',
+        execute_after: '2026-09-01T12:00:00.000Z',
+        requested_at: '2026-09-01T12:00:00.000Z',
+        completed_at: null,
       },
     ]);
   }
@@ -248,5 +275,71 @@ describe('public catalog and account API', () => {
     );
     expect(noOrigin.status).toBe(403);
     expect((await noOrigin.json()).error.code).toBe('ORIGIN_NOT_ALLOWED');
+  });
+
+  it('requires a fresh Auth token and keeps deletion request state server-owned', async () => {
+    const response = await routePlatformApi(
+      new Request('http://api.local/v1/me/deletion-requests', {
+        method: 'POST',
+        headers: {
+          Origin: accountOrigin,
+          'X-AisenHub-App': 'account',
+          Authorization: 'Bearer freshly-reauthenticated-token',
+          'Idempotency-Key': 'deletion-request-1',
+          'Content-Type': 'application/json',
+        },
+        body: '{}',
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(202);
+    expect(body.data).toEqual({
+      deletionRequestId: '00000000-0000-4000-8000-000000000050',
+      status: 'pending',
+      executeAfter: '2026-09-01T12:00:00.000Z',
+      requestedAt: '2026-09-01T12:00:00.000Z',
+      completedAt: null,
+    });
+    expect(lastServiceCall.body.p_user_id).toBe(userId);
+    expect(lastServiceCall.body).not.toHaveProperty('execute_after');
+    expect(lastServiceCall.body.p_request_hash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('allows cancellation after reauthentication even when platform sessions were revoked', async () => {
+    const response = await routePlatformApi(
+      new Request('http://api.local/v1/me/deletion-requests', {
+        method: 'DELETE',
+        headers: {
+          Origin: accountOrigin,
+          'X-AisenHub-App': 'account',
+          Authorization: 'Bearer freshly-reauthenticated-token',
+        },
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.status).toBe('cancelled');
+    expect(lastServiceCall.pathname).toContain('cancel_account_deletion');
+    expect(lastServiceCall.body.p_user_id).toBe(userId);
+  });
+
+  it('rejects deletion without reauthentication', async () => {
+    const response = await routePlatformApi(
+      new Request('http://api.local/v1/me/deletion-requests', {
+        method: 'POST',
+        headers: {
+          Origin: accountOrigin,
+          'X-AisenHub-App': 'account',
+          'Idempotency-Key': 'deletion-request-2',
+          'Content-Type': 'application/json',
+        },
+        body: '{}',
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    expect((await response.json()).error.code).toBe('REAUTHENTICATION_REQUIRED');
   });
 });
