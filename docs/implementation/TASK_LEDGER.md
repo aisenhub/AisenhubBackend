@@ -8,9 +8,9 @@
 | P0-T002 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | c21b7e8 | Frozen install, format, lint, typecheck, test, and build checks passed. |
 | P0-T003 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 38c8a92 | All approved apps/packages build; boundary checker and forbidden-import negative test pass; Admin rules preserved. |
 | P0-T004 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 63effc8 + follow-up | Local Supabase start/status exit 0; Docker Desktop is installed under `D:\APP\Base\DockerDesktop`; four function shells, static smoke test, and live `platform-api` health request passed. Optional Vector service may restart, while core services are healthy. |
-| P0-T005 | Bootstrap | in_progress | 2026-09-01 |  |  | Migration applied; `pnpm db:test` passed 12/12 and the first reset passed. The repeat reset was interrupted/failed while the user was relocating Docker WSL data; repeatability verification remains pending. |
-| P0-T006 | Bootstrap | pending |  |  |  |  |
-| P0-T007 | Bootstrap | pending |  |  |  |  |
+| P0-T005 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 361c673 | Private `platform` schema, default privilege revokes, UTC timestamp trigger, idempotency constraints/index, and pgTAP checks delivered; consecutive local resets returned 0 and database tests passed 14/14. |
+| P0-T006 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 2aaf135 | Added pgTAP/RLS runners, role contexts, credentialed cookie/CSRF/requestId HTTP client, integration harness, Playwright config/fixture, function config, contract entrypoint, and negative runner; all local checks passed. |
+| P0-T007 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 39474e4 | Added local-only fixture constants and a supported Local Auth Admin API verifier for owner/admin/support/finance/normal-user; fixed UUIDs, credential login, and repeated reset verification passed. |
 | P0-T008 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 9494727 | Contract schemas, error codes, permission actions, pagination, validation, uniqueness, and serialization tests passed. |
 | P0-T009 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | a75ef69 + 0ab1a99 | Credentialed transports, CSRF/requestId handling, malformed-response safety, Admin idempotency, tests/typechecks/builds passed; follow-up build-lock repair verified. |
 | P0-T010 | Bootstrap | pending |  |  |  |  |
