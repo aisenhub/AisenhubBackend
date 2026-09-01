@@ -1,5 +1,6 @@
 import { Authenticated, CanAccess } from '@refinedev/core';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import type { ReactNode } from 'react';
 
 import { LoadingState, PermissionDeniedState } from '@aisenhub/design-system';
 import { Result } from 'antd';
@@ -9,6 +10,14 @@ import { ApplicationsPage } from '../modules/operations/pages/ApplicationsPage';
 import { AuditLogsPage } from '../modules/operations/pages/AuditLogsPage';
 import { SystemHealthPage } from '../modules/operations/pages/SystemHealthPage';
 import { UsersPage } from '../modules/operations/pages/UsersPage';
+import { CatalogPage } from '../modules/catalog/pages/CatalogPage';
+import { FeaturesPage } from '../modules/catalog/pages/FeaturesPage';
+import { OriginsPage } from '../modules/catalog/pages/OriginsPage';
+import { PricesPage } from '../modules/catalog/pages/PricesPage';
+import { ProductCreatePage } from '../modules/catalog/pages/ProductCreatePage';
+import { ProductOverviewPage } from '../modules/catalog/pages/ProductOverviewPage';
+import { ProductVersionsPage } from '../modules/catalog/pages/ProductVersionsPage';
+import { ProductsPage } from '../modules/catalog/pages/ProductsPage';
 
 function ModuleUnavailablePage() {
   return (
@@ -33,6 +42,20 @@ function NotFoundPage() {
 function ForbiddenPage() {
   return (
     <PermissionDeniedState description="Your Admin membership does not allow access to this area." />
+  );
+}
+
+function CatalogPermission({
+  children,
+  action = 'list',
+}: {
+  children: ReactNode;
+  action?: string;
+}) {
+  return (
+    <CanAccess resource="products" action={action} fallback={<PermissionDeniedState />}>
+      {children}
+    </CanAccess>
   );
 }
 
@@ -68,8 +91,64 @@ function ProtectedContent() {
             path="catalog"
             element={
               <CanAccess resource="products" action="list" fallback={<PermissionDeniedState />}>
-                <ModuleUnavailablePage />
+                <CatalogPage />
               </CanAccess>
+            }
+          />
+          <Route
+            path="catalog/products"
+            element={
+              <CatalogPermission>
+                <ProductsPage />
+              </CatalogPermission>
+            }
+          />
+          <Route
+            path="catalog/products/new"
+            element={
+              <CatalogPermission action="create">
+                <ProductCreatePage />
+              </CatalogPermission>
+            }
+          />
+          <Route
+            path="catalog/products/:productId"
+            element={
+              <CatalogPermission>
+                <ProductOverviewPage />
+              </CatalogPermission>
+            }
+          />
+          <Route
+            path="catalog/product-versions"
+            element={
+              <CatalogPermission>
+                <ProductVersionsPage />
+              </CatalogPermission>
+            }
+          />
+          <Route
+            path="catalog/prices"
+            element={
+              <CatalogPermission>
+                <PricesPage />
+              </CatalogPermission>
+            }
+          />
+          <Route
+            path="catalog/origins"
+            element={
+              <CatalogPermission>
+                <OriginsPage />
+              </CatalogPermission>
+            }
+          />
+          <Route
+            path="catalog/features"
+            element={
+              <CatalogPermission>
+                <FeaturesPage />
+              </CatalogPermission>
             }
           />
           <Route path="growth" element={<ModuleUnavailablePage />} />
