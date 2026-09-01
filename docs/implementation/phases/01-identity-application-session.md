@@ -279,7 +279,7 @@ P1-T004.
 
 ## P1-T004 — Implement Identity/Application RLS and grants
 
-Status: in_progress
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: security-test-first  
@@ -338,10 +338,10 @@ Anon, normal user, other user, each Admin role, and server-function contexts acr
 
 ### Acceptance Criteria
 
-- [ ] `platform` schema is not Data API exposed.
-- [ ] Direct session/admin table access is denied.
-- [ ] Approved own-profile projection works only as specified.
-- [ ] Allow/deny matrix passes.
+- [x] `platform` schema is not Data API exposed.
+- [x] Direct session/admin table access is denied.
+- [x] Approved own-profile projection works only as specified.
+- [x] Allow/deny matrix passes.
 
 ### Failure Recovery
 
@@ -369,7 +369,7 @@ P1-T005 and P1-T006.
 
 ## P1-T005 — Define identity, application, and session API contracts
 
-Status: pending  
+Status: in_progress
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: contracts  

@@ -7,8 +7,8 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P1 — Identity / Application / Session
-Current Task: P1-T004 — Implement Identity/Application RLS and grants
-Overall Progress: 15 / 107 tasks completed
+Current Task: P1-T005 — Define identity, application, and session API contracts
+Overall Progress: 16 / 107 tasks completed
 Last Successful Quality Gate: P0-T012 Bootstrap checkpoint — PASS
 
 ## Phase Progress
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P0-T012 Bootstrap checkpoint — PASS
 
 Status: IN_PROGRESS
 Goal: Implement the unified identity/application/session boundary on Supabase Local.
-Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T003 completed; remote repository synchronization completed to `origin/main`. P1-T004 is in progress.
+Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T004 completed; remote repository synchronization completed to `origin/main`. P1-T005 is in progress.
 
 ## Latest Verification
 
@@ -50,6 +50,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T003 completed; rem
 - P1-T001 Profiles schema: PASS — Auth linkage trigger, immutable identity, lifecycle checks, private RLS boundary, five deterministic fixture profiles, database tests 37/37, RLS tests 6/6, and full `platform:verify` passed.
 - P1-T002 Applications and Origins: PASS — exact Origin validation, duplicate rejection, referenced slug/Origin immutability, private RLS boundary, deterministic AisenLens/Account/Admin seeds, database tests 65/65, RLS tests 6/6, and full `platform:verify` passed.
 - P1-T003 Sessions and Admin membership: PASS — hashed session/CSRF persistence, revocation fields, idempotency linkage, fixed four-role Admin membership, local fixture seeding, database tests 94/94, RLS tests 6/6, and full `platform:verify` passed.
+- P1-T004 Identity/Application RLS: PASS — private P1 tables, fixed-search-path own-profile function projection, authenticated own/other-user checks, anon/service_role denial, database tests 110/110, RLS tests 22/22, full `platform:verify`, secrets, and database advisors passed.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -68,15 +69,17 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T003 completed; rem
 
 ## Next Tasks
 
-1. P1-T004 — Implement Identity/Application RLS and grants.
-2. P1-T005 — Define identity, application, and session API contracts.
-3. P1-T006 — Implement Auth/session exchange and current-user API.
+1. P1-T005 — Define identity, application, and session API contracts.
+2. P1-T006 — Implement profile and application read APIs.
+3. P1-T007 — Implement platform session exchange/logout APIs.
 
 ## Recent Commits
 
 - `d11a978` — feat(identity): add profile schema
 - `fd62fe2` — feat(application): add app and origin registry
 - `7a424e6` — feat(identity): add platform sessions and admin membership
+- `21bec9e` — chore(types): refresh generated database types
+- `56d9f7c` — test(security): enforce identity and application RLS
 - `5d4fe6a` — docs(implementation): complete profiles task
 - `b484c3d` — docs(implementation): begin identity phase
 - `b9c5c39` — docs(implementation): record client transport repair
