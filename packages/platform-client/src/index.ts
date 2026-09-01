@@ -29,6 +29,7 @@ import {
 
 export interface PlatformClientOptions {
   baseUrl: string;
+  publicBaseUrl?: string;
   fetch?: typeof globalThis.fetch;
   csrfToken?: () => string | undefined;
   appSlug?: string;
@@ -89,6 +90,7 @@ export interface PlatformClient {
 export function createPlatformClient(options: PlatformClientOptions): PlatformClient {
   const requestFetch = options.fetch ?? globalThis.fetch;
   const baseUrl = options.baseUrl.replace(/\/$/, '');
+  const publicBaseUrl = (options.publicBaseUrl ?? options.baseUrl).replace(/\/$/, '');
 
   return {
     async request<T>(
@@ -96,61 +98,10 @@ export function createPlatformClient(options: PlatformClientOptions): PlatformCl
       responseSchema: ContractSchema<T>,
       init: RequestInit = {},
     ): Promise<PlatformResponse<T>> {
-      const headers = new Headers(init.headers);
-      headers.set('accept', 'application/json');
-      if (options.appSlug) headers.set('x-aisenhub-app', options.appSlug);
-      const csrfToken = options.csrfToken?.();
-      if (csrfToken) headers.set('x-csrf-token', csrfToken);
-
-      const response = await requestFetch(`${baseUrl}${path}`, {
-        ...init,
-        credentials: 'include',
-        headers,
-      });
-      const responseRequestId = response.headers.get('x-request-id') ?? undefined;
-      let payload: unknown;
-      try {
-        payload = await response.json();
-      } catch {
-        throw new PlatformClientError('The API returned an invalid JSON response.', {
-          code: 'MALFORMED_API_RESPONSE',
-          requestId: responseRequestId,
-          status: response.status,
-        });
-      }
-
-      if (!response.ok) {
-        try {
-          const error = parseApiError(payload);
-          throw new PlatformClientError(error.error.message, {
-            code: error.error.code,
-            details: error.error.details,
-            requestId: error.error.requestId,
-            status: response.status,
-          });
-        } catch (error) {
-          if (error instanceof PlatformClientError) throw error;
-          throw new PlatformClientError('The API returned an invalid error response.', {
-            code: 'MALFORMED_API_RESPONSE',
-            requestId: responseRequestId,
-            status: response.status,
-          });
-        }
-      }
-
-      try {
-        const envelope = ApiSuccessEnvelopeSchema(responseSchema).parse(payload);
-        return {
-          data: envelope.data,
-          requestId: envelope.requestId,
-        };
-      } catch {
-        throw new PlatformClientError('The API returned an invalid success response.', {
-          code: 'MALFORMED_API_RESPONSE',
-          requestId: responseRequestId,
-          status: response.status,
-        });
-      }
+      return requestAtBase(baseUrl, path, responseSchema, init);
+    },
+    async getPublicProducts() {
+      return requestAtBase(publicBaseUrl, '/v1/products/public', PublicProductsResponseSchema);
     },
     exchangeSession(accessToken: string) {
       if (accessToken.trim() === '') throw new Error('An access token is required.');
@@ -164,9 +115,6 @@ export function createPlatformClient(options: PlatformClientOptions): PlatformCl
     },
     logout() {
       return this.request('/v1/session', SessionDeleteResponseSchema, { method: 'DELETE' });
-    },
-    getPublicProducts() {
-      return this.request('/v1/products/public', PublicProductsResponseSchema);
     },
     getEntitlements() {
       return this.request('/v1/me/entitlements', EntitlementsResponseSchema);
@@ -227,4 +175,67 @@ export function createPlatformClient(options: PlatformClientOptions): PlatformCl
       });
     },
   };
+
+  async function requestAtBase<T>(
+    requestBaseUrl: string,
+    path: string,
+    responseSchema: ContractSchema<T>,
+    init: RequestInit = {},
+  ): Promise<PlatformResponse<T>> {
+    const headers = new Headers(init.headers);
+    headers.set('accept', 'application/json');
+    if (options.appSlug) headers.set('x-aisenhub-app', options.appSlug);
+    const csrfToken = options.csrfToken?.();
+    if (csrfToken) headers.set('x-csrf-token', csrfToken);
+
+    const response = await requestFetch(`${requestBaseUrl}${path}`, {
+      ...init,
+      credentials: 'include',
+      headers,
+    });
+    const responseRequestId = response.headers.get('x-request-id') ?? undefined;
+    let payload: unknown;
+    try {
+      payload = await response.json();
+    } catch {
+      throw new PlatformClientError('The API returned an invalid JSON response.', {
+        code: 'MALFORMED_API_RESPONSE',
+        requestId: responseRequestId,
+        status: response.status,
+      });
+    }
+
+    if (!response.ok) {
+      try {
+        const error = parseApiError(payload);
+        throw new PlatformClientError(error.error.message, {
+          code: error.error.code,
+          details: error.error.details,
+          requestId: error.error.requestId,
+          status: response.status,
+        });
+      } catch (error) {
+        if (error instanceof PlatformClientError) throw error;
+        throw new PlatformClientError('The API returned an invalid error response.', {
+          code: 'MALFORMED_API_RESPONSE',
+          requestId: responseRequestId,
+          status: response.status,
+        });
+      }
+    }
+
+    try {
+      const envelope = ApiSuccessEnvelopeSchema(responseSchema).parse(payload);
+      return {
+        data: envelope.data,
+        requestId: envelope.requestId,
+      };
+    } catch {
+      throw new PlatformClientError('The API returned an invalid success response.', {
+        code: 'MALFORMED_API_RESPONSE',
+        requestId: responseRequestId,
+        status: response.status,
+      });
+    }
+  }
 }

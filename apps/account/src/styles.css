@@ -40,6 +40,111 @@ input {
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 24px 60px rgba(35, 67, 52, 0.12);
 }
+.account-shell-top {
+  place-items: start center;
+  align-items: start;
+}
+.account-card-wide {
+  width: min(100%, 760px);
+}
+.account-section {
+  display: grid;
+  gap: 12px;
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid #d8e4dc;
+}
+.account-section h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.muted-text,
+.notice-text {
+  margin: 0;
+  color: #5d6d65;
+  line-height: 1.5;
+}
+.notice-text {
+  margin-top: 20px;
+  color: #1f6d4b;
+}
+.item-list {
+  display: grid;
+  gap: 8px;
+}
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid #d8e4dc;
+  border-radius: 12px;
+  background: #fbfdfb;
+}
+.item-meta {
+  color: #5d6d65;
+  font-size: 0.8rem;
+  text-align: right;
+}
+.inline-form {
+  display: flex;
+  gap: 10px;
+}
+.inline-form input {
+  flex: 1;
+}
+.secondary-button,
+.danger-button {
+  width: 100%;
+  margin-top: 24px;
+  border: 1px solid #cbd9d0;
+  border-radius: 12px;
+  padding: 12px 18px;
+  color: #34483e;
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+.secondary-button:hover {
+  background: #eef5f0;
+}
+.danger-section {
+  border-top-color: #edd2d0;
+}
+.deletion-form {
+  display: grid;
+  gap: 10px;
+}
+.checkbox-row {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.checkbox-row input {
+  width: auto;
+  margin-top: 2px;
+}
+.danger-button {
+  margin-top: 4px;
+  border-color: #d9aaa6;
+  color: #a33f37;
+}
+.danger-button:hover:not(:disabled) {
+  background: #fff3f2;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .eyebrow {
   margin: 0 0 18px;
   color: #287a56;
@@ -115,5 +220,19 @@ input:focus {
 @media (prefers-reduced-motion: reduce) {
   * {
     scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .item-row,
+  .inline-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .item-meta {
+    text-align: left;
+  }
+  .inline-form .primary-button {
+    width: 100%;
   }
 }

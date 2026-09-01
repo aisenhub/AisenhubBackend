@@ -31,6 +31,7 @@ const webServerEnv = {
   E2E_PROXY_TARGET: 'http://127.0.0.1:54321',
   E2E_PROXY_ORIGIN: 'http://localhost:5173',
   VITE_PLATFORM_API_URL: '/functions/v1/platform-api',
+  VITE_PLATFORM_PUBLIC_API_URL: '/functions/v1/platform-public',
   REDEMPTION_PEPPER: 'local-e2e-only-pepper',
   REDEMPTION_PEPPER_VERSION: '1',
 };

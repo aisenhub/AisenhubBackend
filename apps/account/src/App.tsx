@@ -5,7 +5,11 @@ import {
   PlatformClientError,
   type PlatformResponse,
 } from '@aisenhub/platform-client';
-import type { SessionResponse } from '@aisenhub/contracts';
+import type {
+  EntitlementsResponse,
+  PublicProductsResponse,
+  SessionResponse,
+} from '@aisenhub/contracts';
 
 import { AccountAuthClient, AccountAuthError } from './auth';
 import './styles.css';
@@ -16,13 +20,17 @@ type AuthenticatedSession = Extract<SessionResponse, { authenticated: true }>;
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? 'http://127.0.0.1:54321';
 const platformApiUrl =
   import.meta.env.VITE_PLATFORM_API_URL ?? 'http://127.0.0.1:54321/functions/v1/platform-api';
+const platformPublicApiUrl =
+  import.meta.env.VITE_PLATFORM_PUBLIC_API_URL ??
+  'http://127.0.0.1:54321/functions/v1/platform-public';
 
 function readableError(error: unknown): string {
   if (error instanceof AccountAuthError) return error.message;
   if (error instanceof PlatformClientError) {
-    if (error.code === 'AUTHENTICATION_REQUIRED') {
+    if (error.code === 'AUTHENTICATION_REQUIRED')
       return 'Your session has expired. Please sign in again.';
-    }
+    if (error.code === 'REDEMPTION_UNAVAILABLE')
+      return 'This redemption code is invalid or no longer available.';
     return 'Something went wrong. Please try again.';
   }
   return 'Something went wrong. Please try again.';
@@ -34,12 +42,23 @@ function isAuthenticated(
   return response.data.authenticated;
 }
 
+function createIdempotencyKey() {
+  return globalThis.crypto.randomUUID();
+}
+
 export function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [viewState, setViewState] = useState<ViewState>('loading');
   const [message, setMessage] = useState<string | null>(null);
   const [session, setSession] = useState<AuthenticatedSession | null>(null);
+  const [products, setProducts] = useState<PublicProductsResponse['products']>([]);
+  const [entitlements, setEntitlements] = useState<EntitlementsResponse['entitlements']>([]);
+  const [redemptionCode, setRedemptionCode] = useState('');
+  const [isRedeeming, setIsRedeeming] = useState(false);
+  const [deletionPassword, setDeletionPassword] = useState('');
+  const [deletionConfirmed, setDeletionConfirmed] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const csrfTokenRef = useRef<string | undefined>(undefined);
   const auth = useMemo(
     () =>
@@ -53,22 +72,33 @@ export function App() {
     () =>
       createPlatformClient({
         baseUrl: platformApiUrl,
+        publicBaseUrl: platformPublicApiUrl,
         appSlug: 'account',
         csrfToken: () => csrfTokenRef.current,
       }),
     [],
   );
 
+  async function loadAccountData() {
+    const [catalog, currentEntitlements] = await Promise.all([
+      client.getPublicProducts(),
+      client.getEntitlements(),
+    ]);
+    setProducts(catalog.data.products);
+    setEntitlements(currentEntitlements.data.entitlements);
+  }
+
   useEffect(() => {
     let active = true;
     client
       .getSession()
-      .then((response) => {
+      .then(async (response) => {
         if (!active) return;
         if (isAuthenticated(response)) {
           setSession(response.data);
           csrfTokenRef.current = response.data.csrfToken;
-          setViewState('authenticated');
+          await loadAccountData();
+          if (active) setViewState('authenticated');
         } else {
           setViewState('signed_out');
         }
@@ -92,6 +122,7 @@ export function App() {
       const exchanged = await client.exchangeSession(authSession.accessToken);
       setSession(exchanged.data);
       csrfTokenRef.current = exchanged.data.csrfToken;
+      await loadAccountData();
       setPassword('');
       setViewState('authenticated');
     } catch (error: unknown) {
@@ -100,17 +131,57 @@ export function App() {
     }
   }
 
+  async function handleRedeem(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!redemptionCode.trim()) return;
+    setMessage(null);
+    setIsRedeeming(true);
+    try {
+      await client.redeem(redemptionCode.trim(), createIdempotencyKey());
+      setRedemptionCode('');
+      await loadAccountData();
+      setMessage('Redemption completed. Your platform access is now updated.');
+    } catch (error: unknown) {
+      setMessage(readableError(error));
+    } finally {
+      setIsRedeeming(false);
+    }
+  }
+
+  async function handleDeletion(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!deletionConfirmed || !deletionPassword) return;
+    setMessage(null);
+    setIsDeleting(true);
+    try {
+      const reauthenticated = await auth.signInWithPassword(email, deletionPassword);
+      await client.requestAccountDeletion(reauthenticated.accessToken, createIdempotencyKey());
+      await Promise.allSettled([client.logout(), auth.signOut()]);
+      setSession(null);
+      csrfTokenRef.current = undefined;
+      setDeletionPassword('');
+      setViewState('signed_out');
+      setMessage('Your account deletion request was submitted.');
+    } catch (error: unknown) {
+      setMessage(readableError(error));
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   async function handleLogout() {
     setMessage(null);
     try {
       await client.logout();
+      await auth.signOut();
     } catch (error: unknown) {
       setMessage(readableError(error));
       return;
     }
-    auth.signOut();
     csrfTokenRef.current = undefined;
     setSession(null);
+    setProducts([]);
+    setEntitlements([]);
     setViewState('signed_out');
   }
 
@@ -134,21 +205,116 @@ export function App() {
 
   if (viewState === 'authenticated' && session) {
     return (
-      <main className="account-shell">
-        <section className="account-card" aria-labelledby="welcome-title">
+      <main className="account-shell account-shell-top">
+        <section className="account-card account-card-wide" aria-labelledby="welcome-title">
           <p className="eyebrow">AisenHub Account</p>
           <h1 id="welcome-title">
             Welcome back{session.identity.displayName ? `, ${session.identity.displayName}` : ''}.
           </h1>
           <p className="supporting-text">
-            Your platform session is active. Your security token remains in memory on this page.
+            Your platform session is active. Products and access are resolved by AisenHub.
           </p>
           {message && (
-            <p className="error-text" role="alert">
+            <p className="notice-text" role="status">
               {message}
             </p>
           )}
-          <button className="primary-button" type="button" onClick={handleLogout}>
+
+          <div className="account-section">
+            <h2>Products</h2>
+            {products.length === 0 ? (
+              <p className="muted-text">No public products are available yet.</p>
+            ) : (
+              <div className="item-list">
+                {products.map((product) => (
+                  <div className="item-row" key={`${product.sku}-${product.version}`}>
+                    <span>{product.name}</span>
+                    <span className="item-meta">
+                      {product.sku} · v{product.version}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="account-section">
+            <h2>Your platform access</h2>
+            {entitlements.length === 0 ? (
+              <p className="muted-text">No active entitlements.</p>
+            ) : (
+              <div className="item-list">
+                {entitlements.map((entitlement) => (
+                  <div
+                    className="item-row"
+                    key={`${entitlement.feature}-${entitlement.sourceProduct}`}
+                  >
+                    <span>{entitlement.feature}</span>
+                    <span className="item-meta">
+                      {entitlement.sourceProduct}
+                      {entitlement.expiresAt
+                        ? ` · expires ${new Date(entitlement.expiresAt).toLocaleDateString()}`
+                        : ' · permanent'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="account-section">
+            <h2>Redeem a code</h2>
+            <form className="inline-form" onSubmit={(event) => void handleRedeem(event)}>
+              <label className="sr-only" htmlFor="redemption-code">
+                Redemption code
+              </label>
+              <input
+                id="redemption-code"
+                value={redemptionCode}
+                onChange={(event) => setRedemptionCode(event.target.value)}
+                placeholder="Enter your redemption code"
+                autoComplete="off"
+              />
+              <button className="primary-button" type="submit" disabled={isRedeeming}>
+                {isRedeeming ? 'Redeeming…' : 'Redeem'}
+              </button>
+            </form>
+          </div>
+
+          <div className="account-section danger-section">
+            <h2>Delete account</h2>
+            <p className="muted-text">
+              This starts the recoverable platform deletion workflow. Re-enter your password to
+              confirm.
+            </p>
+            <form className="deletion-form" onSubmit={(event) => void handleDeletion(event)}>
+              <label htmlFor="deletion-password">Confirm password</label>
+              <input
+                id="deletion-password"
+                type="password"
+                value={deletionPassword}
+                onChange={(event) => setDeletionPassword(event.target.value)}
+                autoComplete="current-password"
+              />
+              <label className="checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={deletionConfirmed}
+                  onChange={(event) => setDeletionConfirmed(event.target.checked)}
+                />{' '}
+                I understand this will sign me out and schedule account deletion.
+              </label>
+              <button
+                className="danger-button"
+                type="submit"
+                disabled={isDeleting || !deletionConfirmed || !deletionPassword}
+              >
+                {isDeleting ? 'Submitting…' : 'Request account deletion'}
+              </button>
+            </form>
+          </div>
+
+          <button className="secondary-button" type="button" onClick={() => void handleLogout()}>
             Sign out
           </button>
         </section>
@@ -162,7 +328,12 @@ export function App() {
         <p className="eyebrow">AisenHub Account</p>
         <h1 id="login-title">One account for your tools.</h1>
         <p className="supporting-text">Sign in to continue across the AisenHub platform.</p>
-        <form className="login-form" onSubmit={handleSubmit}>
+        {message && (
+          <p className="error-text" role="alert">
+            {message}
+          </p>
+        )}
+        <form className="login-form" onSubmit={(event) => void handleSubmit(event)}>
           <div className="field-group">
             <label htmlFor="email">Email address</label>
             <input
@@ -187,11 +358,6 @@ export function App() {
               onChange={(event) => setPassword(event.target.value)}
             />
           </div>
-          {message && (
-            <p className="error-text" role="alert">
-              {message}
-            </p>
-          )}
           <button className="primary-button" type="submit" disabled={viewState === 'signing_in'}>
             {viewState === 'signing_in' ? 'Signing in…' : 'Sign in'}
           </button>

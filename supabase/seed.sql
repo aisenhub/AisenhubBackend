@@ -18,7 +18,8 @@ insert into platform.app_origins
   (id, app_id, environment, origin)
 values
   ('21000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000002', 'development', 'http://localhost:5173'),
-  ('21000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000003', 'development', 'http://localhost:5174');
+  ('21000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000003', 'development', 'http://localhost:5174'),
+  ('21000000-0000-4000-8000-000000000003', '20000000-0000-4000-8000-000000000001', 'development', 'http://localhost:5175');
 
 insert into platform.features
   (id, app_id, code, name, value_type, status, merge_strategy)

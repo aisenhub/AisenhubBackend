@@ -133,14 +133,15 @@ describe('platform client transport', () => {
   });
 
   it('provides typed catalog, entitlement, access, redemption, and feedback methods', async () => {
-    const calls: Array<{ path: string; init?: RequestInit }> = [];
+    const calls: Array<{ url: string; path: string; init?: RequestInit }> = [];
     const client = createPlatformClient({
       baseUrl: 'https://api.example.test',
+      publicBaseUrl: 'https://public.example.test',
       appSlug: 'account',
       csrfToken: () => 'csrf-memory-token',
       fetch: async (input, init) => {
         const path = new URL(String(input)).pathname;
-        calls.push({ path, init });
+        calls.push({ url: String(input), path, init });
         const data = path.endsWith('/products/public')
           ? {
               products: [
@@ -202,6 +203,8 @@ describe('platform client transport', () => {
       '/v1/redemptions',
       '/v1/feedback',
     ]);
+    expect(calls[0].path).toBe('/v1/products/public');
+    expect(calls[0].url).toBe('https://public.example.test/v1/products/public');
     const redemptionHeaders = new Headers(calls[3].init?.headers);
     expect(redemptionHeaders.get('idempotency-key')).toBe('redeem-key-1');
     expect(redemptionHeaders.get('x-csrf-token')).toBe('csrf-memory-token');
