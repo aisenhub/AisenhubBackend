@@ -10,6 +10,10 @@ import { ApplicationsPage } from '../modules/operations/pages/ApplicationsPage';
 import { AuditLogsPage } from '../modules/operations/pages/AuditLogsPage';
 import { SystemHealthPage } from '../modules/operations/pages/SystemHealthPage';
 import { UsersPage } from '../modules/operations/pages/UsersPage';
+import { RedemptionBatchesPage } from '../modules/redemption/pages/RedemptionBatchesPage';
+import { RedemptionCodesPage } from '../modules/redemption/pages/RedemptionCodesPage';
+import { RedemptionsPage } from '../modules/redemption/pages/RedemptionsPage';
+import { adminRuntime } from '../providers/admin-runtime';
 import { CatalogPage } from '../modules/catalog/pages/CatalogPage';
 import { FeaturesPage } from '../modules/catalog/pages/FeaturesPage';
 import { OriginsPage } from '../modules/catalog/pages/OriginsPage';
@@ -59,6 +63,14 @@ function CatalogPermission({
   );
 }
 
+function RedemptionPermission({ children }: { children: ReactNode }) {
+  return adminRuntime.session.getSession()?.role === 'finance' ? (
+    <PermissionDeniedState description="Finance members cannot access Redemption operations." />
+  ) : (
+    children
+  );
+}
+
 function ProtectedContent() {
   return (
     <Authenticated
@@ -78,6 +90,30 @@ function ProtectedContent() {
             }
           />
           <Route path="users" element={<UsersPage />} />
+          <Route
+            path="redemptions"
+            element={
+              <RedemptionPermission>
+                <RedemptionBatchesPage />
+              </RedemptionPermission>
+            }
+          />
+          <Route
+            path="redemption-codes"
+            element={
+              <RedemptionPermission>
+                <RedemptionCodesPage />
+              </RedemptionPermission>
+            }
+          />
+          <Route
+            path="redemption-receipts"
+            element={
+              <RedemptionPermission>
+                <RedemptionsPage />
+              </RedemptionPermission>
+            }
+          />
           <Route
             path="audit-logs"
             element={

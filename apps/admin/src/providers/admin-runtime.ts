@@ -27,6 +27,7 @@ const platformClient = createAdminClient({
 const adminDataProvider = createAdminDataProvider(adminClient);
 
 export const adminRuntime = {
+  session: sessionStore,
   client: adminClient,
   dataProvider: adminDataProvider,
   refineDataProvider: createRefineDataProvider(adminDataProvider, apiOrigin),

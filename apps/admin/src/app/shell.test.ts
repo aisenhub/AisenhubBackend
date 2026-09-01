@@ -10,6 +10,7 @@ describe('Admin module registry', () => {
       '/catalog',
       '/applications',
       '/users',
+      '/redemptions',
       '/audit-logs',
       '/system-health',
       '/growth',

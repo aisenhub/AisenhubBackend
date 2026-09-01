@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { adminModules, getAdminModule } from '../app/module-registry';
+import { adminRuntime } from '../providers/admin-runtime';
 
 type AdminLayoutProps = {
   children: ReactNode;
@@ -19,6 +20,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const isModuleVisible = (module: (typeof adminModules)[number]) => {
     if (module.key === 'applications') return applicationAccess.data?.can ?? false;
     if (module.key === 'auditLogs') return auditAccess.data?.can ?? false;
+    if (module.key === 'redemptions') return adminRuntime.session.getSession()?.role !== 'finance';
     return true;
   };
 

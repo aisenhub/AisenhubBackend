@@ -19,7 +19,14 @@ export type AdminCommandState<TOutput> = {
   readonly idempotencyKey?: string;
 };
 
-export function useAdminCommand<TInput, TOutput>(invoke: AdminCommandInvoker<TInput, TOutput>) {
+export type UseAdminCommandOptions = {
+  readonly retainResult?: boolean;
+};
+
+export function useAdminCommand<TInput, TOutput>(
+  invoke: AdminCommandInvoker<TInput, TOutput>,
+  options: UseAdminCommandOptions = {},
+) {
   const [state, setState] = useState<AdminCommandState<TOutput>>({
     status: 'idle',
     result: null,
@@ -39,7 +46,7 @@ export function useAdminCommand<TInput, TOutput>(invoke: AdminCommandInvoker<TIn
           lastIdempotencyKey.current = null;
           setState({
             status: 'success',
-            result,
+            result: options.retainResult === false ? null : result,
             error: null,
             requestId: result.requestId,
             idempotencyKey,
