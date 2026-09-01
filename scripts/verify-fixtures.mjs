@@ -164,4 +164,24 @@ if (adminSeed.status !== 0) {
   throw new Error('Local Admin fixture membership seeding failed.');
 }
 
-console.log(`Verified ${fixtures.users.length} deterministic Local Auth fixtures.`);
+const localCatalogSeedFile = join(repositoryRoot, 'scripts', 'seed-local-catalog-fixtures.sql');
+const catalogSeed =
+  process.platform === 'win32'
+    ? spawnSync(
+        process.env.ComSpec ?? 'cmd.exe',
+        ['/d', '/s', '/c', `${supabaseCli} db query --local --file ${localCatalogSeedFile}`],
+        { cwd: repositoryRoot, encoding: 'utf8', shell: false },
+      )
+    : spawnSync(supabaseCli, ['db', 'query', '--local', '--file', localCatalogSeedFile], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+        shell: false,
+      });
+
+if (catalogSeed.status !== 0) {
+  throw new Error('Local Catalog/Entitlement/Redemption fixture seeding failed.');
+}
+
+console.log(
+  `Verified ${fixtures.users.length} deterministic Local Auth fixtures and Local P2 domain fixtures.`,
+);

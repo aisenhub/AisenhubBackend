@@ -52,6 +52,7 @@ insert into platform.product_prices
   (id, product_version_id, currency, amount_minor, channel, status, valid_from)
 values
   ('27000000-0000-4000-8000-000000000001', '24000000-0000-4000-8000-000000000001', 'USD', 0, 'manual', 'draft', now());
+
 --
 -- Keep this file available for deterministic non-Auth seed data introduced by
 -- later phases. Never add production data or production credentials here.
