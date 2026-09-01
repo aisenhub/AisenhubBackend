@@ -369,7 +369,7 @@ P1-T005 and P1-T006.
 
 ## P1-T005 — Define identity, application, and session API contracts
 
-Status: in_progress
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: contracts  
@@ -429,10 +429,10 @@ Valid/invalid examples, forbidden extra sensitive fields, unique errors/actions,
 
 ### Acceptance Criteria
 
-- [ ] Contracts cover `/v1/session/exchange`, `/v1/session`, `/v1/me`, `/v1/admin/session`.
-- [ ] Admin session contains only identity/role/AAL/expiry.
-- [ ] No hash, database permission, or secret is exposed.
-- [ ] Tests pass.
+- [x] Contracts cover `/v1/session/exchange`, `/v1/session`, `/v1/me`, `/v1/admin/session`.
+- [x] Admin session contains only identity/role/AAL/expiry.
+- [x] No hash, database permission, or secret is exposed.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -460,7 +460,7 @@ P1-T006 and P1-T007.
 
 ## P1-T006 — Implement profile and application read APIs
 
-Status: pending  
+Status: in_progress
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: api  

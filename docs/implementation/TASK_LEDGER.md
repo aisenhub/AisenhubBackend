@@ -20,7 +20,8 @@
 | P1-T002 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | fd62fe2 | Exact Origin validation, duplicate rejection, app/Origin identity immutability, private RLS boundary, deterministic seeds, and database/RLS/full quality gates passed. |
 | P1-T003 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 7a424e6 | Hashed session/CSRF persistence, revocation fields, idempotency linkage, fixed four-role Admin membership, local fixture seeding, database/RLS/full quality gates passed. |
 | P1-T004 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 56d9f7c + 21bec9e | Private P1 tables, fixed-search-path own-profile function projection, authenticated own/other-user checks, anon/service_role denial, database/RLS/full quality gates passed. |
-| P1-T005 | Identity / App / Session | in_progress | 2026-09-01 |  |  | Defining stable identity, application, session exchange, current-user, and Admin session contracts. |
+| P1-T005 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 25ea256 | Stable identity/session/application contracts, sensitive-field rejection, auth/origin/CSRF/session errors, and contract/root quality gates passed. |
+| P1-T006 | Identity / App / Session | in_progress | 2026-09-01 |  |  | Implementing public application and authenticated profile reads through the Platform API. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |
