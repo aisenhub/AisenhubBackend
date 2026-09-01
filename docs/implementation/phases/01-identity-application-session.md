@@ -4,7 +4,7 @@ Goal: implement the approved unified identity/application/session boundary entir
 
 ## P1-T001 — Create profiles schema and lifecycle constraints
 
-Status: pending  
+Status: in_progress  
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: database  

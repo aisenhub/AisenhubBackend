@@ -4,10 +4,10 @@ Last Updated: 2026-09-01
 
 ## Overall
 
-Status: PAUSED
+Status: IN_PROGRESS
 
 Current Phase: P1 — Identity / Application / Session
-Current Task: P1-T001 — pending remote repository synchronization
+Current Task: P1-T001 — Create profiles schema and lifecycle constraints
 Overall Progress: 12 / 107 tasks completed
 Last Successful Quality Gate: P0-T012 Bootstrap checkpoint — PASS
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P0-T012 Bootstrap checkpoint — PASS
 
 Status: IN_PROGRESS
 Goal: Establish deterministic local workspace tooling and continue through the P0 bootstrap tasks.
-Dependencies: P0-T001 through P0-T012 completed. P1-T001 awaits the requested remote repository synchronization before implementation begins.
+Dependencies: P0-T001 through P0-T012 completed; remote repository synchronization completed to `origin/main`. P1-T001 is in progress.
 
 ## Latest Verification
 
@@ -65,9 +65,9 @@ Dependencies: P0-T001 through P0-T012 completed. P1-T001 awaits the requested re
 
 ## Next Tasks
 
-1. Synchronize completed work to `https://github.com/aisenhub/AisenhubBackend.git` as requested.
-2. P1-T001 — Begin Identity / Application / Session implementation.
-3. P1-T002 — Continue the next Identity / Application / Session task.
+1. P1-T001 — Create profiles schema and lifecycle constraints.
+2. P1-T002 — Create applications and origins schema.
+3. P1-T003 — Add application/origin lifecycle commands.
 
 ## Recent Commits
 
