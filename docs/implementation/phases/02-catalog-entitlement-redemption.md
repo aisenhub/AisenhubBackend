@@ -548,7 +548,7 @@ P2-T007 and P2-T013.
 
 ## P2-T007 — Create redemption batch, code, and redemption schema
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: database-test-first  
@@ -609,10 +609,10 @@ Duplicate hash/claim, invalid times/status/limits, direct read/write denial, ref
 
 ### Acceptance Criteria
 
-- [ ] No plaintext code column exists.
-- [ ] One code maps to at most one redemption.
-- [ ] Sensitive tables are inaccessible to browser roles.
-- [ ] Tests pass.
+- [x] No plaintext code column exists.
+- [x] One code maps to at most one redemption.
+- [x] Sensitive tables are inaccessible to browser roles.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -624,7 +624,7 @@ Do not log or seed recoverable production-like codes.
 
 ### Output
 
-Secure redemption storage.
+Secure redemption storage delivered in `supabase/migrations/20260901056000_redemption_schema.sql`: private batch/code/receipt tables, digest-only code persistence, one-time uniqueness, code state lifecycle, immutable receipts, and cross-entity consistency validation. Database tests passed 439/439 and RLS tests passed 29/29.
 
 ### Human Gate
 

@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P2 — Catalog / Entitlement / Redemption
-Current Task: P2-T007 — Create redemption batch, code, and redemption schema
-Overall Progress: 33 / 107 tasks completed
-Last Successful Quality Gate: P2-T006 Deterministic entitlement access resolution — PASS
+Current Task: P2-T008 — Implement one-time redemption code generation
+Overall Progress: 34 / 107 tasks completed
+Last Successful Quality Gate: P2-T007 Redemption schema — PASS
 
 ## Phase Progress
 
@@ -67,6 +67,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T014 completed; P3-
 - P2-T004 entitlement grant history: PASS — `pnpm db:reset` and `pnpm db:test` passed 325/325, including 33 grant invariants; fixed snapshot resolution, source uniqueness, product/version ownership, revoke-only lifecycle, restore linkage, private RLS, and required indexes are covered.
 - P2-T005 entitlement command core: PASS — `pnpm db:reset` and `pnpm db:test` passed 367/367, including 42 grant/revoke/restore and audit assertions; all grant sources reuse one path, successful operations audit atomically, restore creates a new grant, original remains revoked, repeated restore is rejected, and audit logs are append-only. RLS 29, function 4, integration 16, root tests 35, typecheck, lint, format, and workspace build passed.
 - P2-T006 deterministic access resolution: PASS — `pnpm db:reset` and `pnpm db:test` passed 398/398, including 31 access-resolution assertions; server-only `check_access` resolves active nonexpired fixed snapshots, all-apps access, every merge strategy, deterministic latest ties, source SKUs, earliest expiry, retired history, and inactive-app denial. Integration 16, root tests 35, typecheck, lint, format, and workspace build passed.
+- P2-T007 redemption schema: PASS — `pnpm db:reset` and `pnpm db:test` passed 439/439, including 41 redemption schema/security assertions; private batches, hashed-only codes, safe prefix/pepper/status/time constraints, one-code-one-redemption uniqueness, immutable receipts, and batch/user/product/grant/idempotency consistency are covered. RLS 29 passed.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -85,8 +86,8 @@ None.
 
 ## Next Tasks
 
-1. P2-T007 — Create redemption batch/code/redemption schema.
-2. P2-T008 — Implement secure redemption code generation and batch creation.
+1. P2-T008 — Implement secure redemption code generation and batch creation.
+2. P2-T009 — Write complete redemption transaction tests before implementation.
 
 ## Recent Commits
 

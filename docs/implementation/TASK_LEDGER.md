@@ -35,6 +35,8 @@
 | P2-T003 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | ba9613a | Backend-only publish, retire, and set-current commands with safe search paths/grants, completeness/ownership/price checks, atomic retirement, rollback, and direct-write rejection; 37 command tests passed. |
 | P2-T004 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 25a15cb | Append-only entitlement grant history with fixed snapshot resolution, source uniqueness, ownership FKs, revoke-only lifecycle, restore linkage validation, private RLS, indexes, and 33 grant tests passed. |
 | P2-T005 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | faebd5b | Common audited grant path, revoke and restore transactions, one-time restore policy, original-revoked guarantee, rollback, idempotent source rejection, backend-only grants, and 42 command/audit tests passed. |
+| P2-T006 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 293d175 | Server-only deterministic access resolution over active nonexpired fixed snapshots, app-scoped/all-apps matching, every merge strategy, latest tie-break, source/expiry output, retired history, and 31 access tests passed. |
+| P2-T007 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 8275d77 | Private redemption batches, hashed code storage, one-time code/grant/idempotency relations, state/time/format constraints, immutable receipts, cross-entity consistency checks, and 41 schema tests passed. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |
