@@ -3,6 +3,7 @@
 -- Auth fixtures are created by `pnpm fixtures:verify` through the Local Auth
 -- Admin API. This is intentional: direct writes to auth.users are not a
 -- supported way to make users visible to the running GoTrue service.
+-- The profile lifecycle trigger creates one platform profile per fixture.
 --
 -- Keep this file available for deterministic non-Auth seed data introduced by
 -- later phases. Never add production data or production credentials here.
