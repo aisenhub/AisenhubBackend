@@ -52,6 +52,15 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_public_app: {
+        Args: { app_slug: string }
+        Returns: {
+          category: string
+          name: string
+          slug: string
+          status: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
