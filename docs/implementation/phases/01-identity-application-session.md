@@ -4,7 +4,7 @@ Goal: implement the approved unified identity/application/session boundary entir
 
 ## P1-T001 — Create profiles schema and lifecycle constraints
 
-Status: in_progress  
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: database  
@@ -65,10 +65,10 @@ Own/missing profile creation, invalid status, FK deletion behavior, anon/authent
 
 ### Acceptance Criteria
 
-- [ ] Reset exits 0.
-- [ ] Five fixture profiles exist with stable IDs.
-- [ ] Invalid status and unauthorized direct access fail.
-- [ ] Database tests pass.
+- [x] Reset exits 0.
+- [x] Five fixture profiles exist with stable IDs.
+- [x] Invalid status and unauthorized direct access fail.
+- [x] Database tests pass.
 
 ### Failure Recovery
 
@@ -96,7 +96,7 @@ P1-T002 and P1-T005.
 
 ## P1-T002 — Create platform applications and exact origins schema
 
-Status: pending  
+Status: in_progress
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: database  

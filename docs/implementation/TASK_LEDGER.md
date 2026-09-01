@@ -16,9 +16,8 @@
 | P0-T010 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | be9373e | Added fail-fast `platform:verify`, Local start/readiness handling, reset/fixture/typegen stability checks, full current quality gate, and safe captured startup output; clean and warm runs passed. |
 | P0-T011 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 779788c | Added zero-secret CI workflow, pinned Node/pnpm install, Local gate parity, safe failure artifacts, high-confidence committed-secret scan, and boundary scan; local scans and workflow format validation passed. |
 | P0-T012 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 793fe6b | Final clean-state `platform:verify`, secret scan, Git state audit, and Phase 00 checkpoint completed; Local-only gate passed with zero cloud credentials. |
-| P0-T012 | Bootstrap | pending |  |  |  |  |
-| P1-T001 | Identity / App / Session | in_progress | 2026-09-01 |  |  | Creating the `platform.profiles` schema, Auth linkage, lifecycle constraints, and tests. |
-| P1-T002 | Identity / App / Session | pending |  |  |  |  |
+| P1-T001 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | d11a978 | Auth linkage trigger, lifecycle constraints, immutable identity, private RLS boundary, deterministic fixture profiles, and database/RLS tests passed. |
+| P1-T002 | Identity / App / Session | in_progress | 2026-09-01 |  |  | Creating platform applications and exact environment-specific origins schema. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |
