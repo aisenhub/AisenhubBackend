@@ -1,6 +1,6 @@
 begin;
 
-select plan(29);
+select plan(35);
 
 select has_function(
   'public',
@@ -60,6 +60,22 @@ select lives_ok(
     insert into platform.payment_events
       (id, payment_id, order_id, provider, external_event_id, event_type, currency, amount, occurred_at)
     values ('99600000-0000-4000-8000-000000000002', '99500000-0000-4000-8000-000000000002', '99200000-0000-4000-8000-000000000002', 'manual', 'state-event-002', 'payment.succeeded', 'USD', 0, now() - interval '1 minute');
+    insert into platform.orders (id, order_no, user_id, customer_ref, currency, amount_total, channel)
+    values ('99200000-0000-4000-8000-000000000003', 'AH-P5-STATE-003', '98900000-0000-4000-8000-000000000001', '99300000-0000-4000-8000-000000000003', 'USD', 2000, 'manual');
+    insert into platform.order_items
+      (id, order_id, product_id, product_version_id, quantity, unit_amount, total_amount, product_name, sku_snapshot, sales_terms)
+    values
+      ('99400000-0000-4000-8000-000000000003', '99200000-0000-4000-8000-000000000003', '99000000-0000-4000-8000-000000000001', '99100000-0000-4000-8000-000000000001', 1, 1000, 1000, 'Commerce State Product', 'COMMERCE_STATE_PRODUCT', '{"support":"standard"}'),
+      ('99400000-0000-4000-8000-000000000004', '99200000-0000-4000-8000-000000000003', '99000000-0000-4000-8000-000000000001', '99100000-0000-4000-8000-000000000001', 1, 1000, 1000, 'Commerce State Product', 'COMMERCE_STATE_PRODUCT', '{"support":"standard"}');
+    update platform.order_items
+       set fulfillment_status = 'revoked'
+     where id = '99400000-0000-4000-8000-000000000004';
+    insert into platform.payments
+      (id, order_id, provider, external_payment_id, currency, amount)
+    values ('99500000-0000-4000-8000-000000000003', '99200000-0000-4000-8000-000000000003', 'manual', 'state-payment-003', 'USD', 2000);
+    insert into platform.payment_events
+      (id, payment_id, order_id, provider, external_event_id, event_type, currency, amount, occurred_at)
+    values ('99600000-0000-4000-8000-000000000003', '99500000-0000-4000-8000-000000000003', '99200000-0000-4000-8000-000000000003', 'manual', 'state-event-003', 'payment.succeeded', 'USD', 2000, now() - interval '1 minute');
   $$,
   'state-machine fixtures can be created'
 );
@@ -80,6 +96,12 @@ select is((select count(*)::integer from platform.entitlement_grants where sourc
 select throws_ok($$select public.fulfill_paid_order('99600000-0000-4000-8000-000000000002')$$, 'P0001', null, 'cancelled orders reject delayed payment fulfillment');
 select is((select status from platform.orders where id = '99200000-0000-4000-8000-000000000002'), 'cancelled', 'delayed payment leaves cancelled order unchanged');
 select is((select count(*)::integer from platform.entitlement_grants where user_id = '98900000-0000-4000-8000-000000000002'), 0, 'delayed payment creates no grant');
+select throws_ok($$select public.fulfill_paid_order('99600000-0000-4000-8000-000000000003')$$, 'P0001', null, 'a revoked item rolls back the whole multi-item fulfillment');
+select is((select status from platform.orders where id = '99200000-0000-4000-8000-000000000003'), 'pending', 'failed fulfillment leaves the order pending');
+select is((select status from platform.payments where id = '99500000-0000-4000-8000-000000000003'), 'pending', 'failed fulfillment leaves the payment pending');
+select is((select status from platform.payment_events where id = '99600000-0000-4000-8000-000000000003'), 'received', 'failed fulfillment leaves the event received');
+select is((select fulfillment_status from platform.order_items where id = '99400000-0000-4000-8000-000000000003'), 'pending', 'failed fulfillment rolls back earlier item grants');
+select is((select count(*)::integer from platform.entitlement_grants where source_id in ('99400000-0000-4000-8000-000000000003', '99400000-0000-4000-8000-000000000004')), 0, 'failed fulfillment creates no order item grants');
 set local role service_role;
 select lives_ok($$select public.refund_order_item('99400000-0000-4000-8000-000000000001', 250, 'compensation', 'partial service credit')$$, 'partial compensation targets one order item');
 set local role postgres;
