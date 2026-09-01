@@ -21,6 +21,7 @@ import {
   AdminFeedbackListResponseSchema,
   AdminOrderOverviewSchema,
   AdminRefundOrderItemRequestSchema,
+  AdminRefundOrderItemResponseSchema,
   AdminSystemHealthResponseSchema,
   AdminUpdateApplicationRequestSchema,
   AdminUpdateProductRequestSchema,
@@ -124,6 +125,22 @@ describe('platform contract primitives', () => {
         mode: 'compensation',
         reason: 'service credit',
         confirmation: true,
+      }).mode,
+    ).toBe('compensation');
+    expect(
+      AdminRefundOrderItemResponseSchema.parse({
+        itemId: requestId,
+        orderId: '00000000-0000-4000-8000-000000000007',
+        refundedAmount: 250,
+        mode: 'compensation',
+        orderStatus: 'partially_refunded',
+        paymentStatus: 'partially_refunded',
+        grantId: null,
+        domainAuditLogId: '00000000-0000-4000-8000-000000000008',
+        auditLogId: '00000000-0000-4000-8000-000000000009',
+        idempotent: false,
+        overviewPath: '/v1/admin/orders/00000000-0000-4000-8000-000000000007/overview',
+        auditPath: '/v1/admin/audit-logs/00000000-0000-4000-8000-000000000009',
       }).mode,
     ).toBe('compensation');
     expect(

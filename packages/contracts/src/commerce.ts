@@ -178,6 +178,24 @@ export const AdminRefundOrderItemRequestSchema = AdminCommandMetadataSchema.exte
 }).strict();
 export type AdminRefundOrderItemRequest = z.infer<typeof AdminRefundOrderItemRequestSchema>;
 
+export const AdminRefundOrderItemResponseSchema = z
+  .object({
+    itemId: UuidSchema,
+    orderId: UuidSchema,
+    refundedAmount: MoneyMinorSchema,
+    mode: z.enum(['compensation', 'return']),
+    orderStatus: z.enum(['partially_refunded', 'refunded']),
+    paymentStatus: z.enum(['partially_refunded', 'refunded']),
+    grantId: UuidSchema.nullable(),
+    domainAuditLogId: UuidSchema,
+    auditLogId: UuidSchema,
+    idempotent: z.boolean(),
+    overviewPath: z.string().regex(/^\/v1\/admin\/orders\/[0-9a-f-]+\/overview$/i),
+    auditPath: z.string().regex(/^\/v1\/admin\/audit-logs\/[0-9a-f-]+$/i),
+  })
+  .strict();
+export type AdminRefundOrderItemResponse = z.infer<typeof AdminRefundOrderItemResponseSchema>;
+
 export const AdminChargebackOrderRequestSchema = AdminCommandMetadataSchema;
 export type AdminChargebackOrderRequest = z.infer<typeof AdminChargebackOrderRequestSchema>;
 

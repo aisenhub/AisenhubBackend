@@ -1,6 +1,6 @@
 begin;
 
-select plan(35);
+select plan(41);
 
 select has_function(
   'public',
@@ -35,6 +35,8 @@ select lives_ok(
       ('98900000-0000-4000-8000-000000000002', 'authenticated', 'authenticated',
        'commerce-state-other.local@aisenhub.test', 'not-used-by-this-test', now(),
        '{"provider":"email","providers":["email"]}'::jsonb, '{}', now(), now(), false);
+    insert into platform.admin_members (user_id, role, status)
+    values ('98900000-0000-4000-8000-000000000001', 'owner', 'active');
     insert into platform.products (id, sku, name, billing_type)
     values ('99000000-0000-4000-8000-000000000001', 'COMMERCE_STATE_PRODUCT', 'Commerce State Product', 'one_time');
     insert into platform.product_versions (id, product_id, version, status, published_at, sales_terms)
@@ -112,6 +114,36 @@ select lives_ok($$select public.refund_order_item('99400000-0000-4000-8000-00000
 set local role postgres;
 select is((select refunded_amount from platform.order_items where id = '99400000-0000-4000-8000-000000000001'), 1000::bigint, 'full refund reaches the item total');
 select is((select fulfillment_status from platform.order_items where id = '99400000-0000-4000-8000-000000000001'), 'revoked', 'full item refund revokes the sourced grant');
+select ok(
+  (public.admin_refund_order_item(
+    '98900000-0000-4000-8000-000000000001',
+    '99400000-0000-4000-8000-000000000002',
+    1000,
+    'return',
+    'return second item',
+    'refund-item-001',
+    repeat('a', 64),
+    '99700000-0000-4000-8000-000000000001'
+  ))->>'orderStatus' = 'refunded',
+  'Admin refund command completes the remaining OrderItem'
+);
+select ok(
+  (public.admin_refund_order_item(
+    '98900000-0000-4000-8000-000000000001',
+    '99400000-0000-4000-8000-000000000002',
+    1000,
+    'return',
+    'retry second item',
+    'refund-item-001',
+    repeat('a', 64),
+    '99700000-0000-4000-8000-000000000002'
+  ))->>'idempotent' = 'true',
+  'Admin refund command retries idempotently'
+);
+select is((select status from platform.orders where id = '99200000-0000-4000-8000-000000000001'), 'refunded', 'all fully refunded items transition the Order to refunded');
+select is((select status from platform.payments where id = '99500000-0000-4000-8000-000000000001'), 'refunded', 'all fully refunded items transition the Payment to refunded');
+select is((select fulfillment_status from platform.order_items where id = '99400000-0000-4000-8000-000000000002'), 'revoked', 'full return revokes only the returned item grant');
+select is((select count(*)::integer from platform.audit_logs where action = 'order_items.refund'), 1, 'idempotent Admin refund retry writes one Admin audit event');
 select throws_ok($$select public.refund_order_item('99400000-0000-4000-8000-000000000001', 1, 'return', 'over refund')$$, 'P0001', null, 'item refunds cannot exceed the item total');
 select throws_ok($$select public.chargeback_order('99200000-0000-4000-8000-000000000001', 'provider dispute')$$, 'P0001', null, 'chargeback transition is explicit and audited');
 

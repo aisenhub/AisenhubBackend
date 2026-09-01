@@ -38,6 +38,12 @@ const adminManualOrderVerifyMigration = path.join(
   'migrations',
   '20260901190000_admin_manual_order_verify.sql',
 );
+const commerceRefundMigration = path.join(
+  repositoryRoot,
+  'supabase',
+  'migrations',
+  '20260901200000_commerce_refunds.sql',
+);
 
 for (const functionName of functionNames) {
   const entrypoint = path.join(functionsRoot, functionName, 'index.ts');
@@ -157,6 +163,26 @@ if (process.argv.includes('manual-verify')) {
     throw new Error('Manual order verification must not persist sensitive payment payloads.');
   }
   console.log('Manual order verification smoke check passed.');
+}
+
+if (process.argv.includes('refund')) {
+  const source = fs.readFileSync(adminApiSource, 'utf8');
+  const migration = fs.readFileSync(commerceRefundMigration, 'utf8');
+  for (const required of [
+    'order-items',
+    'orderItemCommandRoute',
+    'admin_refund_order_item',
+    'refund_order_item',
+    'order_items.refund',
+  ]) {
+    if (!source.includes(required) && !migration.includes(required)) {
+      throw new Error(`OrderItem refund surface is missing ${required}.`);
+    }
+  }
+  if (migration.includes('order_id = p_order_item_id')) {
+    throw new Error('OrderItem refund must lock and target an order item directly.');
+  }
+  console.log('OrderItem refund smoke check passed.');
 }
 
 console.log(`Function shell smoke check passed for ${functionNames.length} functions.`);

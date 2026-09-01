@@ -154,6 +154,19 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_refund_order_item: {
+        Args: {
+          p_actor_id: string
+          p_amount: number
+          p_idempotency_key: string
+          p_mode: string
+          p_order_item_id: string
+          p_reason: string
+          p_request_hash: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
       admin_user_overview: {
         Args: { p_actor_id: string; p_user_id: string }
         Returns: Json
@@ -358,6 +371,15 @@ export type Database = {
           redemption_id: string
           status: string
         }[]
+      }
+      refund_order_item: {
+        Args: {
+          p_amount: number
+          p_mode: string
+          p_order_item_id: string
+          p_reason: string
+        }
+        Returns: Json
       }
       request_account_deletion: {
         Args: {

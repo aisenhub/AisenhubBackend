@@ -18,6 +18,8 @@ import {
   AdminPublishProductVersionRequestSchema,
   AdminRedemptionBatchCommandResponseSchema,
   AdminRetireProductVersionRequestSchema,
+  AdminRefundOrderItemRequestSchema,
+  AdminRefundOrderItemResponseSchema,
   AdminRestoreEntitlementRequestSchema,
   AdminRestoredEntitlementCommandResponseSchema,
   AdminRevokeEntitlementRequestSchema,
@@ -44,6 +46,8 @@ import {
   type AdminPublishProductVersionRequest,
   type AdminRedemptionBatchCommandResponse,
   type AdminRetireProductVersionRequest,
+  type AdminRefundOrderItemRequest,
+  type AdminRefundOrderItemResponse,
   type AdminRestoreEntitlementRequest,
   type AdminRestoredEntitlementCommandResponse,
   type AdminRevokeEntitlementRequest,
@@ -143,6 +147,11 @@ export interface AisenHubBusinessCommandClient {
     input: AdminVerifyOrderRequest,
     options?: AdminCommandOptions,
   ): Promise<AdminCommandResult<AdminVerifyOrderResponse>>;
+  refundOrderItem(
+    orderItemId: string,
+    input: AdminRefundOrderItemRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminRefundOrderItemResponse>>;
 }
 
 function encodeCommandId(id: string): string {
@@ -382,6 +391,19 @@ export function createBusinessCommandClient(client: AdminClient): AisenHubBusine
         AdminVerifyOrderRequestSchema,
         AdminVerifyOrderResponseSchema,
         { resource: 'orders', id: orderId },
+        ['orders', 'payments', 'entitlements', 'auditLogs'],
+        options,
+      );
+    },
+    refundOrderItem(orderItemId, input, options) {
+      const id = encodeCommandId(orderItemId);
+      return runCommand(
+        client,
+        `/v1/admin/order-items/${id}/refund`,
+        input,
+        AdminRefundOrderItemRequestSchema,
+        AdminRefundOrderItemResponseSchema,
+        { resource: 'orders', id: orderItemId },
         ['orders', 'payments', 'entitlements', 'auditLogs'],
         options,
       );

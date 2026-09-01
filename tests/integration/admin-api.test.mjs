@@ -338,6 +338,27 @@ async function mockedFetch(url, init) {
       { headers: { 'content-type': 'application/json' } },
     );
   }
+  if (pathname.endsWith('/admin_refund_order_item')) {
+    return new Response(
+      JSON.stringify([
+        {
+          itemId: '28000000-0000-4000-8000-000000000001',
+          orderId: '28000000-0000-4000-8000-000000000002',
+          refundedAmount: 250,
+          mode: 'compensation',
+          orderStatus: 'partially_refunded',
+          paymentStatus: 'partially_refunded',
+          grantId: null,
+          domainAuditLogId: '28000000-0000-4000-8000-000000000003',
+          auditLogId: '28000000-0000-4000-8000-000000000004',
+          idempotent: false,
+          overviewPath: '/v1/admin/orders/28000000-0000-4000-8000-000000000002/overview',
+          auditPath: '/v1/admin/audit-logs/28000000-0000-4000-8000-000000000004',
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
   throw new Error(`Unexpected mocked request: ${pathname}`);
 }
 
@@ -748,6 +769,52 @@ describe('platform Admin API', () => {
     expect(body.data.status).toBe('fulfilled');
     expect(body.data.overviewPath).toContain(`/v1/admin/orders/${orderId}/overview`);
     expect(body.data).not.toHaveProperty('rawPayload');
+    expect(JSON.stringify(body)).not.toMatch(/token|secret|password|stack|card/i);
+  });
+
+  it('protects OrderItem refunds with high-risk Admin MFA and an explicit compensation mode', async () => {
+    const itemId = '28000000-0000-4000-8000-000000000001';
+    const headers = {
+      Origin: adminOrigin,
+      'X-AisenHub-App': 'admin',
+      'X-CSRF-Token': 'csrf-token',
+      'Idempotency-Key': 'refund-item-001',
+      Cookie: '__Host-aisenhub_session=valid-admin-session',
+      'content-type': 'application/json',
+    };
+    const missingMfa = await routePlatformAdmin(
+      new Request(`http://api.local/v1/admin/order-items/${itemId}/refund`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          amountMinor: 250,
+          mode: 'compensation',
+          reason: 'service credit',
+          confirmation: true,
+        }),
+      }),
+    );
+    expect(missingMfa.status).toBe(403);
+    expect((await missingMfa.json()).error.code).toBe('MFA_REQUIRED');
+
+    adminSessionState = 'mfa-ok';
+    const response = await routePlatformAdmin(
+      new Request(`http://api.local/v1/admin/order-items/${itemId}/refund`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          amountMinor: 250,
+          mode: 'compensation',
+          reason: 'service credit',
+          confirmation: true,
+        }),
+      }),
+    );
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.data.mode).toBe('compensation');
+    expect(body.data.orderStatus).toBe('partially_refunded');
+    expect(body.data.grantId).toBeNull();
     expect(JSON.stringify(body)).not.toMatch(/token|secret|password|stack|card/i);
   });
 

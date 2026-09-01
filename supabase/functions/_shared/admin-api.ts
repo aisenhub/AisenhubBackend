@@ -368,11 +368,25 @@ type OrderCommandRoute = {
   readonly resourceId: string;
 };
 
+type OrderItemCommandRoute = {
+  readonly action: 'refund_order_item';
+  readonly permission: 'order_items.refund';
+  readonly resourceId: string;
+};
+
 function orderCommandRoute(request: Request, path: string): OrderCommandRoute | null {
   if (request.method !== 'POST') return null;
   const match = path.match(/^\/v1\/admin\/orders\/([^/]+)\/verify$/);
   return match
     ? { action: 'verify_order', permission: 'orders.verify', resourceId: match[1] }
+    : null;
+}
+
+function orderItemCommandRoute(request: Request, path: string): OrderItemCommandRoute | null {
+  if (request.method !== 'POST') return null;
+  const match = path.match(/^\/v1\/admin\/order-items\/([^/]+)\/refund$/);
+  return match
+    ? { action: 'refund_order_item', permission: 'order_items.refund', resourceId: match[1] }
     : null;
 }
 
@@ -709,6 +723,155 @@ async function adminOrderCommand(
       );
     }
     return errorResponse('INTERNAL_ERROR', 'The Order command could not be completed.', 502, id);
+  }
+}
+
+async function adminOrderItemCommand(
+  request: Request,
+  route: OrderItemCommandRoute,
+  id: string,
+): Promise<Response> {
+  const body = await parseJsonObject(request);
+  if (!body) return errorResponse('VALIDATION_ERROR', 'A JSON object body is required.', 400, id);
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      route.resourceId,
+    )
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'The OrderItem command target is invalid.', 400, id);
+  }
+
+  const allowedKeys = new Set(['amountMinor', 'mode', 'reason', 'confirmation']);
+  if (Object.keys(body).some((key) => !allowedKeys.has(key))) {
+    return errorResponse('VALIDATION_ERROR', 'The refund request is invalid.', 400, id);
+  }
+  const amountMinor = body.amountMinor;
+  const mode = body.mode;
+  const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+  const confirmation = body.confirmation;
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  if (
+    typeof amountMinor !== 'number' ||
+    !Number.isSafeInteger(amountMinor) ||
+    amountMinor <= 0 ||
+    !['compensation', 'return'].includes(String(mode)) ||
+    !idempotencyKey ||
+    idempotencyKey.length > 255 ||
+    !reason ||
+    reason.length > 1000
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'The refund request is invalid.', 400, id);
+  }
+  if (confirmation !== true) {
+    return errorResponse('VALIDATION_ERROR', 'Explicit command confirmation is required.', 400, id);
+  }
+
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const decision = authorizeAdminAction(
+      { role: session.role, status: 'active', aal: session.aal, mfaState: session.mfa_state },
+      route.permission,
+    );
+    if (!decision.allowed) {
+      return errorResponse(
+        decision.reason === 'mfa_required' ? 'MFA_REQUIRED' : 'ADMIN_ACCESS_DENIED',
+        decision.reason === 'mfa_required'
+          ? 'MFA is required for this OrderItem command.'
+          : 'Admin access is denied.',
+        403,
+        id,
+      );
+    }
+
+    const requestHash = await sha256Hex(
+      JSON.stringify({
+        action: route.action,
+        resourceId: route.resourceId,
+        amountMinor,
+        mode,
+        reason,
+        confirmation,
+      }),
+    );
+    const rows = await serviceRpc<unknown>('admin_refund_order_item', {
+      p_actor_id: session.user_id,
+      p_order_item_id: route.resourceId,
+      p_amount: amountMinor,
+      p_mode: mode,
+      p_reason: reason,
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: requestHash,
+      p_request_id: id,
+    });
+    if (rows.length !== 1 || !isRecord(rows[0])) {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The OrderItem command returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '40001') {
+      return errorResponse(
+        'RESOURCE_VERSION_CONFLICT',
+        'The OrderItem command is already in progress or the resource changed.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0011') {
+      return errorResponse(
+        'IDEMPOTENCY_KEY_REUSED',
+        'The request key was already used for another request.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The OrderItem refund state transition is invalid.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse('ORDER_ITEM_NOT_FOUND', 'The OrderItem was not found.', 404, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0008') {
+      return errorResponse(
+        'REFUND_EXCEEDS_ITEM_TOTAL',
+        'The refund exceeds the OrderItem total.',
+        409,
+        id,
+      );
+    }
+    if (
+      error instanceof ServiceRpcError &&
+      ['22023', '22P02', '23503'].includes(error.databaseCode ?? '')
+    ) {
+      return errorResponse('VALIDATION_ERROR', 'The refund request is invalid.', 400, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '23505') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The OrderItem refund state transition is invalid.',
+        409,
+        id,
+      );
+    }
+    return errorResponse(
+      'INTERNAL_ERROR',
+      'The OrderItem command could not be completed.',
+      502,
+      id,
+    );
   }
 }
 
@@ -1339,6 +1502,12 @@ export async function routePlatformAdmin(
     const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
     if (preconditionFailure) return withCors(preconditionFailure, resolved);
     return withCors(await adminOrderCommand(request, orderRoute, id), resolved);
+  }
+  const orderItemRoute = orderItemCommandRoute(request, path);
+  if (orderItemRoute) {
+    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
+    if (preconditionFailure) return withCors(preconditionFailure, resolved);
+    return withCors(await adminOrderItemCommand(request, orderItemRoute, id), resolved);
   }
   const customerRoute = customerCommandRoute(request, path);
   if (customerRoute) {

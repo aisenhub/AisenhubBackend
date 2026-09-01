@@ -707,6 +707,62 @@ describe('admin client transport', () => {
     });
   });
 
+  it('maps OrderItem refunds to the named command route and invalidates commerce views', async () => {
+    const itemId = '00000000-0000-4000-8000-000000000051';
+    let receivedUrl = '';
+    let receivedBody = '';
+    let receivedHeaders: Headers | undefined;
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      csrfToken: () => 'csrf-memory-token',
+      fetch: async (input, init) => {
+        receivedUrl = String(input);
+        receivedBody = String(init?.body);
+        receivedHeaders = new Headers(init?.headers);
+        return new Response(
+          JSON.stringify({
+            data: {
+              itemId,
+              orderId: '00000000-0000-4000-8000-000000000052',
+              refundedAmount: 250,
+              mode: 'compensation',
+              orderStatus: 'partially_refunded',
+              paymentStatus: 'partially_refunded',
+              grantId: null,
+              domainAuditLogId: '00000000-0000-4000-8000-000000000053',
+              auditLogId: '00000000-0000-4000-8000-000000000054',
+              idempotent: false,
+              overviewPath: '/v1/admin/orders/00000000-0000-4000-8000-000000000052/overview',
+              auditPath: '/v1/admin/audit-logs/00000000-0000-4000-8000-000000000054',
+            },
+            requestId,
+          }),
+          { headers: { 'content-type': 'application/json' }, status: 200 },
+        );
+      },
+    });
+    const result = await createBusinessCommandClient(client).refundOrderItem(
+      itemId,
+      { amountMinor: 250, mode: 'compensation', reason: 'service credit', confirmation: true },
+      { idempotencyKey: 'refund-item-001' },
+    );
+
+    expect(receivedUrl).toBe(`https://api.example.test/v1/admin/order-items/${itemId}/refund`);
+    expect(JSON.parse(receivedBody)).toEqual({
+      amountMinor: 250,
+      mode: 'compensation',
+      reason: 'service credit',
+      confirmation: true,
+    });
+    expect(receivedHeaders?.get('Idempotency-Key')).toBe('refund-item-001');
+    expect(receivedHeaders?.get('X-CSRF-Token')).toBe('csrf-memory-token');
+    expect(result.command).toEqual({
+      idempotencyKey: 'refund-item-001',
+      entity: { resource: 'orders', id: itemId },
+      invalidates: ['orders', 'payments', 'entitlements', 'auditLogs'],
+    });
+  });
+
   it('rejects missing command reason before transport and refuses non-UUID targets', async () => {
     let called = false;
     const client = createAdminClient({
