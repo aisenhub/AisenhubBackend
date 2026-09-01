@@ -25,6 +25,25 @@ type PlatformSession = {
   readonly profile_status: 'active';
 };
 
+type ResolvedOriginRow = {
+  readonly app_slug: string;
+  readonly environment: string;
+};
+
+type ResolvedOrigin = {
+  readonly origin: string;
+  readonly appSlug: string;
+};
+
+const allowedCorsMethods = new Set(['GET', 'POST', 'DELETE', 'OPTIONS']);
+const allowedCorsHeaders = new Set([
+  'authorization',
+  'content-type',
+  'x-aisenhub-app',
+  'x-csrf-token',
+  'idempotency-key',
+]);
+
 const apiUrl = () => Deno.env.get('SUPABASE_URL') ?? 'http://127.0.0.1:54321';
 const anonKey = () => Deno.env.get('SUPABASE_ANON_KEY');
 
@@ -87,6 +106,111 @@ function sessionCookie(request: Request): string | null {
     return value === '' ? null : value;
   }
   return null;
+}
+
+function isResolvedOrigin(value: unknown): value is ResolvedOriginRow {
+  if (!value || typeof value !== 'object') return false;
+  const origin = value as Record<string, unknown>;
+  return (
+    typeof origin.app_slug === 'string' &&
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(origin.app_slug) &&
+    typeof origin.environment === 'string'
+  );
+}
+
+async function resolveOrigin(
+  request: Request,
+  id: string,
+): Promise<ResolvedOrigin | Response | null> {
+  const origin = request.headers.get('origin');
+  const declaration = request.headers.get('x-aisenhub-app');
+
+  if (origin === null) {
+    return declaration === null
+      ? null
+      : errorResponse(
+          'APP_ORIGIN_MISMATCH',
+          'The application declaration cannot be verified.',
+          403,
+          id,
+        );
+  }
+
+  try {
+    const rows = await rpc<Record<string, unknown>>('resolve_app_origin', { p_origin: origin });
+    const resolved = rows.length === 1 && isResolvedOrigin(rows[0]) ? rows[0] : null;
+    if (!resolved) {
+      return errorResponse('ORIGIN_NOT_ALLOWED', 'The request Origin is not allowed.', 403, id);
+    }
+    if (declaration !== null && declaration !== resolved.app_slug) {
+      return errorResponse(
+        'APP_ORIGIN_MISMATCH',
+        'The application declaration does not match the request Origin.',
+        403,
+        id,
+      );
+    }
+    return { origin, appSlug: resolved.app_slug };
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'The request Origin could not be resolved.', 502, id);
+  }
+}
+
+function withCors(response: Response, resolved: ResolvedOrigin | null): Response {
+  if (!resolved) return response;
+
+  const headers = new Headers(response.headers);
+  headers.set('access-control-allow-origin', resolved.origin);
+  headers.set('access-control-allow-credentials', 'true');
+  const vary = headers.get('vary');
+  if (!vary) headers.set('vary', 'Origin');
+  else if (!vary.split(',').some((value) => value.trim().toLowerCase() === 'origin')) {
+    headers.set('vary', `${vary}, Origin`);
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function preflightResponse(request: Request, id: string, resolved: ResolvedOrigin): Response {
+  const requestedMethod = request.headers.get('access-control-request-method');
+  if (requestedMethod && !allowedCorsMethods.has(requestedMethod.toUpperCase())) {
+    return withCors(
+      errorResponse('VALIDATION_ERROR', 'The requested CORS method is not allowed.', 405, id),
+      resolved,
+    );
+  }
+
+  const requestedHeaders = request.headers.get('access-control-request-headers');
+  if (requestedHeaders) {
+    const unsupported = requestedHeaders
+      .split(',')
+      .map((header) => header.trim().toLowerCase())
+      .filter((header) => header !== '' && !allowedCorsHeaders.has(header));
+    if (unsupported.length > 0) {
+      return withCors(
+        errorResponse('VALIDATION_ERROR', 'The requested CORS header is not allowed.', 400, id),
+        resolved,
+      );
+    }
+  }
+
+  return withCors(
+    new Response(null, {
+      status: 204,
+      headers: {
+        'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS',
+        'access-control-allow-headers':
+          'Authorization, Content-Type, X-AisenHub-App, X-CSRF-Token, Idempotency-Key',
+        'access-control-max-age': '600',
+        'x-request-id': id,
+      },
+    }),
+    resolved,
+  );
 }
 
 function apiPath(request: Request): string {
@@ -354,8 +478,7 @@ async function sessionDelete(request: Request, id: string): Promise<Response> {
   }
 }
 
-export async function routePlatformApi(request: Request): Promise<Response> {
-  const id = requestId();
+async function routePlatformApiRoutes(request: Request, id: string): Promise<Response> {
   const path = apiPath(request);
 
   if (path === '/' || path === '') return healthResponse('platform-api');
@@ -386,4 +509,16 @@ export async function routePlatformApi(request: Request): Promise<Response> {
   if (path === '/v1/me') return meRead(bearerToken(request), id);
 
   return errorResponse('VALIDATION_ERROR', 'The requested route was not found.', 404, id);
+}
+
+export async function routePlatformApi(request: Request): Promise<Response> {
+  const id = requestId();
+  const resolved = await resolveOrigin(request, id);
+  if (resolved instanceof Response) return resolved;
+  if (request.method === 'OPTIONS') {
+    return resolved
+      ? preflightResponse(request, id, resolved)
+      : errorResponse('ORIGIN_NOT_ALLOWED', 'A request Origin is required.', 403, id);
+  }
+  return withCors(await routePlatformApiRoutes(request, id), resolved);
 }

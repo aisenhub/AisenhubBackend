@@ -85,6 +85,13 @@ export type Database = {
           status: string
         }[]
       }
+      resolve_app_origin: {
+        Args: { p_origin: string }
+        Returns: {
+          app_slug: string
+          environment: string
+        }[]
+      }
       revoke_all_platform_sessions: {
         Args: { p_reason: string; p_user_id: string }
         Returns: number
