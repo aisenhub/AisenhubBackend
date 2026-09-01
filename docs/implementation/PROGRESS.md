@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P1 — Identity / Application / Session
-Current Task: P1-T010 — Implement CSRF issuance and write-request enforcement
-Overall Progress: 21 / 107 tasks completed
-Last Successful Quality Gate: P1-T009 Exact Origin/CORS — PASS
+Current Task: P1-T011 — Implement account login and session shell
+Overall Progress: 22 / 107 tasks completed
+Last Successful Quality Gate: P1-T010 Session-bound CSRF — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P1-T009 Exact Origin/CORS — PASS
 
 Status: IN_PROGRESS
 Goal: Implement the unified identity/application/session boundary on Supabase Local.
-Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T009 completed; remote repository synchronization completed to `origin/main`. P1-T010 is in progress.
+Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T010 completed; remote repository synchronization completed to `origin/main`. P1-T011 is in progress.
 
 ## Latest Verification
 
@@ -56,6 +56,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T009 completed; rem
 - P1-T007 Secure Platform Session exchange: PASS — verified Supabase JWT exchange, cryptographically random session/CSRF tokens, hash-only persistence, Host-only cookie flags, disabled-account guard, database tests 127/127, contract/integration/type/lint/format/build checks, real Local API smoke, and database advisors passed.
 - P1-T008 Session lifecycle: PASS — opaque cookie validation, minimal authenticated/anonymous session reads, expiry and revocation rejection, throttled `last_seen_at`, current-session logout, revoke-all authorization, database tests 146/146, real Local API lifecycle smoke, contract/integration/type/lint/format/build checks, and database advisors passed.
 - P1-T009 Exact Origin/CORS: PASS — active exact-Origin resolver, app identity derived from Origin, declaration mismatch rejection, credentialed preflight policy, direct handler tests 5/5, database tests 156/156, and full code quality checks passed. Local Supabase Kong still applies its default outer CORS plugin during `functions serve`; production/local gateway configuration must preserve the handler's exact policy.
+- P1-T010 Session-bound CSRF: PASS — constant-time session/CSRF digest verification, mutation precondition enforcement, cross-session/invalid/expired/revoked rejection, safe GET behavior, direct handler tests 6/6, database tests 166/166, real Local HTTP logout smoke, and full code quality checks passed. Local Supabase Kong CORS behavior remains a gateway note documented under P1-T009.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -74,9 +75,9 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T009 completed; rem
 
 ## Next Tasks
 
-1. P1-T010 — Implement CSRF issuance and write-request enforcement.
-2. P1-T011 — Implement account login and session shell.
-3. P1-T012 — Add automated Local Auth and multi-session E2E.
+1. P1-T011 — Implement account login and session shell.
+2. P1-T012 — Add automated Local Auth and multi-session E2E.
+3. P1-T013 — Complete P1 contract and security matrix.
 
 ## Recent Commits
 
@@ -84,6 +85,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T009 completed; rem
 - `e313467` — feat(session): add validation and revocation lifecycle
 - `de8501f` — feat(security): enforce exact app origins and CORS
 - `0d086f6` — test(security): cover exact origin handler
+- `04ea2ef` — feat(security): enforce session-bound csrf
 - `d11a978` — feat(identity): add profile schema
 - `fd62fe2` — feat(application): add app and origin registry
 - `7a424e6` — feat(identity): add platform sessions and admin membership

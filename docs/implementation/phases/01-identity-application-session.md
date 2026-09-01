@@ -830,7 +830,7 @@ P1-T010.
 
 ## P1-T010 — Implement CSRF issuance and write-request enforcement
 
-Status: in_progress  
+Status: completed  
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: security-test-first  
@@ -889,10 +889,10 @@ Missing/wrong/cross-session/revoked-session token, safe GET behavior, valid muta
 
 ### Acceptance Criteria
 
-- [ ] Write without valid CSRF is rejected.
-- [ ] Token is not persisted by clients or logged.
-- [ ] Cross-session token fails.
-- [ ] Tests pass.
+- [x] Write without valid CSRF is rejected.
+- [x] Token is not persisted by clients or logged.
+- [x] Cross-session token fails.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -920,7 +920,7 @@ P1-T011.
 
 ## P1-T011 — Implement account login and session shell
 
-Status: pending  
+Status: in_progress  
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: frontend  
