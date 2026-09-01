@@ -496,7 +496,7 @@ P4-T006 and P4-T007.
 
 ## P4-T006 — Build Catalog operations and Product 360 UI
 
-Status: pending  
+Status: completed  
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: frontend  
@@ -557,10 +557,17 @@ CRUD-safe drafts, commands, role visibility/direct 403, URL filters, immutable p
 
 ### Acceptance Criteria
 
-- [ ] No status edit row exists.
-- [ ] Support/Finance restrictions match matrix.
-- [ ] All API calls go through clients.
-- [ ] Tests pass.
+- [x] No status edit row exists.
+- [x] Support/Finance restrictions match matrix.
+- [x] All API calls go through clients.
+- [x] Tests pass.
+
+### Verification
+
+- Added explicit Catalog routes for Products, Product Versions, Prices, Origins, Features, draft Product creation, and Product 360.
+- Product lists use the existing Refine/Ant Data Provider with URL-synchronized query state; status columns are read-only and published versions are presented as immutable.
+- Product 360 uses the backend aggregate projection for versions, prices, Redemption batches, alignment, and audit history; no browser-side business state is inferred.
+- Admin focused tests: 7/7; root tests: 84/84; Admin typecheck/build, lint, format, boundaries, secret scan, and Impeccable detector passed.
 
 ### Failure Recovery
 
@@ -580,7 +587,7 @@ None. All Local operations and E2E are autonomous; commercial values remain dete
 
 ### Commit
 
-`feat(admin): add catalog operations and product overview` — Task P4-T006.
+`fe53000 feat(admin): add catalog operations and product overview` — Task P4-T006.
 
 ### Next
 
