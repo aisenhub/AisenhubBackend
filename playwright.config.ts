@@ -31,6 +31,8 @@ const webServerEnv = {
   E2E_PROXY_TARGET: 'http://127.0.0.1:54321',
   E2E_PROXY_ORIGIN: 'http://localhost:5173',
   VITE_PLATFORM_API_URL: '/functions/v1/platform-api',
+  REDEMPTION_PEPPER: 'local-e2e-only-pepper',
+  REDEMPTION_PEPPER_VERSION: '1',
 };
 
 export default defineConfig({
@@ -45,7 +47,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'pnpm exec supabase functions serve platform-api --no-verify-jwt',
+      command: 'pnpm exec supabase functions serve platform-api platform-public --no-verify-jwt',
       url: `http://127.0.0.1:54321/functions/v1/platform-api/v1/session?apikey=${localSupabaseAnonKey}`,
       timeout: 120_000,
       reuseExistingServer: true,

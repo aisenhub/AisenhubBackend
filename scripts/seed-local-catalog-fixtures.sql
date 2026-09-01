@@ -22,6 +22,15 @@ update platform.products
    set status = 'active'
  where id = '23000000-0000-4000-8000-000000000001';
 
+insert into platform.app_origins (id, app_id, environment, origin)
+values (
+  '21000000-0000-4000-8000-000000000003',
+  '20000000-0000-4000-8000-000000000001',
+  'development',
+  'http://localhost:5175'
+)
+on conflict (id) do nothing;
+
 if not exists (
   select 1 from platform.products
    where id = '23000000-0000-4000-8000-000000000001'
