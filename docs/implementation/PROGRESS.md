@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P1 — Identity / Application / Session
-Current Task: P1-T008 — Implement session read, logout, revocation, and lifecycle
-Overall Progress: 19 / 107 tasks completed
-Last Successful Quality Gate: P1-T007 Session exchange — PASS
+Current Task: P1-T009 — Implement exact Origin, CORS, and app declaration validation
+Overall Progress: 20 / 107 tasks completed
+Last Successful Quality Gate: P1-T008 Session lifecycle — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P1-T007 Session exchange — PASS
 
 Status: IN_PROGRESS
 Goal: Implement the unified identity/application/session boundary on Supabase Local.
-Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T007 completed; remote repository synchronization completed to `origin/main`. P1-T008 is in progress.
+Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T008 completed; remote repository synchronization completed to `origin/main`. P1-T009 is in progress.
 
 ## Latest Verification
 
@@ -54,6 +54,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T007 completed; rem
 - P1-T005 Identity/session contracts: PASS — stable session exchange/status/delete, me/profile, application identity, Admin session, auth/origin/CSRF/session errors, strict sensitive-field rejection, 16 root tests, 6 contract tests, typecheck, lint, format, build, and secrets passed.
 - P1-T006 Application/profile read APIs: PASS — controlled active-application RPC, authenticated profile read, stable requestId/error envelopes, 401/404 negative paths, real Local API smoke, database tests 117/117, RLS tests 29/29, full `platform:verify`, and secrets passed.
 - P1-T007 Secure Platform Session exchange: PASS — verified Supabase JWT exchange, cryptographically random session/CSRF tokens, hash-only persistence, Host-only cookie flags, disabled-account guard, database tests 127/127, contract/integration/type/lint/format/build checks, real Local API smoke, and database advisors passed.
+- P1-T008 Session lifecycle: PASS — opaque cookie validation, minimal authenticated/anonymous session reads, expiry and revocation rejection, throttled `last_seen_at`, current-session logout, revoke-all authorization, database tests 146/146, real Local API lifecycle smoke, contract/integration/type/lint/format/build checks, and database advisors passed.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -72,13 +73,14 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T007 completed; rem
 
 ## Next Tasks
 
-1. P1-T008 — Implement session read, logout, revocation, and lifecycle.
-2. P1-T009 — Enforce exact Origin and CORS middleware.
-3. P1-T010 — Implement CSRF issuance and write-request enforcement.
+1. P1-T009 — Enforce exact Origin and CORS middleware.
+2. P1-T010 — Implement CSRF issuance and write-request enforcement.
+3. P1-T011 — Implement account login and session shell.
 
 ## Recent Commits
 
 - `650ba7d` — feat(session): implement platform session exchange
+- `e313467` — feat(session): add validation and revocation lifecycle
 - `d11a978` — feat(identity): add profile schema
 - `fd62fe2` — feat(application): add app and origin registry
 - `7a424e6` — feat(identity): add platform sessions and admin membership

@@ -645,7 +645,7 @@ P1-T008.
 
 ## P1-T008 — Implement session read, logout, revocation, and lifecycle
 
-Status: in_progress  
+Status: completed  
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: api-test-first  
@@ -704,10 +704,10 @@ Current session, expired/revoked/unknown token, single logout, multi-session iso
 
 ### Acceptance Criteria
 
-- [ ] Invalid sessions return 401 without internal reason leakage.
-- [ ] Logout revokes only current session.
-- [ ] Revoke-all invalidates every user session.
-- [ ] Tests pass.
+- [x] Invalid sessions return 401 without internal reason leakage.
+- [x] Logout revokes only current session.
+- [x] Revoke-all invalidates every user session.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -735,7 +735,7 @@ P1-T009.
 
 ## P1-T009 — Implement exact Origin, CORS, and app declaration validation
 
-Status: pending  
+Status: in_progress  
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: security-test-first  

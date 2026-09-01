@@ -23,7 +23,8 @@
 | P1-T005 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 25ea256 | Stable identity/session/application contracts, sensitive-field rejection, auth/origin/CSRF/session errors, and contract/root quality gates passed. |
 | P1-T006 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 4cc179c | Controlled active-application RPC, authenticated profile read, stable requestId/error envelopes, real Local API smoke, database/RLS/full quality gates passed. |
 | P1-T007 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 650ba7d | Verified Supabase JWT exchange, random hashed session/CSRF tokens, Host-only cookie attributes, disabled-account guard, database/API tests, and quality gates passed. |
-| P1-T008 | Identity / App / Session | in_progress | 2026-09-01 |  |  | Implementing session read, logout, revocation, expiry, and last-seen lifecycle. |
+| P1-T008 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | e313467 | Opaque session validation, minimal session read, throttled last-seen updates, current-session logout, revoke-all authorization, database/API tests, and quality gates passed. |
+| P1-T009 | Identity / App / Session | in_progress | 2026-09-01 |  |  | Implementing exact Origin resolution, CORS responses, and application declaration validation. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |
