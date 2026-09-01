@@ -398,7 +398,7 @@ P4-T005 and P4-T007.
 
 ## P4-T005 — Build DangerousActionDialog and command hooks
 
-Status: pending  
+Status: completed  
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: frontend-security  
@@ -459,10 +459,16 @@ Missing reason/confirmation, MFA state, loading/double click, timeout retry, err
 
 ### Acceptance Criteria
 
-- [ ] No default reason exists.
-- [ ] Component makes no direct API call.
-- [ ] Double submit is blocked.
-- [ ] Tests/build pass.
+- [x] No default reason exists.
+- [x] Component makes no direct API call.
+- [x] Double submit is blocked.
+- [x] Tests/build pass.
+
+### Verification
+
+- Added reusable Ant Design `DangerousActionDialog`, `MfaRequirement`, and `RequestTrace` components with explicit target/state/impact/reason/confirmation fields, AAL2 status, loading/error handling, request tracing, and audit/entity links.
+- Added `useAdminCommand` to centralize command execution, prevent concurrent double-submit, preserve idempotency keys for explicit retry, and keep business logic in callers.
+- Admin focused tests: 7/7; root tests: 84/84; Admin typecheck/build and Impeccable detector passed.
 
 ### Failure Recovery
 
@@ -482,7 +488,7 @@ None. All Local operations and E2E are autonomous; commercial values remain dete
 
 ### Commit
 
-`feat(admin): add dangerous action workflow` — Task P4-T005.
+`f525b75 feat(admin): add dangerous action workflow` — Task P4-T005.
 
 ### Next
 

@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P4 — Admin Catalog / Customer + Integration
-Current Task: P4-T005
-Overall Progress: 57 / 107 tasks completed
-Last Successful Quality Gate: P4-T004 Redemption Admin Commands — PASS
+Current Task: P4-T006
+Overall Progress: 58 / 107 tasks completed
+Last Successful Quality Gate: P4-T005 Dangerous Action Workflow — PASS
 
 ## Phase Progress
 
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P4-T004 Redemption Admin Commands — PASS
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Build DangerousActionDialog and command hooks.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T011 completed; P4-T001 through P4-T004 completed. Remote repository synchronization is complete to `origin/main`.
+Goal: Build Catalog operations and Product 360 UI.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T011 completed; P4-T001 through P4-T005 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -91,6 +91,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P4-T002 Controlled Catalog draft mutations: PASS — explicit create/edit commands for Applications, Origins, Features, Products, draft Product Versions, and Prices; allowlisted fields, draft-only restrictions, optimistic conflict handling, idempotency, stable errors, and authoritative audit passed. Database 560/560, RLS 29/29, unit 78/78, contract 14/14, integration 25/25, Playwright 12/12, typecheck, lint, format, build, boundaries, secret scan, and failure-propagation checks passed; commit `379b641`.
 - P4-T003 Catalog business commands: PASS — architecture-named publish, retire, set-current-version, and change-production-origin endpoints; exact Action/MFA/confirmation/reason/CSRF/idempotency enforcement, atomic domain delegation, production Origin switching, audit, retry replay, and stable error mapping passed. Database 585/585, RLS 29/29, unit 80/80, contract 14/14, integration 26/26, Playwright 12/12, typecheck, lint, format, build, boundaries, secret scan, failure-propagation, and database advisors passed; commit `c65a601`.
 - P4-T004 Redemption Admin commands: PASS — explicit batch create/generate/pause/close endpoints; AAL2/MFA, reason, confirmation, CSRF, idempotency, lifecycle locking, audit, stable errors, one-time plaintext response, and code-hint-only history/storage passed. Database 604/604, RLS 29/29, unit 82/82, contract 14/14, integration 27/27, typecheck, lint, format, boundaries, secret scan, function smoke, and database advisors passed; commit `00b3ddf`.
+- P4-T005 Dangerous Action Workflow: PASS — reusable Ant Design DangerousActionDialog, MFA requirement, request/audit trace, and generic command hook; explicit safety metadata, no default reason, no direct API call, double-submit prevention, idempotency-preserving retry, safe error mapping, Admin tests 7/7, root tests 84/84, typecheck, build, formatting, and Impeccable detector passed; commit `f525b75`.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -109,13 +110,14 @@ None.
 
 ## Next Tasks
 
-1. P4-T005 — Build DangerousActionDialog and command hooks.
+1. P4-T006 — Build Catalog operations and Product 360 UI.
 
 ## Recent Commits
 
 - `379b641` — feat(catalog): add controlled admin draft mutations
 - `c65a601` — feat(admin-api): expose catalog business commands
 - `00b3ddf` — feat(admin-api): add redemption batch commands
+- `f525b75` — feat(admin): add dangerous action workflow
 - `ededfb3` — docs(implementation): complete P4-T001 catalog queries
 - `f4ac227` — feat(admin-api): add catalog redemption queries
 - `94c05cc` — feat(admin-client): add command transport foundation
