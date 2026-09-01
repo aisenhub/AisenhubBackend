@@ -96,7 +96,7 @@ P1-T002 and P1-T005.
 
 ## P1-T002 — Create platform applications and exact origins schema
 
-Status: in_progress
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: database  
@@ -156,10 +156,10 @@ Exact origin uniqueness, invalid wildcard/environment/status, slug immutability 
 
 ### Acceptance Criteria
 
-- [ ] Tables/constraints match architecture.
-- [ ] No production wildcard origin can be seeded.
-- [ ] AisenLens and Local origins are deterministic.
-- [ ] Tests pass.
+- [x] Tables/constraints match architecture.
+- [x] No production wildcard origin can be seeded.
+- [x] AisenLens and Local origins are deterministic.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -187,7 +187,7 @@ P1-T003.
 
 ## P1-T003 — Create platform sessions and fixed admin membership schema
 
-Status: pending  
+Status: in_progress
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: database  
