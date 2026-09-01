@@ -37,6 +37,7 @@
 | P2-T005 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | faebd5b | Common audited grant path, revoke and restore transactions, one-time restore policy, original-revoked guarantee, rollback, idempotent source rejection, backend-only grants, and 42 command/audit tests passed. |
 | P2-T006 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 293d175 | Server-only deterministic access resolution over active nonexpired fixed snapshots, app-scoped/all-apps matching, every merge strategy, latest tie-break, source/expiry output, retired history, and 31 access tests passed. |
 | P2-T007 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 8275d77 | Private redemption batches, hashed code storage, one-time code/grant/idempotency relations, state/time/format constraints, immutable receipts, cross-entity consistency checks, and 41 schema tests passed. |
+| P2-T008 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 2362087 | Cryptographically random 128-bit-plus easy-entry codes, versioned HMAC-SHA256 hashes, non-plaintext persistence mapping, Pepper configuration validation, redaction smoke checks, and 40 root tests passed. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |

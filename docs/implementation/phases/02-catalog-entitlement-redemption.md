@@ -640,7 +640,7 @@ P2-T008.
 
 ## P2-T008 — Implement one-time redemption code generation
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: domain-security  
@@ -701,10 +701,10 @@ Entropy/format, uniqueness, persisted columns, one-time response, log/error reda
 
 ### Acceptance Criteria
 
-- [ ] Database cannot reconstruct plaintext.
-- [ ] Generation is transaction/idempotency ready.
-- [ ] No plaintext appears in logs/artifacts.
-- [ ] Tests pass.
+- [x] Database cannot reconstruct plaintext.
+- [x] Generation is transaction/idempotency ready.
+- [x] No plaintext appears in logs/artifacts.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -716,7 +716,7 @@ Do not use sequential IDs, plain SHA without pepper, localStorage, or analytics.
 
 ### Output
 
-Secure code generator.
+Secure code generator delivered in `supabase/functions/_shared/redemption-code.ts`: 26-character easy-entry random payloads provide more than 128 bits of entropy, versioned HMAC-SHA256 binds each code to the server Pepper, and `toRedemptionCodeRecord` excludes plaintext from persistence. Root tests passed 40/40 and the code-generation security smoke check, typecheck, lint, format, and workspace build passed.
 
 ### Human Gate
 
