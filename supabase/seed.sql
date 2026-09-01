@@ -41,6 +41,17 @@ insert into platform.product_versions
   (id, product_id, version, status, access_duration_days, sales_terms)
 values
   ('24000000-0000-4000-8000-000000000001', '23000000-0000-4000-8000-000000000001', 1, 'draft', null, '{"label":"AisenLens Lifetime"}'::jsonb);
+
+insert into platform.product_version_features
+  (product_version_id, feature_id, value)
+values
+  ('24000000-0000-4000-8000-000000000001', '22000000-0000-4000-8000-000000000001', 'true'::jsonb),
+  ('24000000-0000-4000-8000-000000000001', '22000000-0000-4000-8000-000000000002', 'true'::jsonb);
+
+insert into platform.product_prices
+  (id, product_version_id, currency, amount_minor, channel, status, valid_from)
+values
+  ('27000000-0000-4000-8000-000000000001', '24000000-0000-4000-8000-000000000001', 'USD', 0, 'manual', 'draft', now());
 --
 -- Keep this file available for deterministic non-Auth seed data introduced by
 -- later phases. Never add production data or production credentials here.
