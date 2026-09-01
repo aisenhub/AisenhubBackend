@@ -3,6 +3,8 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import process from 'node:process';
 
+const repositoryRoot = process.cwd();
+
 const fixtureFile = new URL('../tests/fixtures/local-fixtures.json', import.meta.url);
 const fixtures = JSON.parse(readFileSync(fixtureFile, 'utf8'));
 
@@ -142,6 +144,24 @@ for (const fixture of fixtures.users) {
   if (body.user?.id !== fixture.id || body.user?.email !== fixture.email) {
     throw new Error(`The ${fixture.role} fixture returned an unexpected identity.`);
   }
+}
+
+const localAdminSeedFile = join(repositoryRoot, 'scripts', 'seed-local-admin-memberships.sql');
+const adminSeed =
+  process.platform === 'win32'
+    ? spawnSync(
+        process.env.ComSpec ?? 'cmd.exe',
+        ['/d', '/s', '/c', `${supabaseCli} db query --local --file ${localAdminSeedFile}`],
+        { cwd: repositoryRoot, encoding: 'utf8', shell: false },
+      )
+    : spawnSync(supabaseCli, ['db', 'query', '--local', '--file', localAdminSeedFile], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+        shell: false,
+      });
+
+if (adminSeed.status !== 0) {
+  throw new Error('Local Admin fixture membership seeding failed.');
 }
 
 console.log(`Verified ${fixtures.users.length} deterministic Local Auth fixtures.`);

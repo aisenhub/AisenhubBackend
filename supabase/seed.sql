@@ -4,6 +4,8 @@
 -- Admin API. This is intentional: direct writes to auth.users are not a
 -- supported way to make users visible to the running GoTrue service.
 -- The profile lifecycle trigger creates one platform profile per fixture.
+-- Local Admin memberships are added after Auth setup by verify-fixtures.mjs.
+-- Auth users are intentionally not inserted directly into this SQL seed.
 
 insert into platform.platform_apps
   (id, slug, name, category, status, metadata)
