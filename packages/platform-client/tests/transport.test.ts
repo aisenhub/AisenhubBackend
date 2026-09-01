@@ -131,4 +131,99 @@ describe('platform client transport', () => {
       expect(new Headers(call.init?.headers).get('x-aisenhub-app')).toBe('account');
     }
   });
+
+  it('provides typed catalog, entitlement, access, redemption, and feedback methods', async () => {
+    const calls: Array<{ path: string; init?: RequestInit }> = [];
+    const client = createPlatformClient({
+      baseUrl: 'https://api.example.test',
+      appSlug: 'account',
+      csrfToken: () => 'csrf-memory-token',
+      fetch: async (input, init) => {
+        const path = new URL(String(input)).pathname;
+        calls.push({ path, init });
+        const data = path.endsWith('/products/public')
+          ? {
+              products: [
+                {
+                  sku: 'AISENLENS_PRO',
+                  name: 'AisenLens Pro',
+                  billingType: 'one_time',
+                  version: 2,
+                },
+              ],
+            }
+          : path.endsWith('/me/entitlements')
+            ? {
+                entitlements: [
+                  {
+                    feature: 'lens.export',
+                    value: { max: 10 },
+                    sourceProduct: 'AISENLENS_PRO',
+                    expiresAt: null,
+                  },
+                ],
+              }
+            : path.includes('/access/')
+              ? {
+                  allowed: true,
+                  feature: 'lens.export',
+                  value: { max: 10 },
+                  sourceProduct: 'AISENLENS_PRO',
+                  expiresAt: null,
+                  decisionId: requestId,
+                }
+              : path.endsWith('/redemptions')
+                ? {
+                    redemptionId: requestId,
+                    grantId: '00000000-0000-4000-8000-000000000003',
+                    status: 'redeemed',
+                  }
+                : {
+                    id: '00000000-0000-4000-8000-000000000004',
+                    status: 'open',
+                    createdAt: '2026-09-01T12:00:00.000Z',
+                  };
+        return new Response(JSON.stringify({ data, requestId }), {
+          headers: { 'content-type': 'application/json' },
+        });
+      },
+    });
+
+    await client.getPublicProducts();
+    await client.getEntitlements();
+    await client.checkAccess('lens.export');
+    await client.redeem('AH-PRO-ABCD-2345', 'redeem-key-1');
+    await client.submitFeedback({ kind: 'bug', title: 'Export issue', content: 'It failed.' });
+
+    expect(calls.map(({ path }) => path)).toEqual([
+      '/v1/products/public',
+      '/v1/me/entitlements',
+      '/v1/access/lens.export',
+      '/v1/redemptions',
+      '/v1/feedback',
+    ]);
+    const redemptionHeaders = new Headers(calls[3].init?.headers);
+    expect(redemptionHeaders.get('idempotency-key')).toBe('redeem-key-1');
+    expect(redemptionHeaders.get('x-csrf-token')).toBe('csrf-memory-token');
+    expect(JSON.parse(String(calls[3].init?.body))).toEqual({ code: 'AH-PRO-ABCD-2345' });
+    expect(JSON.parse(String(calls[4].init?.body))).toEqual({
+      kind: 'bug',
+      title: 'Export issue',
+      content: 'It failed.',
+    });
+  });
+
+  it('requires a stable idempotency key and validates client inputs before sending', async () => {
+    const client = createPlatformClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async () => {
+        throw new Error('fetch should not be called');
+      },
+    });
+
+    expect(() => client.redeem('AH-PRO-ABCD-2345', '  ')).toThrow(/Idempotency-Key/);
+    expect(() => client.redeem('', 'redeem-key')).toThrow();
+    expect(() => client.checkAccess('Invalid Feature')).toThrow(/feature code/);
+    expect(() => client.submitFeedback({ kind: 'bug', title: '', content: 'x' })).toThrow();
+  });
 });

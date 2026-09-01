@@ -1,5 +1,12 @@
 import {
+  AccessResponseSchema,
   ApiSuccessEnvelopeSchema,
+  EntitlementsResponseSchema,
+  FeedbackRequestSchema,
+  FeedbackResponseSchema,
+  PublicProductsResponseSchema,
+  RedemptionRequestSchema,
+  RedemptionResponseSchema,
   SessionDeleteResponseSchema,
   SessionExchangeResponseSchema,
   SessionResponseSchema,
@@ -9,6 +16,12 @@ import {
   type SessionResponse,
   type ApiErrorEnvelope,
   type ContractSchema,
+  type EntitlementsResponse,
+  type FeedbackRequest,
+  type FeedbackResponse,
+  type PublicProductsResponse,
+  type RedemptionResponse,
+  type AccessResponse,
   type RequestId,
 } from '@aisenhub/contracts';
 
@@ -59,6 +72,11 @@ export interface PlatformClient {
   exchangeSession(accessToken: string): Promise<PlatformResponse<SessionExchangeResponse>>;
   getSession(): Promise<PlatformResponse<SessionResponse>>;
   logout(): Promise<PlatformResponse<SessionDeleteResponse>>;
+  getPublicProducts(): Promise<PlatformResponse<PublicProductsResponse>>;
+  getEntitlements(): Promise<PlatformResponse<EntitlementsResponse>>;
+  checkAccess(featureCode: string): Promise<PlatformResponse<AccessResponse>>;
+  redeem(code: string, idempotencyKey: string): Promise<PlatformResponse<RedemptionResponse>>;
+  submitFeedback(input: FeedbackRequest): Promise<PlatformResponse<FeedbackResponse>>;
 }
 
 export function createPlatformClient(options: PlatformClientOptions): PlatformClient {
@@ -139,6 +157,42 @@ export function createPlatformClient(options: PlatformClientOptions): PlatformCl
     },
     logout() {
       return this.request('/v1/session', SessionDeleteResponseSchema, { method: 'DELETE' });
+    },
+    getPublicProducts() {
+      return this.request('/v1/products/public', PublicProductsResponseSchema);
+    },
+    getEntitlements() {
+      return this.request('/v1/me/entitlements', EntitlementsResponseSchema);
+    },
+    checkAccess(featureCode: string) {
+      if (!/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(featureCode)) {
+        throw new Error('A valid feature code is required.');
+      }
+      return this.request(`/v1/access/${encodeURIComponent(featureCode)}`, AccessResponseSchema);
+    },
+    redeem(code: string, idempotencyKey: string) {
+      const normalizedCode = code.trim();
+      const normalizedIdempotencyKey = idempotencyKey.trim();
+      if (normalizedIdempotencyKey === '' || normalizedIdempotencyKey.length > 255) {
+        throw new Error('A valid Idempotency-Key is required.');
+      }
+      const request = RedemptionRequestSchema.parse({ code: normalizedCode });
+      return this.request('/v1/redemptions', RedemptionResponseSchema, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'idempotency-key': normalizedIdempotencyKey,
+        },
+        body: JSON.stringify(request),
+      });
+    },
+    submitFeedback(input: FeedbackRequest) {
+      const request = FeedbackRequestSchema.parse(input);
+      return this.request('/v1/feedback', FeedbackResponseSchema, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(request),
+      });
     },
   };
 }
