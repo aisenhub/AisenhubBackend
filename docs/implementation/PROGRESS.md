@@ -6,10 +6,10 @@ Last Updated: 2026-09-01
 
 Status: IN_PROGRESS
 
-Current Phase: P4 — Admin Catalog / Customer + Integration
-Current Task: P4-T014
-Overall Progress: 66 / 107 tasks completed
-Last Successful Quality Gate: P4-T013 Admin B/C and product integration E2E — PASS
+Current Phase: P5 — Commerce + Admin D
+Current Task: P5-T001
+Overall Progress: 67 / 107 tasks completed
+Last Successful Quality Gate: P4-T014 Admin B/C and product integration quality gate — PASS
 
 ## Phase Progress
 
@@ -17,7 +17,7 @@ Last Successful Quality Gate: P4-T013 Admin B/C and product integration E2E — 
 - [x] P1 — Identity / Application / Session
 - [x] P2 — Catalog / Entitlement / Redemption
 - [x] P3 — Admin Foundation
-- [ ] P4 — Admin Catalog / Customer + Product Integration
+- [x] P4 — Admin Catalog / Customer + Product Integration
 - [ ] P5 — Commerce + Admin D
 - [ ] P6 — Operations Hardening
 - [ ] P7 — Staging
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P4-T013 Admin B/C and product integration E2E — 
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Execute the Admin B/C and product integration quality gate and publish the Phase 04 checkpoint.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T011 completed; P4-T001 through P4-T012 completed. Remote repository synchronization is complete to `origin/main`.
+Goal: Begin Commerce + Admin D implementation at P5-T001.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, and P4-T001 through P4-T014 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -118,7 +118,7 @@ None.
 
 ## Next Tasks
 
-1. P4-T014 — Execute Admin B/C and product integration quality gate.
+1. P5-T001 — Implement Commerce core schema and state model.
 
 ## Recent Commits
 
