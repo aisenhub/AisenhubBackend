@@ -920,7 +920,7 @@ P1-T011.
 
 ## P1-T011 — Implement account login and session shell
 
-Status: completed  
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: frontend  
