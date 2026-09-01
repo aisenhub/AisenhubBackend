@@ -6,7 +6,7 @@ Repository reality: read root `AGENTS.md` and the Admin rules currently stored i
 
 ## P3-T001 — Finalize Admin workspace under repository AGENTS rules
 
-Status: pending  
+Status: pending
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: frontend-foundation  
@@ -101,7 +101,7 @@ P3-T002 and P3-T004.
 
 ## P3-T002 — Implement Admin session and backend permission service
 
-Status: pending  
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: api-security-test-first  
@@ -162,10 +162,10 @@ All roles, normal user 403, disabled membership, expired/revoked session, AAL st
 
 ### Acceptance Criteria
 
-- [ ] Admin session contract validates.
-- [ ] Normal user cannot enter Admin.
-- [ ] Permission helper reads current server state.
-- [ ] Tests pass.
+- [x] Admin session contract validates.
+- [x] Normal user cannot enter Admin.
+- [x] Permission helper reads current server state.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -177,7 +177,7 @@ Do not return database grants/full permission cache or create second login.
 
 ### Output
 
-Admin identity and authorization kernel.
+Admin identity and authorization kernel. Executed early during P1-T013 because all declared P3-T002 dependencies were already complete; no duplicate route or architecture deviation was introduced. Implementation is in `1c8d249`; database, integration, real Local HTTP, and full quality gates passed.
 
 ### Human Gate
 

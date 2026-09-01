@@ -1105,7 +1105,7 @@ P1-T013.
 
 ## P1-T013 — Complete P1 contract and security matrix
 
-Status: in_progress
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: security  
@@ -1167,10 +1167,10 @@ Complete route/security matrix.
 
 ### Acceptance Criteria
 
-- [ ] Every P1 route has success and required negative cases.
-- [ ] Normal user gets 403 from Admin session.
-- [ ] No raw token/hash/internal DB error appears.
-- [ ] All commands pass.
+- [x] Every P1 route has success and required negative cases.
+- [x] Normal user gets 403 from Admin session.
+- [x] No raw token/hash/internal DB error appears.
+- [x] All commands pass.
 
 ### Failure Recovery
 
@@ -1184,7 +1184,7 @@ Do not treat UI behavior as API authorization evidence.
 
 P1 security/contract closure.
 
-Current-route matrix and quality results are recorded in `docs/implementation/reports/P1-T013-security-matrix.md`. The implemented P1 route checks pass, but Admin Session verification remains open under `docs/implementation/blockers/AB-001.md` because its approved implementation belongs to P3-T002.
+Current-route matrix and quality results are recorded in `docs/implementation/reports/P1-T013-security-matrix.md`. P3-T002 was executed early because its declared dependencies were satisfied; the Admin Session route remains implemented in its approved Admin boundary, with no duplicate P1 path. AB-001 is resolved.
 
 ### Human Gate
 
@@ -1192,7 +1192,7 @@ None. This Local task must remain autonomous.
 
 ### Commit
 
-`test(security): complete identity session matrix` — Task P1-T013.
+`1c8d249 feat(admin-api): add admin session and permission checks` — Task P1-T013 prerequisite and P3-T002 implementation.
 
 ### Next
 
