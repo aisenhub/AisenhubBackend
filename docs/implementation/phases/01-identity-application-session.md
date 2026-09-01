@@ -735,7 +735,7 @@ P1-T009.
 
 ## P1-T009 — Implement exact Origin, CORS, and app declaration validation
 
-Status: in_progress  
+Status: completed  
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: security-test-first  
@@ -795,10 +795,14 @@ Registered/unregistered/null/wildcard origin, inactive app/origin, forged header
 
 ### Acceptance Criteria
 
-- [ ] No credentialed wildcard response occurs.
-- [ ] Header cannot switch app identity.
-- [ ] Allowed origin is echoed exactly.
-- [ ] All negative tests pass.
+- [x] No credentialed wildcard response occurs.
+- [x] Header cannot switch app identity.
+- [x] Allowed origin is echoed exactly.
+- [x] All negative tests pass.
+
+### Verification Note
+
+The application handler returns the exact registered Origin and never returns a wildcard. Supabase Local's outer Kong CORS plugin currently overwrites function response headers during `functions serve`; this runtime behavior must be configured separately in any gateway used for browser traffic.
 
 ### Failure Recovery
 
@@ -826,7 +830,7 @@ P1-T010.
 
 ## P1-T010 — Implement CSRF issuance and write-request enforcement
 
-Status: pending  
+Status: in_progress  
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: security-test-first  
