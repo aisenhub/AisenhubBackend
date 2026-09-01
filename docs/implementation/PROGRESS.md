@@ -112,7 +112,7 @@ None.
 
 - `94c05cc` — feat(admin-client): add command transport foundation
 - `4c702ef` — feat(admin): add read-only operations workspace
-- `PENDING` — chore(checkpoint): complete admin foundation
+- `6c520ee` — chore(checkpoint): complete admin foundation
 - `02cbca7` — feat(admin): add auth and access providers
 - `83f1b23` — feat(design-system): add admin theme and status primitives
 - `cd8fc13` — feat(admin): add protected refine shell

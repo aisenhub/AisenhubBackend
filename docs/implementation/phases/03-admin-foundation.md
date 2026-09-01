@@ -988,7 +988,7 @@ P3-T011.
 
 ## P3-T011 — Execute Admin Foundation quality gate
 
-Status: completed  
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: quality-gate  

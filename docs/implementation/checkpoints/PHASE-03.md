@@ -89,10 +89,10 @@ Production or staging resources were not touched.
 
 ## Git Range
 
-`bd7ab86..CHECKPOINT_COMMIT` on branch `main`.
+`bd7ab86..6c520ee` on branch `main`.
 
 Key commits: `c91dbb5` (Admin query APIs), `4c702ef` (read-only operations workspace), and
-the checkpoint commit recorded in the task ledger.
+the checkpoint commit `6c520ee`.
 
 ## Next Phase
 
