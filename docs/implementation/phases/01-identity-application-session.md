@@ -460,7 +460,7 @@ P1-T006 and P1-T007.
 
 ## P1-T006 — Implement profile and application read APIs
 
-Status: in_progress
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: api  
@@ -521,10 +521,10 @@ Public active app, retired/missing app, authenticated self, unauthenticated requ
 
 ### Acceptance Criteria
 
-- [ ] Routes return stable requestId envelopes.
-- [ ] Only approved fields are returned.
-- [ ] Inactive/missing resources use stable errors.
-- [ ] Contract/integration tests pass.
+- [x] Routes return stable requestId envelopes.
+- [x] Only approved fields are returned.
+- [x] Inactive/missing resources use stable errors.
+- [x] Contract/integration tests pass.
 
 ### Failure Recovery
 
@@ -552,7 +552,7 @@ P1-T007.
 
 ## P1-T007 — Implement secure Platform Session exchange
 
-Status: pending  
+Status: in_progress
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: api-test-first  

@@ -7,8 +7,8 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P1 — Identity / Application / Session
-Current Task: P1-T006 — Implement profile and application read APIs
-Overall Progress: 17 / 107 tasks completed
+Current Task: P1-T007 — Implement secure Platform Session exchange
+Overall Progress: 18 / 107 tasks completed
 Last Successful Quality Gate: P0-T012 Bootstrap checkpoint — PASS
 
 ## Phase Progress
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P0-T012 Bootstrap checkpoint — PASS
 
 Status: IN_PROGRESS
 Goal: Implement the unified identity/application/session boundary on Supabase Local.
-Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T005 completed; remote repository synchronization completed to `origin/main`. P1-T006 is in progress.
+Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T006 completed; remote repository synchronization completed to `origin/main`. P1-T007 is in progress.
 
 ## Latest Verification
 
@@ -52,6 +52,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T005 completed; rem
 - P1-T003 Sessions and Admin membership: PASS — hashed session/CSRF persistence, revocation fields, idempotency linkage, fixed four-role Admin membership, local fixture seeding, database tests 94/94, RLS tests 6/6, and full `platform:verify` passed.
 - P1-T004 Identity/Application RLS: PASS — private P1 tables, fixed-search-path own-profile function projection, authenticated own/other-user checks, anon/service_role denial, database tests 110/110, RLS tests 22/22, full `platform:verify`, secrets, and database advisors passed.
 - P1-T005 Identity/session contracts: PASS — stable session exchange/status/delete, me/profile, application identity, Admin session, auth/origin/CSRF/session errors, strict sensitive-field rejection, 16 root tests, 6 contract tests, typecheck, lint, format, build, and secrets passed.
+- P1-T006 Application/profile read APIs: PASS — controlled active-application RPC, authenticated profile read, stable requestId/error envelopes, 401/404 negative paths, real Local API smoke, database tests 117/117, RLS tests 29/29, full `platform:verify`, and secrets passed.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -70,9 +71,9 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T005 completed; rem
 
 ## Next Tasks
 
-1. P1-T006 — Implement profile and application read APIs.
-2. P1-T007 — Implement secure Platform Session exchange.
-3. P1-T008 — Implement session logout/revocation and admin session read.
+1. P1-T007 — Implement secure Platform Session exchange.
+2. P1-T008 — Implement session read, logout, revocation, and lifecycle.
+3. P1-T009 — Enforce exact Origin and CORS middleware.
 
 ## Recent Commits
 
@@ -82,6 +83,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T005 completed; rem
 - `21bec9e` — chore(types): refresh generated database types
 - `56d9f7c` — test(security): enforce identity and application RLS
 - `25ea256` — feat(contracts): define identity and session APIs
+- `4cc179c` — feat(api): add application and profile reads
 - `5d4fe6a` — docs(implementation): complete profiles task
 - `b484c3d` — docs(implementation): begin identity phase
 - `b9c5c39` — docs(implementation): record client transport repair
