@@ -22,12 +22,18 @@
     "supabase:reset": "supabase db reset",
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
+    "rls:test": "node scripts/test-rls.mjs",
     "supabase:functions:serve": "supabase functions serve --no-verify-jwt",
     "supabase:typegen": "node scripts/generate-supabase-types.mjs",
-    "functions:test": "node scripts/test-functions.mjs"
+    "functions:test": "node scripts/test-functions.mjs",
+    "test:contract": "pnpm --filter @aisenhub/contracts test",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "playwright test",
+    "test:harness:negative": "node scripts/test-harness-negative.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.1",
     "@types/node": "24.10.1",
     "eslint": "10.9.1",
     "globals": "16.4.0",

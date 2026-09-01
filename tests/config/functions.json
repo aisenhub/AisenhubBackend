@@ -1,0 +1,4 @@
+{
+  "functions": ["platform-api", "platform-public", "platform-admin", "payment-webhook"],
+  "healthPathTemplate": "/functions/v1/{functionName}"
+}
