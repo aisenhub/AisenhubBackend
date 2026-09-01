@@ -1,9 +1,9 @@
 import { Refine } from '@refinedev/core';
+import { useNotificationProvider } from '@refinedev/antd';
 import { BrowserRouter } from 'react-router-dom';
 
 import { ErrorBoundary } from './ErrorBoundary';
-import { AdminLayout } from '../layouts/AdminLayout';
-import { OverviewPage } from '../modules/overview/OverviewPage';
+import { ProtectedAdminRoutes } from './ProtectedAdminRoutes';
 import { adminRuntime } from '../providers/admin-runtime';
 import { AdminProviders } from '../providers/AdminProviders';
 
@@ -16,11 +16,13 @@ export function AdminApp() {
             authProvider={adminRuntime.authProvider}
             accessControlProvider={adminRuntime.accessControlProvider}
             dataProvider={adminRuntime.refineDataProvider}
-            options={{ syncWithLocation: true }}
+            notificationProvider={useNotificationProvider}
+            options={{
+              syncWithLocation: true,
+              warnWhenUnsavedChanges: false,
+            }}
           >
-            <AdminLayout>
-              <OverviewPage />
-            </AdminLayout>
+            <ProtectedAdminRoutes />
           </Refine>
         </BrowserRouter>
       </AdminProviders>

@@ -691,7 +691,7 @@ P3-T008.
 
 ## P3-T008 — Implement protected Admin shell, routing, errors, and notifications
 
-Status: pending  
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: frontend  
@@ -751,10 +751,10 @@ Menu/route deny, deep link, 401 redirect, 403 page, error boundary, loading/empt
 
 ### Acceptance Criteria
 
-- [ ] Unknown/forbidden route is denied.
-- [ ] No giant App.tsx/business logic.
-- [ ] No scattered fetch URLs.
-- [ ] Build/tests pass.
+- [x] Unknown/forbidden route is denied.
+- [x] No giant App.tsx/business logic.
+- [x] No scattered fetch URLs.
+- [x] Build/tests pass.
 
 ### Failure Recovery
 
@@ -766,7 +766,12 @@ Do not expose unfinished Commerce as functioning data or use UI hiding as author
 
 ### Output
 
-Protected modular Admin shell.
+The Admin shell now uses explicit module registration and React Router routes behind Refine's
+`Authenticated` guard. `/forbidden`, unknown routes, and not-yet-delivered modules have safe
+states; unfinished modules are disabled in navigation and never show fake data. Refine uses
+the Ant Design notification provider, stable Admin errors map to safe operator messages, and
+the global error boundary keeps internal details out of the UI. Admin tests passed 5/5, root
+tests passed 70/70, Admin/workspace builds, typecheck, lint, format, and boundary checks passed.
 
 ### Human Gate
 

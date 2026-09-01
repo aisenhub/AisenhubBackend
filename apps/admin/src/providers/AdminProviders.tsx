@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ConfigProvider } from 'antd';
+import { App as AntApp, ConfigProvider } from 'antd';
 
 import { adminTheme } from '../app/theme';
 
@@ -8,5 +8,9 @@ type AdminProvidersProps = {
 };
 
 export function AdminProviders({ children }: AdminProvidersProps) {
-  return <ConfigProvider theme={adminTheme}>{children}</ConfigProvider>;
+  return (
+    <ConfigProvider theme={adminTheme}>
+      <AntApp>{children}</AntApp>
+    </ConfigProvider>
+  );
 }
