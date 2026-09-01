@@ -28,6 +28,7 @@
 | P1-T010 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 04ea2ef | Constant-time session-bound CSRF verification, mutation precondition enforcement, invalid/cross-session/expired/revoked rejection, database/API tests, and quality gates passed. |
 | P1-T011 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 90260df | Account-only Auth boundary, password/PKCE-compatible token exchange, typed platform-client session methods, in-memory CSRF bootstrap, accessible shell, frontend tests, build, and Local HTTP smoke passed. |
 | P1-T012 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | dc8b2a5 | Playwright headless Local E2E passed 3/3 for login/exchange, independent sessions, one-context logout, invalid Origin/application rejection, and revoked/unknown session error redaction; browser Auth fetch binding and test-only proxy were delivered. |
+| P1-T013 | Identity / App / Session | in_progress | 2026-09-01 |  |  | Current P1 route matrix passes database 171, RLS 29, Function shell 4, Contract 6, Integration 11, E2E 3/3, and root quality checks; Admin Session verification is held by AB-001 because implementation belongs to P3-T002. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |

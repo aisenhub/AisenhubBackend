@@ -1184,6 +1184,8 @@ Do not treat UI behavior as API authorization evidence.
 
 P1 security/contract closure.
 
+Current-route matrix and quality results are recorded in `docs/implementation/reports/P1-T013-security-matrix.md`. The implemented P1 route checks pass, but Admin Session verification remains open under `docs/implementation/blockers/AB-001.md` because its approved implementation belongs to P3-T002.
+
 ### Human Gate
 
 None. This Local task must remain autonomous.
