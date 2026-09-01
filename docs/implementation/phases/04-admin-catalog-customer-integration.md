@@ -795,7 +795,7 @@ P4-T009.
 
 ## P4-T009 — Implement User 360 and Customer Resource Queries
 
-Status: pending  
+Status: completed  
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: api-aggregation  
@@ -855,10 +855,17 @@ Each role projection, other user, deleted/pending profile, revoked/restore histo
 
 ### Acceptance Criteria
 
-- [ ] One overview request replaces browser fan-out.
-- [ ] Fields are role-filtered server-side.
-- [ ] Session token/security context never appears.
-- [ ] Tests pass.
+- [x] One overview request replaces browser fan-out.
+- [x] Fields are role-filtered server-side.
+- [x] Session token/security context never appears.
+- [x] Tests pass.
+
+### Verification
+
+- Added the dedicated `admin_user_overview` aggregate over Profile, entitlement, redemption, feedback, session summary, deletion request, and related Audit facts; the browser does not fan out across sensitive resources.
+- Added the allowlisted `account-deletion-requests` Customer query with opaque cursor pagination and safe retry-state fields, plus typed Admin Client mappings for both the list and User 360 endpoint.
+- Server-side role redaction is covered for Owner/Admin/Support/Finance: Finance receives necessary product facts but no profile or feedback body, while session tokens, IP context, and database fields remain absent.
+- Database/RLS tests: 674/674; root tests: 92/92; integration tests: 31/31; Contracts: 14/14; Admin Client: 13/13; function shell, typecheck, build, lint, format, boundaries, and secret scan passed.
 
 ### Failure Recovery
 
@@ -878,7 +885,7 @@ None. All Local operations and E2E are autonomous; commercial values remain dete
 
 ### Commit
 
-`feat(admin-api): add customer and user overview queries` — Task P4-T009.
+`a71444a feat(admin-api): add customer and user overview queries` — Task P4-T009.
 
 ### Next
 
