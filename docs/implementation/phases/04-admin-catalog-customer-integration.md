@@ -893,7 +893,7 @@ P4-T010 and P4-T011.
 
 ## P4-T010 — Expose Grant, Revoke, Restore, Disable User, and Deletion Commands
 
-Status: pending  
+Status: completed  
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: api-domain-security  
@@ -953,10 +953,17 @@ Role/MFA/reason/state/idempotency, restore-new-grant, disable sessions, deletion
 
 ### Acceptance Criteria
 
-- [ ] No status direct mutation endpoint.
-- [ ] Restore creates new linked grant.
-- [ ] Support cannot Restore.
-- [ ] Tests pass.
+- [x] No status direct mutation endpoint.
+- [x] Restore creates new linked grant.
+- [x] Support cannot Restore.
+- [x] Tests pass.
+
+### Verification
+
+- Added a single `admin_customer_command` wrapper for Grant, Revoke, Restore, Disable User, and deletion processing; each command enforces the fixed role matrix, reason, confirmation, idempotency, and append-only audit boundary.
+- Restore delegates to the existing domain function and returns a new `admin_restore` grant linked to the revoked original; Support is denied Restore at both the Admin Action and database command layers.
+- Disable transitions only an active profile and revokes all active Platform Sessions atomically. Deletion processing claims only due `pending`/`failed` requests and records a safe retry state without exposing external error text.
+- Database command/RLS tests passed 699/699; root tests 94/94; integration tests 32/32; Contracts 14/14; Admin Client 14/14; function shell, typecheck, build, lint, format, boundaries, and secret scan passed.
 
 ### Failure Recovery
 
