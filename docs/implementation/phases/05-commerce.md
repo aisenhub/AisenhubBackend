@@ -300,7 +300,7 @@ P5-T004 and P5-T005.
 
 ## P5-T004 — Define Commerce and Admin Commerce API contracts
 
-Status: pending  
+Status: completed
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: contracts  
@@ -360,10 +360,10 @@ Valid/invalid state requests, amount policy, pagination, sensitive fields, Actio
 
 ### Acceptance Criteria
 
-- [ ] Refund targets OrderItem.
-- [ ] Overview links item to Grant.
-- [ ] Contracts expose no secret/raw internal event.
-- [ ] Tests pass.
+- [x] Refund targets OrderItem.
+- [x] Overview links item to Grant.
+- [x] Contracts expose no secret/raw internal event.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -375,7 +375,14 @@ Do not decide official refund policy; model explicit compensation/product-return
 
 ### Output
 
-Commerce contract source.
+Commerce contract source in `packages/contracts/src/commerce.ts`, exported from the shared contract index with stable state/error codes and contract coverage.
+
+### Verification
+
+- Contract suite: 15/15 tests passed.
+- Root unit suite: 95/95 tests passed.
+- Typecheck, lint, format check, workspace build, boundary check, and secret scan: PASS.
+- OrderItem-targeted refund input, Grant-linked Order Overview, manual verification, chargeback, payment/event summaries, and credential-free webhook validation are defined; raw provider payloads and secrets are excluded.
 
 ### Human Gate
 
