@@ -300,7 +300,7 @@ P4-T005 and P4-T006.
 
 ## P4-T004 — Implement Redemption batch create/generate/pause/close Commands
 
-Status: pending  
+Status: completed  
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: api-security  
@@ -360,10 +360,17 @@ Roles, MFA, reason, double submit, timeout retry, lifecycle conflict, one-time p
 
 ### Acceptance Criteria
 
-- [ ] Generation retry returns same safe result within policy.
-- [ ] History queries show hint only.
-- [ ] No plaintext in logs/storage.
-- [ ] Tests pass.
+- [x] Generation retry returns same safe result within policy.
+- [x] History queries show hint only.
+- [x] No plaintext in logs/storage.
+- [x] Tests pass.
+
+### Verification
+
+- Added the explicit Admin endpoints for batch creation, generation, pause, and close.
+- Added a SECURITY DEFINER transaction function with fixed `search_path`, service-role-only execution, idempotency replay, lifecycle locking, and same-transaction audit rows.
+- Generated code plaintext is joined to the first successful response in the Edge Function only; database rows, idempotency responses, logs, and history retain only code IDs, HMAC digests, and hints.
+- Database tests: 604/604, RLS: 29/29, root tests: 82/82, contract tests: 14/14, Admin Client tests: 12/12, Admin API integration: 27/27; typecheck, lint, format, boundaries, secret scan, function smoke, and database advisors passed.
 
 ### Failure Recovery
 
@@ -383,7 +390,7 @@ None. All Local operations and E2E are autonomous; commercial values remain dete
 
 ### Commit
 
-`feat(admin-api): add redemption batch commands` — Task P4-T004.
+`00b3ddf feat(admin-api): add redemption batch commands` — Task P4-T004.
 
 ### Next
 
