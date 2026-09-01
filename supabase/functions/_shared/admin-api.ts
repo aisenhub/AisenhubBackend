@@ -7,7 +7,9 @@ import {
 import {
   apiPath,
   errorResponse,
+  enforceWritePreconditions,
   jsonResponse,
+  parseJsonObject,
   preflightResponse,
   requestId,
   resolveOrigin,
@@ -284,6 +286,179 @@ async function adminCatalogDetailRead(
   }
 }
 
+type DraftMutationRoute = {
+  readonly action: string;
+  readonly resourceId: string | null;
+  readonly parentId: string | null;
+  readonly creates: boolean;
+};
+
+function draftMutationRoute(request: Request, path: string): DraftMutationRoute | null {
+  if (request.method === 'POST') {
+    if (path === '/v1/admin/applications')
+      return { action: 'create_application', resourceId: null, parentId: null, creates: true };
+    if (path === '/v1/admin/features')
+      return { action: 'create_feature', resourceId: null, parentId: null, creates: true };
+    if (path === '/v1/admin/products')
+      return { action: 'create_product', resourceId: null, parentId: null, creates: true };
+    const origin = path.match(/^\/v1\/admin\/applications\/([^/]+)\/origins$/);
+    if (origin)
+      return { action: 'create_origin', resourceId: null, parentId: origin[1], creates: true };
+    const version = path.match(/^\/v1\/admin\/products\/([^/]+)\/versions$/);
+    if (version)
+      return {
+        action: 'create_product_version',
+        resourceId: null,
+        parentId: version[1],
+        creates: true,
+      };
+    const price = path.match(/^\/v1\/admin\/product-versions\/([^/]+)\/prices$/);
+    if (price)
+      return { action: 'create_price', resourceId: null, parentId: price[1], creates: true };
+  }
+  if (request.method === 'PATCH') {
+    const update = path.match(
+      /^\/v1\/admin\/(applications|origins|features|products|product-versions|prices)\/([^/]+)$/,
+    );
+    if (update) {
+      const actionByResource: Record<string, string> = {
+        applications: 'update_application',
+        origins: 'update_origin',
+        features: 'update_feature',
+        products: 'update_product',
+        'product-versions': 'update_product_version',
+        prices: 'update_price',
+      };
+      return {
+        action: actionByResource[update[1]],
+        resourceId: update[2],
+        parentId: null,
+        creates: false,
+      };
+    }
+  }
+  return null;
+}
+
+async function adminCatalogDraftMutation(
+  request: Request,
+  route: DraftMutationRoute,
+  id: string,
+): Promise<Response> {
+  const body = await parseJsonObject(request);
+  if (!body) return errorResponse('VALIDATION_ERROR', 'A JSON object body is required.', 400, id);
+  const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+  const expectedUpdatedAt =
+    typeof body.expectedUpdatedAt === 'string' ? body.expectedUpdatedAt : null;
+  const payload = { ...body };
+  delete payload.reason;
+  delete payload.expectedUpdatedAt;
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  if (!idempotencyKey || idempotencyKey.length > 255 || !reason || reason.length > 1000) {
+    return errorResponse('VALIDATION_ERROR', 'A reason and Idempotency-Key are required.', 400, id);
+  }
+  if (!route.creates && !expectedUpdatedAt) {
+    return errorResponse(
+      'VALIDATION_ERROR',
+      'expectedUpdatedAt is required for draft updates.',
+      400,
+      id,
+    );
+  }
+  if (route.creates && expectedUpdatedAt !== null) {
+    return errorResponse(
+      'VALIDATION_ERROR',
+      'expectedUpdatedAt is not accepted for draft creation.',
+      400,
+      id,
+    );
+  }
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const decision = authorizeAdminAction(
+      { role: session.role, status: 'active', aal: session.aal, mfaState: session.mfa_state },
+      'products.create',
+    );
+    if (!decision.allowed) {
+      return errorResponse(
+        decision.reason === 'mfa_required' ? 'MFA_REQUIRED' : 'ADMIN_ACCESS_DENIED',
+        decision.reason === 'mfa_required'
+          ? 'MFA is required for catalog draft changes.'
+          : 'Admin access is denied.',
+        403,
+        id,
+      );
+    }
+    const requestHash = await sha256Hex(
+      JSON.stringify({
+        action: route.action,
+        resourceId: route.resourceId,
+        parentId: route.parentId,
+        payload,
+        expectedUpdatedAt,
+        reason,
+      }),
+    );
+    const rows = await serviceRpc<unknown>('admin_catalog_draft_command', {
+      p_actor_id: session.user_id,
+      p_action: route.action,
+      p_resource_id: route.resourceId,
+      p_parent_id: route.parentId,
+      p_payload: payload,
+      p_expected_updated_at: expectedUpdatedAt,
+      p_reason: reason,
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: requestHash,
+      p_request_id: id,
+    });
+    if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The draft command returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], route.creates ? 201 : 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '40001') {
+      return errorResponse(
+        'RESOURCE_VERSION_CONFLICT',
+        'The resource changed before this draft update.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
+      return errorResponse(
+        'IDEMPOTENCY_KEY_REUSED',
+        'The request key was already used for another request.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse(
+        'ADMIN_RESOURCE_NOT_FOUND',
+        'The Admin resource was not found.',
+        404,
+        id,
+      );
+    }
+    if (
+      error instanceof ServiceRpcError &&
+      ['22023', '22P02', '23503', '23505', '23514'].includes(error.databaseCode ?? '')
+    ) {
+      return errorResponse('VALIDATION_ERROR', 'The draft command is invalid.', 400, id);
+    }
+    return errorResponse('INTERNAL_ERROR', 'The draft command could not be completed.', 502, id);
+  }
+}
+
 async function adminSystemHealthRead(request: Request, id: string): Promise<Response> {
   if (request.method !== 'GET') {
     return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
@@ -341,6 +516,12 @@ export async function routePlatformAdmin(
   const productOverviewMatch = path.match(/^\/v1\/admin\/products\/([^/]+)\/overview$/);
   if (productOverviewMatch) {
     return withCors(await adminProductOverviewRead(request, productOverviewMatch[1], id), resolved);
+  }
+  const draftRoute = draftMutationRoute(request, path);
+  if (draftRoute) {
+    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
+    if (preconditionFailure) return withCors(preconditionFailure, resolved);
+    return withCors(await adminCatalogDraftMutation(request, draftRoute, id), resolved);
   }
   const detailMatch = path.match(
     /^\/v1\/admin\/(applications|origins|features|products|product-versions|prices|redemption-batches|redemption-codes|redemptions|entitlements)\/([^/]+)$/,

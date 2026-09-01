@@ -1,4 +1,11 @@
-import type { BaseRecord, DataProvider, GetListParams, GetOneParams } from '@refinedev/core';
+import type {
+  BaseRecord,
+  CreateParams,
+  DataProvider,
+  GetListParams,
+  GetOneParams,
+  UpdateParams,
+} from '@refinedev/core';
 
 import type {
   AisenHubAdminDataProvider,
@@ -88,6 +95,13 @@ function commandNotQuery(operation: string): never {
   throw new Error(`${operation} is not a generic Admin data operation; use a Business Command.`);
 }
 
+function recordVariables(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Admin draft variables must be an object.');
+  }
+  return { ...(value as Record<string, unknown>) };
+}
+
 export function createRefineDataProvider(
   provider: AisenHubAdminDataProvider,
   apiUrl: string,
@@ -108,8 +122,80 @@ export function createRefineDataProvider(
       const result = await provider.getOne(assertResource(params.resource), String(params.id));
       return { data: result.data as unknown as TData };
     },
-    create: async () => commandNotQuery('create'),
-    update: async () => commandNotQuery('update'),
+    create: async <TData extends BaseRecord = BaseRecord, TVariables = Record<string, unknown>>(
+      params: CreateParams<TVariables>,
+    ) => {
+      const variables = recordVariables(params.variables);
+      let result;
+      switch (params.resource) {
+        case 'applications':
+          result = await provider.createApplication(variables as never);
+          break;
+        case 'origins': {
+          const applicationId = variables.applicationId;
+          delete variables.applicationId;
+          if (typeof applicationId !== 'string')
+            throw new Error('applicationId is required for an Origin draft.');
+          result = await provider.createOrigin(applicationId, variables as never);
+          break;
+        }
+        case 'features':
+          result = await provider.createFeature(variables as never);
+          break;
+        case 'products':
+          result = await provider.createProduct(variables as never);
+          break;
+        case 'productVersions': {
+          const productId = variables.productId;
+          delete variables.productId;
+          if (typeof productId !== 'string')
+            throw new Error('productId is required for a Product Version draft.');
+          result = await provider.createProductVersion(productId, variables as never);
+          break;
+        }
+        case 'prices': {
+          const productVersionId = variables.productVersionId;
+          delete variables.productVersionId;
+          if (typeof productVersionId !== 'string')
+            throw new Error('productVersionId is required for a Price draft.');
+          result = await provider.createPrice(productVersionId, variables as never);
+          break;
+        }
+        default:
+          return commandNotQuery('create');
+      }
+      return { data: result.data as unknown as TData };
+    },
+    update: async <TData extends BaseRecord = BaseRecord, TVariables = Record<string, unknown>>(
+      params: UpdateParams<TVariables>,
+    ) => {
+      const variables = recordVariables(params.variables);
+      const id = String(params.id);
+      let result;
+      switch (params.resource) {
+        case 'applications':
+          result = await provider.updateApplication(id, variables as never);
+          break;
+        case 'origins':
+          result = await provider.updateOrigin(id, variables as never);
+          break;
+        case 'features':
+          result = await provider.updateFeature(id, variables as never);
+          break;
+        case 'products':
+          result = await provider.updateProduct(id, variables as never);
+          break;
+        case 'productVersions':
+          result = await provider.updateProductVersion(id, variables as never);
+          break;
+        case 'prices':
+          result = await provider.updatePrice(id, variables as never);
+          break;
+        default:
+          return commandNotQuery('update');
+      }
+      return { data: result.data as unknown as TData };
+    },
     deleteOne: async () => commandNotQuery('deleteOne'),
     getApiUrl: () => apiUrl,
   };

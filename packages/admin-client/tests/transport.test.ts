@@ -226,6 +226,47 @@ describe('admin client transport', () => {
     );
   });
 
+  it('maps draft mutations to named endpoints with a stable idempotency key', async () => {
+    let receivedUrl = '';
+    let receivedInit: RequestInit | undefined;
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      csrfToken: () => 'csrf-token',
+      fetch: async (input, init) => {
+        receivedUrl = String(input);
+        receivedInit = init;
+        return new Response(
+          JSON.stringify({
+            data: {
+              id: '00000000-0000-4000-8000-000000000010',
+              slug: 'draft-app',
+              name: 'Draft App',
+              category: 'tool',
+              status: 'draft',
+              originCount: 0,
+              createdAt: '2026-09-01T12:00:00.000Z',
+              updatedAt: '2026-09-01T12:00:00.000Z',
+            },
+            requestId,
+          }),
+          { headers: { 'content-type': 'application/json' }, status: 201 },
+        );
+      },
+    });
+    const provider = createAdminDataProvider(client);
+
+    await expect(
+      provider.createApplication(
+        { slug: 'draft-app', name: 'Draft App', category: 'tool', reason: 'catalog setup' },
+        { idempotencyKey: 'draft-app-create-1' },
+      ),
+    ).resolves.toMatchObject({ data: { slug: 'draft-app' } });
+    expect(new URL(receivedUrl).pathname).toBe('/v1/admin/applications');
+    expect(receivedInit?.method).toBe('POST');
+    expect(new Headers(receivedInit?.headers).get('idempotency-key')).toBe('draft-app-create-1');
+    expect(new Headers(receivedInit?.headers).get('x-csrf-token')).toBe('csrf-token');
+  });
+
   it('rejects malformed page metadata through the shared response contract', async () => {
     const client = createAdminClient({
       baseUrl: 'https://api.example.test',

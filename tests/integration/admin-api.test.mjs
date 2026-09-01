@@ -18,14 +18,14 @@ async function mockedFetch(url, init) {
   if (pathname.endsWith('/get_admin_session')) {
     return new Response(
       JSON.stringify(
-        adminSessionState === 'active'
+        adminSessionState === 'active' || adminSessionState === 'mfa-ok'
           ? [
               {
                 user_id: '10000000-0000-4000-0000-000000000002',
                 display_name: 'Local Admin',
                 role: 'admin',
-                aal: 'aal1',
-                mfa_state: 'required',
+                aal: adminSessionState === 'mfa-ok' ? 'aal2' : 'aal1',
+                mfa_state: adminSessionState === 'mfa-ok' ? 'verified' : 'required',
                 expires_at: '2026-09-01T12:15:00.000Z',
               },
             ]
@@ -33,6 +33,11 @@ async function mockedFetch(url, init) {
       ),
       { headers: { 'content-type': 'application/json' } },
     );
+  }
+  if (pathname.endsWith('/verify_platform_csrf')) {
+    return new Response(JSON.stringify([{ valid: true }]), {
+      headers: { 'content-type': 'application/json' },
+    });
   }
   if (pathname.endsWith('/admin_query_resource')) {
     return new Response(
@@ -103,6 +108,23 @@ async function mockedFetch(url, init) {
           environment: 'development',
           origin: 'http://localhost:5173',
           isActive: true,
+          createdAt: '2026-09-01T12:00:00.000Z',
+          updatedAt: '2026-09-01T12:00:00.000Z',
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
+  if (pathname.endsWith('/admin_catalog_draft_command')) {
+    return new Response(
+      JSON.stringify([
+        {
+          id: '22000000-0000-4000-8000-000000000001',
+          slug: 'draft-app',
+          name: 'Draft App',
+          category: 'tool',
+          status: 'draft',
+          originCount: 0,
           createdAt: '2026-09-01T12:00:00.000Z',
           updatedAt: '2026-09-01T12:00:00.000Z',
         },
@@ -303,5 +325,31 @@ describe('platform Admin API', () => {
     );
     expect(detail.status).toBe(200);
     expect((await detail.json()).data.origin).toBe('http://localhost:5173');
+  });
+
+  it('protects explicit Catalog draft mutations with CSRF, Admin RBAC, and idempotency', async () => {
+    adminSessionState = 'mfa-ok';
+    const response = await routePlatformAdmin(
+      new Request('http://api.local/v1/admin/applications', {
+        method: 'POST',
+        headers: {
+          Origin: adminOrigin,
+          'X-AisenHub-App': 'admin',
+          'X-CSRF-Token': 'csrf-token',
+          'Idempotency-Key': 'draft-app-create-1',
+          Cookie: '__Host-aisenhub_session=valid-admin-session',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          slug: 'draft-app',
+          name: 'Draft App',
+          category: 'tool',
+          reason: 'catalog setup',
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(201);
+    expect((await response.json()).data.slug).toBe('draft-app');
   });
 });

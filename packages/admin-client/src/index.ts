@@ -141,6 +141,7 @@ export type {
   AdminResourceItem,
   AdminResourceName,
   AdminResourceQuery,
+  AdminDraftMutationOptions,
   AisenHubAdminDataProvider,
 } from './data-provider';
 

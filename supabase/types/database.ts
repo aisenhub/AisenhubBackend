@@ -40,6 +40,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_catalog_draft_command: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_expected_updated_at?: string
+          p_idempotency_key?: string
+          p_parent_id?: string
+          p_payload?: Json
+          p_reason?: string
+          p_request_hash?: string
+          p_request_id?: string
+          p_resource_id?: string
+        }
+        Returns: Json
+      }
       admin_catalog_resource_detail: {
         Args: { p_actor_id: string; p_id: string; p_resource: string }
         Returns: Json

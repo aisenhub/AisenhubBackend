@@ -5,12 +5,19 @@ import {
   AdminActionMatrix,
   AdminCatalogListQuerySchema,
   AdminCatalogResourceQuerySchema,
+  AdminCreateApplicationRequestSchema,
+  AdminCreateOriginRequestSchema,
+  AdminCreatePriceRequestSchema,
+  AdminCreateProductRequestSchema,
+  AdminCreateProductVersionRequestSchema,
   AdminFeatureListResponseSchema,
   AdminApplicationListResponseSchema,
   AdminAuditLogListResponseSchema,
   AdminEntitlementListResponseSchema,
   AdminFeedbackListResponseSchema,
   AdminSystemHealthResponseSchema,
+  AdminUpdateApplicationRequestSchema,
+  AdminUpdateProductRequestSchema,
   AdminOriginListResponseSchema,
   AdminPriceListResponseSchema,
   AdminProductOverviewSchema,
@@ -250,6 +257,66 @@ describe('platform contract primitives', () => {
     expect(AdminFeatureListResponseSchema.shape.items).toBeDefined();
     expect(AdminPriceListResponseSchema.shape.items).toBeDefined();
     expect(() => AdminProductOverviewSchema.parse({ product: {}, versions: [] })).toThrow();
+  });
+
+  it('keeps Catalog draft mutations explicit and rejects lifecycle fields', () => {
+    expect(
+      AdminCreateApplicationRequestSchema.parse({
+        slug: 'draft-app',
+        name: 'Draft App',
+        category: 'tool',
+        reason: 'catalog setup',
+      }).slug,
+    ).toBe('draft-app');
+    expect(
+      AdminCreateOriginRequestSchema.parse({
+        environment: 'development',
+        origin: 'http://localhost:5173',
+        reason: 'catalog setup',
+      }).origin,
+    ).toBe('http://localhost:5173');
+    expect(
+      AdminCreateProductRequestSchema.parse({
+        sku: 'DRAFT_PRODUCT',
+        name: 'Draft Product',
+        billingType: 'one_time',
+        reason: 'catalog setup',
+      }).billingType,
+    ).toBe('one_time');
+    expect(
+      AdminCreateProductVersionRequestSchema.parse({ version: 1, reason: 'catalog setup' }).version,
+    ).toBe(1);
+    expect(
+      AdminCreatePriceRequestSchema.parse({
+        currency: 'USD',
+        amountMinor: 100,
+        channel: 'manual',
+        reason: 'catalog setup',
+      }).amountMinor,
+    ).toBe(100);
+    expect(
+      AdminUpdateApplicationRequestSchema.parse({
+        name: 'Updated',
+        expectedUpdatedAt: '2026-09-01T12:00:00.000Z',
+        reason: 'correct name',
+      }).name,
+    ).toBe('Updated');
+    expect(() =>
+      AdminCreateProductRequestSchema.parse({
+        sku: 'DRAFT_PRODUCT',
+        name: 'Draft Product',
+        billingType: 'one_time',
+        status: 'active',
+        reason: 'invalid',
+      }),
+    ).toThrow();
+    expect(() =>
+      AdminUpdateProductRequestSchema.parse({
+        status: 'active',
+        expectedUpdatedAt: '2026-09-01T12:00:00.000Z',
+        reason: 'invalid',
+      }),
+    ).toThrow();
   });
 
   it('validates read-only Admin operation projections and rejects leaked fields', () => {

@@ -66,7 +66,11 @@ if (process.argv.includes('admin-permissions')) {
   console.log(`Admin permission mapping smoke check passed for ${actions.length} actions.`);
 }
 
-if (process.argv.includes('admin-query') || process.argv.includes('admin-catalog-query')) {
+if (
+  process.argv.includes('admin-query') ||
+  process.argv.includes('admin-catalog-query') ||
+  process.argv.includes('catalog-drafts')
+) {
   const source = fs.readFileSync(adminApiSource, 'utf8');
   const migration = fs.readFileSync(adminQueryMigration, 'utf8');
   for (const required of [
@@ -76,6 +80,7 @@ if (process.argv.includes('admin-query') || process.argv.includes('admin-catalog
     'admin_query_catalog_resource',
     'admin_product_overview',
     'admin_catalog_resource_detail',
+    ...(process.argv.includes('catalog-drafts') ? ['admin_catalog_draft_command'] : []),
     'ServiceRpcError',
   ]) {
     if (!source.includes(required) && !migration.includes(required)) {

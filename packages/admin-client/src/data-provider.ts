@@ -1,6 +1,12 @@
 import {
   AdminCatalogListQuerySchema,
   AdminCatalogResourceQuerySchema,
+  AdminCreateApplicationRequestSchema,
+  AdminCreateFeatureRequestSchema,
+  AdminCreateOriginRequestSchema,
+  AdminCreatePriceRequestSchema,
+  AdminCreateProductRequestSchema,
+  AdminCreateProductVersionRequestSchema,
   AdminFeatureListResponseSchema,
   AdminFeatureSummarySchema,
   AdminOriginListResponseSchema,
@@ -30,7 +36,19 @@ import {
   AdminRedemptionCodeSummarySchema,
   AdminRedemptionListResponseSchema,
   AdminRedemptionSummarySchema,
+  AdminUpdateApplicationRequestSchema,
+  AdminUpdateFeatureRequestSchema,
+  AdminUpdateOriginRequestSchema,
+  AdminUpdatePriceRequestSchema,
+  AdminUpdateProductRequestSchema,
+  AdminUpdateProductVersionRequestSchema,
   type AdminApplicationSummary,
+  type AdminCreateApplicationRequest,
+  type AdminCreateFeatureRequest,
+  type AdminCreateOriginRequest,
+  type AdminCreatePriceRequest,
+  type AdminCreateProductRequest,
+  type AdminCreateProductVersionRequest,
   type AdminAuditLogSummary,
   type AdminEntitlementSummary,
   type AdminFeedbackSummary,
@@ -45,11 +63,17 @@ import {
   type AdminRedemptionBatchSummary,
   type AdminRedemptionCodeSummary,
   type AdminRedemptionSummary,
+  type AdminUpdateApplicationRequest,
+  type AdminUpdateFeatureRequest,
+  type AdminUpdateOriginRequest,
+  type AdminUpdatePriceRequest,
+  type AdminUpdateProductRequest,
+  type AdminUpdateProductVersionRequest,
   type ContractSchema,
   type PageMeta,
 } from '@aisenhub/contracts';
 
-import type { AdminClient, AdminResponse } from './index';
+import { withIdempotencyKey, type AdminClient, type AdminResponse } from './index';
 
 export const AdminResourceNames = [
   'applications',
@@ -92,6 +116,12 @@ export type AdminResourceQuery = {
   status?: string;
   sort?: string;
   direction?: 'asc' | 'desc';
+};
+
+export type AdminDraftMutationOptions = {
+  readonly idempotencyKey?: string;
+  readonly maxAttempts?: 1 | 2;
+  readonly signal?: AbortSignal;
 };
 
 export type AdminListResult<R extends AdminResourceName> = {
@@ -225,6 +255,54 @@ function serializeQuery(query: AdminResourceQuery): string {
   return search ? `?${search}` : '';
 }
 
+function draftIdempotencyKey(input?: string): string {
+  const key = input?.trim() || globalThis.crypto?.randomUUID();
+  if (!key) throw new Error('An Idempotency-Key is required.');
+  return key;
+}
+
+function retryableDraftTransportError(error: unknown): boolean {
+  if (error instanceof TypeError) return true;
+  return Boolean(
+    error &&
+    typeof error === 'object' &&
+    'name' in error &&
+    ['TimeoutError', 'NetworkError'].includes(String(error.name)),
+  );
+}
+
+async function runDraftMutation<TInput, TOutput>(
+  client: AdminClient,
+  path: string,
+  method: 'POST' | 'PATCH',
+  input: TInput,
+  inputSchema: ContractSchema<TInput>,
+  outputSchema: ContractSchema<TOutput>,
+  options?: AdminDraftMutationOptions,
+): Promise<AdminResponse<TOutput>> {
+  const validated = inputSchema.parse(input);
+  const idempotencyKey = draftIdempotencyKey(options?.idempotencyKey);
+  const init = withIdempotencyKey(
+    {
+      method,
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(validated),
+      signal: options?.signal,
+    },
+    idempotencyKey,
+  );
+  const maxAttempts = options?.maxAttempts ?? 2;
+  let attempt = 0;
+  while (true) {
+    try {
+      return await client.request(path, outputSchema, init);
+    } catch (error) {
+      attempt += 1;
+      if (attempt >= maxAttempts || !retryableDraftTransportError(error)) throw error;
+    }
+  }
+}
+
 export interface AisenHubAdminDataProvider {
   getList<R extends AdminResourceName>(
     resource: R,
@@ -236,6 +314,63 @@ export interface AisenHubAdminDataProvider {
   ): Promise<AdminResponse<AdminResourceItem[R]>>;
   getSystemHealth(): Promise<AdminResponse<AdminSystemHealthResponse>>;
   getProductOverview(id: string): Promise<AdminResponse<AdminProductOverview>>;
+  createApplication(
+    input: AdminCreateApplicationRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminApplicationSummary>>;
+  updateApplication(
+    id: string,
+    input: AdminUpdateApplicationRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminApplicationSummary>>;
+  createOrigin(
+    applicationId: string,
+    input: AdminCreateOriginRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminOriginSummary>>;
+  updateOrigin(
+    id: string,
+    input: AdminUpdateOriginRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminOriginSummary>>;
+  createFeature(
+    input: AdminCreateFeatureRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminFeatureSummary>>;
+  updateFeature(
+    id: string,
+    input: AdminUpdateFeatureRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminFeatureSummary>>;
+  createProduct(
+    input: AdminCreateProductRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminProductSummary>>;
+  updateProduct(
+    id: string,
+    input: AdminUpdateProductRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminProductSummary>>;
+  createProductVersion(
+    productId: string,
+    input: AdminCreateProductVersionRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminProductVersionSummary>>;
+  updateProductVersion(
+    id: string,
+    input: AdminUpdateProductVersionRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminProductVersionSummary>>;
+  createPrice(
+    productVersionId: string,
+    input: AdminCreatePriceRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminPriceSummary>>;
+  updatePrice(
+    id: string,
+    input: AdminUpdatePriceRequest,
+    options?: AdminDraftMutationOptions,
+  ): Promise<AdminResponse<AdminPriceSummary>>;
 }
 
 export function createAdminDataProvider(client: AdminClient): AisenHubAdminDataProvider {
@@ -271,6 +406,139 @@ export function createAdminDataProvider(client: AdminClient): AisenHubAdminDataP
       return client.request(
         `/v1/admin/products/${encodeResourceId(id)}/overview`,
         AdminProductOverviewSchema,
+      );
+    },
+
+    createApplication(input, options) {
+      return runDraftMutation(
+        client,
+        '/v1/admin/applications',
+        'POST',
+        input,
+        AdminCreateApplicationRequestSchema,
+        AdminApplicationSummarySchema,
+        options,
+      );
+    },
+    updateApplication(id, input, options) {
+      return runDraftMutation(
+        client,
+        `/v1/admin/applications/${encodeResourceId(id)}`,
+        'PATCH',
+        input,
+        AdminUpdateApplicationRequestSchema,
+        AdminApplicationSummarySchema,
+        options,
+      );
+    },
+    createOrigin(applicationId, input, options) {
+      return runDraftMutation(
+        client,
+        `/v1/admin/applications/${encodeResourceId(applicationId)}/origins`,
+        'POST',
+        input,
+        AdminCreateOriginRequestSchema,
+        AdminOriginSummarySchema,
+        options,
+      );
+    },
+    updateOrigin(id, input, options) {
+      return runDraftMutation(
+        client,
+        `/v1/admin/origins/${encodeResourceId(id)}`,
+        'PATCH',
+        input,
+        AdminUpdateOriginRequestSchema,
+        AdminOriginSummarySchema,
+        options,
+      );
+    },
+    createFeature(input, options) {
+      return runDraftMutation(
+        client,
+        '/v1/admin/features',
+        'POST',
+        input,
+        AdminCreateFeatureRequestSchema,
+        AdminFeatureSummarySchema,
+        options,
+      );
+    },
+    updateFeature(id, input, options) {
+      return runDraftMutation(
+        client,
+        `/v1/admin/features/${encodeResourceId(id)}`,
+        'PATCH',
+        input,
+        AdminUpdateFeatureRequestSchema,
+        AdminFeatureSummarySchema,
+        options,
+      );
+    },
+    createProduct(input, options) {
+      return runDraftMutation(
+        client,
+        '/v1/admin/products',
+        'POST',
+        input,
+        AdminCreateProductRequestSchema,
+        AdminProductSummarySchema,
+        options,
+      );
+    },
+    updateProduct(id, input, options) {
+      return runDraftMutation(
+        client,
+        `/v1/admin/products/${encodeResourceId(id)}`,
+        'PATCH',
+        input,
+        AdminUpdateProductRequestSchema,
+        AdminProductSummarySchema,
+        options,
+      );
+    },
+    createProductVersion(productId, input, options) {
+      return runDraftMutation(
+        client,
+        `/v1/admin/products/${encodeResourceId(productId)}/versions`,
+        'POST',
+        input,
+        AdminCreateProductVersionRequestSchema,
+        AdminProductVersionSummarySchema,
+        options,
+      );
+    },
+    updateProductVersion(id, input, options) {
+      return runDraftMutation(
+        client,
+        `/v1/admin/product-versions/${encodeResourceId(id)}`,
+        'PATCH',
+        input,
+        AdminUpdateProductVersionRequestSchema,
+        AdminProductVersionSummarySchema,
+        options,
+      );
+    },
+    createPrice(productVersionId, input, options) {
+      return runDraftMutation(
+        client,
+        `/v1/admin/product-versions/${encodeResourceId(productVersionId)}/prices`,
+        'POST',
+        input,
+        AdminCreatePriceRequestSchema,
+        AdminPriceSummarySchema,
+        options,
+      );
+    },
+    updatePrice(id, input, options) {
+      return runDraftMutation(
+        client,
+        `/v1/admin/prices/${encodeResourceId(id)}`,
+        'PATCH',
+        input,
+        AdminUpdatePriceRequestSchema,
+        AdminPriceSummarySchema,
+        options,
       );
     },
   };

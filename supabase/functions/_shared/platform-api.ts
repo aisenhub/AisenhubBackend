@@ -36,7 +36,7 @@ type ResolvedOrigin = {
   readonly appSlug: string;
 };
 
-const allowedCorsMethods = new Set(['GET', 'POST', 'DELETE', 'OPTIONS']);
+const allowedCorsMethods = new Set(['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS']);
 const allowedCorsHeaders = new Set([
   'authorization',
   'content-type',
@@ -209,7 +209,7 @@ export function preflightResponse(
     new Response(null, {
       status: 204,
       headers: {
-        'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS',
+        'access-control-allow-methods': 'GET, POST, PATCH, DELETE, OPTIONS',
         'access-control-allow-headers':
           'Authorization, Content-Type, X-AisenHub-App, X-CSRF-Token, Idempotency-Key',
         'access-control-max-age': '600',
@@ -476,7 +476,7 @@ async function sessionUserId(request: Request): Promise<string | null> {
   return rows[0].user_id;
 }
 
-async function parseJsonObject(request: Request): Promise<Record<string, unknown> | null> {
+export async function parseJsonObject(request: Request): Promise<Record<string, unknown> | null> {
   try {
     const value: unknown = await request.json();
     return value && typeof value === 'object' && !Array.isArray(value)
@@ -731,7 +731,7 @@ async function sessionDelete(request: Request, id: string): Promise<Response> {
   }
 }
 
-async function enforceWritePreconditions(
+export async function enforceWritePreconditions(
   request: Request,
   path: string,
   resolved: ResolvedOrigin | null,

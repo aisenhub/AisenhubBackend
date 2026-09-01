@@ -47,6 +47,177 @@ export const AdminCatalogResourceQuerySchema = z
   .strict();
 export type AdminCatalogResourceQuery = z.infer<typeof AdminCatalogResourceQuerySchema>;
 
+const AdminDraftReasonSchema = z.string().trim().min(1).max(1000);
+const AdminExactOriginSchema = z
+  .string()
+  .regex(/^https?:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:[0-9]{1,5})?$/);
+const AdminMetadataSchema = z.record(z.string(), z.unknown());
+
+export const AdminCreateApplicationRequestSchema = z
+  .object({
+    slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    name: z.string().trim().min(1).max(200),
+    category: z.string().trim().min(1).max(100),
+    metadata: AdminMetadataSchema.optional(),
+    reason: AdminDraftReasonSchema,
+  })
+  .strict();
+export type AdminCreateApplicationRequest = z.infer<typeof AdminCreateApplicationRequestSchema>;
+
+export const AdminUpdateApplicationRequestSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200).optional(),
+    category: z.string().trim().min(1).max(100).optional(),
+    metadata: AdminMetadataSchema.optional(),
+    expectedUpdatedAt: IsoDateTimeSchema,
+    reason: AdminDraftReasonSchema,
+  })
+  .strict()
+  .refine(
+    (value) =>
+      value.name !== undefined || value.category !== undefined || value.metadata !== undefined,
+    {
+      message: 'At least one application draft field is required',
+    },
+  );
+export type AdminUpdateApplicationRequest = z.infer<typeof AdminUpdateApplicationRequestSchema>;
+
+export const AdminCreateOriginRequestSchema = z
+  .object({
+    environment: z.enum(['development', 'staging']),
+    origin: AdminExactOriginSchema,
+    reason: AdminDraftReasonSchema,
+  })
+  .strict();
+export type AdminCreateOriginRequest = z.infer<typeof AdminCreateOriginRequestSchema>;
+
+export const AdminUpdateOriginRequestSchema = z
+  .object({
+    isActive: z.boolean(),
+    expectedUpdatedAt: IsoDateTimeSchema,
+    reason: AdminDraftReasonSchema,
+  })
+  .strict();
+export type AdminUpdateOriginRequest = z.infer<typeof AdminUpdateOriginRequestSchema>;
+
+const AdminFeatureMergeStrategySchema = z.enum(['any_true', 'sum', 'max', 'min', 'latest']);
+export const AdminCreateFeatureRequestSchema = z
+  .object({
+    appId: UuidSchema.optional().nullable(),
+    code: z.string().regex(/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/),
+    name: z.string().trim().min(1).max(200),
+    valueType: z.enum(['boolean', 'integer', 'string', 'json']),
+    mergeStrategy: AdminFeatureMergeStrategySchema,
+    reason: AdminDraftReasonSchema,
+  })
+  .strict();
+export type AdminCreateFeatureRequest = z.infer<typeof AdminCreateFeatureRequestSchema>;
+
+export const AdminUpdateFeatureRequestSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200).optional(),
+    mergeStrategy: AdminFeatureMergeStrategySchema.optional(),
+    reason: AdminDraftReasonSchema,
+  })
+  .strict()
+  .refine((value) => value.name !== undefined || value.mergeStrategy !== undefined, {
+    message: 'At least one feature draft field is required',
+  });
+export type AdminUpdateFeatureRequest = z.infer<typeof AdminUpdateFeatureRequestSchema>;
+
+export const AdminCreateProductRequestSchema = z
+  .object({
+    sku: z.string().regex(/^[A-Z0-9][A-Z0-9_-]*$/),
+    name: z.string().trim().min(1).max(200),
+    billingType: z.enum(['one_time', 'subscription', 'credits']),
+    entitlementPolicy: z.enum(['snapshot', 'all_apps_access']).optional(),
+    reason: AdminDraftReasonSchema,
+  })
+  .strict();
+export type AdminCreateProductRequest = z.infer<typeof AdminCreateProductRequestSchema>;
+
+export const AdminUpdateProductRequestSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200).optional(),
+    billingType: z.enum(['one_time', 'subscription', 'credits']).optional(),
+    entitlementPolicy: z.enum(['snapshot', 'all_apps_access']).optional(),
+    expectedUpdatedAt: IsoDateTimeSchema,
+    reason: AdminDraftReasonSchema,
+  })
+  .strict()
+  .refine(
+    (value) =>
+      value.name !== undefined ||
+      value.billingType !== undefined ||
+      value.entitlementPolicy !== undefined,
+    {
+      message: 'At least one product draft field is required',
+    },
+  );
+export type AdminUpdateProductRequest = z.infer<typeof AdminUpdateProductRequestSchema>;
+
+export const AdminCreateProductVersionRequestSchema = z
+  .object({
+    version: z.number().int().positive(),
+    accessDurationDays: z.number().int().positive().optional().nullable(),
+    salesTerms: AdminMetadataSchema.optional(),
+    reason: AdminDraftReasonSchema,
+  })
+  .strict();
+export type AdminCreateProductVersionRequest = z.infer<
+  typeof AdminCreateProductVersionRequestSchema
+>;
+
+export const AdminUpdateProductVersionRequestSchema = z
+  .object({
+    accessDurationDays: z.number().int().positive().optional().nullable(),
+    salesTerms: AdminMetadataSchema.optional(),
+    reason: AdminDraftReasonSchema,
+  })
+  .strict()
+  .refine((value) => value.accessDurationDays !== undefined || value.salesTerms !== undefined, {
+    message: 'At least one product version draft field is required',
+  });
+export type AdminUpdateProductVersionRequest = z.infer<
+  typeof AdminUpdateProductVersionRequestSchema
+>;
+
+const AdminPriceFieldsSchema = z.object({
+  currency: z
+    .string()
+    .regex(/^[A-Z]{3}$/)
+    .optional(),
+  amountMinor: z.number().int().nonnegative().optional(),
+  channel: z
+    .string()
+    .regex(/^(?:manual|redemption|[a-z0-9]+(?:[_-][a-z0-9]+)*)$/)
+    .optional(),
+  externalPriceId: z.string().trim().min(1).nullable().optional(),
+  validFrom: IsoDateTimeSchema.optional(),
+  validUntil: IsoDateTimeSchema.nullable().optional(),
+});
+
+export const AdminCreatePriceRequestSchema = AdminPriceFieldsSchema.extend({
+  currency: z.string().regex(/^[A-Z]{3}$/),
+  amountMinor: z.number().int().nonnegative(),
+  channel: z.string().regex(/^(?:manual|redemption|[a-z0-9]+(?:[_-][a-z0-9]+)*)$/),
+  reason: AdminDraftReasonSchema,
+}).strict();
+export type AdminCreatePriceRequest = z.infer<typeof AdminCreatePriceRequestSchema>;
+
+export const AdminUpdatePriceRequestSchema = AdminPriceFieldsSchema.extend({
+  expectedUpdatedAt: IsoDateTimeSchema,
+  reason: AdminDraftReasonSchema,
+})
+  .strict()
+  .refine(
+    (value) => Object.keys(value).some((key) => !['expectedUpdatedAt', 'reason'].includes(key)),
+    {
+      message: 'At least one price draft field is required',
+    },
+  );
+export type AdminUpdatePriceRequest = z.infer<typeof AdminUpdatePriceRequestSchema>;
+
 export const AdminProductSummarySchema = z
   .object({
     id: UuidSchema,

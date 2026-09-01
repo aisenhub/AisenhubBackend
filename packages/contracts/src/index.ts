@@ -149,6 +149,12 @@ export type {
 export {
   AdminCatalogListQuerySchema,
   AdminCatalogResourceQuerySchema,
+  AdminCreateApplicationRequestSchema,
+  AdminCreateFeatureRequestSchema,
+  AdminCreateOriginRequestSchema,
+  AdminCreatePriceRequestSchema,
+  AdminCreateProductRequestSchema,
+  AdminCreateProductVersionRequestSchema,
   AdminCloseRedemptionBatchRequestSchema,
   AdminCommandMetadataSchema,
   AdminGenerateRedemptionCodesRequestSchema,
@@ -178,6 +184,12 @@ export {
   AdminProductOverviewSchema,
   AdminRetireProductVersionRequestSchema,
   AdminSetCurrentProductVersionRequestSchema,
+  AdminUpdateApplicationRequestSchema,
+  AdminUpdateFeatureRequestSchema,
+  AdminUpdateOriginRequestSchema,
+  AdminUpdatePriceRequestSchema,
+  AdminUpdateProductRequestSchema,
+  AdminUpdateProductVersionRequestSchema,
 } from './admin-catalog';
 
 export {
@@ -215,6 +227,12 @@ export type {
 export type {
   AdminCatalogListQuery,
   AdminCatalogResourceQuery,
+  AdminCreateApplicationRequest,
+  AdminCreateFeatureRequest,
+  AdminCreateOriginRequest,
+  AdminCreatePriceRequest,
+  AdminCreateProductRequest,
+  AdminCreateProductVersionRequest,
   AdminCloseRedemptionBatchRequest,
   AdminCommandMetadata,
   AdminGenerateRedemptionCodesRequest,
@@ -244,4 +262,10 @@ export type {
   AdminProductOverview,
   AdminRetireProductVersionRequest,
   AdminSetCurrentProductVersionRequest,
+  AdminUpdateApplicationRequest,
+  AdminUpdateFeatureRequest,
+  AdminUpdateOriginRequest,
+  AdminUpdatePriceRequest,
+  AdminUpdateProductRequest,
+  AdminUpdateProductVersionRequest,
 } from './admin-catalog';
