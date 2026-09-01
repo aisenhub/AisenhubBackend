@@ -13,6 +13,13 @@ const adminPermissionsMatrix = path.join(
   'src',
   'admin-permissions.matrix.json',
 );
+const adminApiSource = path.join(functionsRoot, '_shared', 'admin-api.ts');
+const adminQueryMigration = path.join(
+  repositoryRoot,
+  'supabase',
+  'migrations',
+  '20260901059000_admin_query_projections.sql',
+);
 
 for (const functionName of functionNames) {
   const entrypoint = path.join(functionsRoot, functionName, 'index.ts');
@@ -57,6 +64,25 @@ if (process.argv.includes('admin-permissions')) {
     throw new Error('Admin permission adapter does not expose the backend evaluator.');
   }
   console.log(`Admin permission mapping smoke check passed for ${actions.length} actions.`);
+}
+
+if (process.argv.includes('admin-query')) {
+  const source = fs.readFileSync(adminApiSource, 'utf8');
+  const migration = fs.readFileSync(adminQueryMigration, 'utf8');
+  for (const required of [
+    '/v1/admin/system-health',
+    'applications|users|entitlements|redemptions|feedback|audit-logs',
+    'admin_query_resource',
+    'ServiceRpcError',
+  ]) {
+    if (!source.includes(required) && !migration.includes(required)) {
+      throw new Error(`Admin query surface is missing ${required}.`);
+    }
+  }
+  if (migration.includes('execute format') || migration.includes('p_table')) {
+    throw new Error('Admin query projection must not accept arbitrary SQL or table names.');
+  }
+  console.log('Admin query projection smoke check passed.');
 }
 
 console.log(`Function shell smoke check passed for ${functionNames.length} functions.`);

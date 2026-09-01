@@ -4,6 +4,12 @@ import {
   AdminRoles,
   AdminActionMatrix,
   AdminCatalogListQuerySchema,
+  AdminApplicationListResponseSchema,
+  AdminAuditLogListResponseSchema,
+  AdminEntitlementListResponseSchema,
+  AdminFeedbackListResponseSchema,
+  AdminSystemHealthResponseSchema,
+  AdminUserListResponseSchema,
   AdminGenerateRedemptionCodesRequestSchema,
   AdminProductListResponseSchema,
   AdminSessionResponseSchema,
@@ -215,6 +221,67 @@ describe('platform contract primitives', () => {
         productVersionId: '00000000-0000-4000-8000-000000000002',
       }).confirmation,
     ).toBe(true);
+  });
+
+  it('validates read-only Admin operation projections and rejects leaked fields', () => {
+    const page = { hasMore: false, nextCursor: null };
+    expect(
+      AdminApplicationListResponseSchema.parse({
+        items: [
+          {
+            id: requestId,
+            slug: 'admin',
+            name: 'AisenHub Admin',
+            category: 'platform',
+            status: 'active',
+            originCount: 1,
+            createdAt: '2026-09-01T12:00:00.000Z',
+            updatedAt: '2026-09-01T12:00:00.000Z',
+          },
+        ],
+        page,
+      }).items,
+    ).toHaveLength(1);
+    expect(
+      AdminUserListResponseSchema.parse({
+        items: [
+          {
+            id: requestId,
+            displayName: null,
+            status: 'active',
+            adminRole: null,
+            createdAt: '2026-09-01T12:00:00.000Z',
+          },
+        ],
+        page,
+      }).items[0].status,
+    ).toBe('active');
+    expect(() =>
+      AdminFeedbackListResponseSchema.parse({
+        items: [
+          {
+            id: requestId,
+            appSlug: 'admin',
+            userId: requestId,
+            kind: 'bug',
+            title: 'Issue',
+            content: null,
+            status: 'open',
+            createdAt: '2026-09-01T12:00:00.000Z',
+            password: 'never',
+          },
+        ],
+        page,
+      }),
+    ).toThrow();
+    expect(AdminEntitlementListResponseSchema.shape.items).toBeDefined();
+    expect(AdminAuditLogListResponseSchema.shape.items).toBeDefined();
+    expect(
+      AdminSystemHealthResponseSchema.parse({
+        status: 'healthy',
+        checks: [{ name: 'database', status: 'healthy' }],
+      }).status,
+    ).toBe('healthy');
   });
 
   it('covers every fixed Admin role/action cell from one matrix source', () => {

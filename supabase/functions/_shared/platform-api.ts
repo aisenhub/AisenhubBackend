@@ -254,7 +254,7 @@ export async function rpc<T>(
   throw new Error('Supabase read entry returned an invalid shape.');
 }
 
-class ServiceRpcError extends Error {
+export class ServiceRpcError extends Error {
   readonly databaseCode: string | undefined;
 
   constructor(databaseCode?: string) {
@@ -264,7 +264,7 @@ class ServiceRpcError extends Error {
   }
 }
 
-async function serviceRpc<T>(name: string, body: Record<string, unknown>): Promise<T[]> {
+export async function serviceRpc<T>(name: string, body: Record<string, unknown>): Promise<T[]> {
   const key = serviceRoleKey();
   if (!key) throw new Error('Supabase service role key is not configured.');
 

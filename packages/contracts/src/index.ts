@@ -170,6 +170,36 @@ export {
   AdminSetCurrentProductVersionRequestSchema,
 } from './admin-catalog';
 
+export {
+  AdminApplicationListResponseSchema,
+  AdminApplicationSummarySchema,
+  AdminAuditLogListResponseSchema,
+  AdminAuditLogSummarySchema,
+  AdminEntitlementListResponseSchema,
+  AdminEntitlementSummarySchema,
+  AdminFeedbackListResponseSchema,
+  AdminFeedbackSummarySchema,
+  AdminSystemHealthCheckSchema,
+  AdminSystemHealthResponseSchema,
+  AdminUserListResponseSchema,
+  AdminUserSummarySchema,
+} from './admin-operations';
+
+export type {
+  AdminApplicationListResponse,
+  AdminApplicationSummary,
+  AdminAuditLogListResponse,
+  AdminAuditLogSummary,
+  AdminEntitlementListResponse,
+  AdminEntitlementSummary,
+  AdminFeedbackListResponse,
+  AdminFeedbackSummary,
+  AdminSystemHealthCheck,
+  AdminSystemHealthResponse,
+  AdminUserListResponse,
+  AdminUserSummary,
+} from './admin-operations';
+
 export type {
   AdminCatalogListQuery,
   AdminCloseRedemptionBatchRequest,

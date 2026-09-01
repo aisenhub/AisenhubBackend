@@ -787,7 +787,7 @@ P3-T009.
 
 ## P3-T009 — Implement read-only Admin Query APIs and operational overview
 
-Status: pending  
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: api-contract  
@@ -851,10 +851,10 @@ Each role, filter/sort/page, redaction, invalid fields, Audit immutability, heal
 
 ### Acceptance Criteria
 
-- [ ] Queries match contracts.
-- [ ] No SQL/arbitrary expression accepted.
-- [ ] Support/Finance see only allowed fields.
-- [ ] Tests pass.
+- [x] Queries match contracts.
+- [x] No SQL/arbitrary expression accepted.
+- [x] Support/Finance see only allowed fields.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -866,7 +866,14 @@ Do not create second read store/CQRS or expose table names.
 
 ### Output
 
-Phase-A Admin query surface.
+Phase-A Admin query surface is delivered through `platform-admin` and the controlled
+`public.admin_query_resource` projection. Applications, Users, Entitlements, Redemptions,
+Feedback, Audit Logs, and System Health have explicit `/v1/admin/*` read routes with stable
+contracts, role-aware redaction, allowlisted filters/sort fields, opaque cursor pagination,
+and safe error mapping. Sensitive tables remain private and the query function is executable
+only by `service_role`; unknown resources and sort fields are rejected. Database tests passed
+514/514, contract tests 12/12, Admin integration tests 23/23, query smoke passed, and root
+typecheck, lint, format, build, boundaries, and secret scan passed.
 
 ### Human Gate
 
