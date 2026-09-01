@@ -64,6 +64,18 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_platform_session: {
+        Args: { p_token_hash: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          expires_at: string
+          locale: string
+          profile_status: string
+          session_id: string
+          user_id: string
+        }[]
+      }
       get_public_app: {
         Args: { app_slug: string }
         Returns: {
@@ -71,6 +83,16 @@ export type Database = {
           name: string
           slug: string
           status: string
+        }[]
+      }
+      revoke_all_platform_sessions: {
+        Args: { p_reason: string; p_user_id: string }
+        Returns: number
+      }
+      revoke_platform_session: {
+        Args: { p_reason?: string; p_token_hash: string }
+        Returns: {
+          revoked: boolean
         }[]
       }
     }

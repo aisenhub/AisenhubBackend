@@ -15,6 +15,16 @@ type ProfileIdentity = {
   readonly status: 'active' | 'disabled' | 'deletion_pending' | 'deleted';
 };
 
+type PlatformSession = {
+  readonly session_id: string;
+  readonly user_id: string;
+  readonly expires_at: string;
+  readonly display_name: string | null;
+  readonly avatar_url: string | null;
+  readonly locale: string | null;
+  readonly profile_status: 'active';
+};
+
 const apiUrl = () => Deno.env.get('SUPABASE_URL') ?? 'http://127.0.0.1:54321';
 const anonKey = () => Deno.env.get('SUPABASE_ANON_KEY');
 
@@ -62,6 +72,21 @@ function bearerToken(request: Request): string | null {
   if (!value?.startsWith('Bearer ')) return null;
   const token = value.slice('Bearer '.length).trim();
   return token === '' ? null : token;
+}
+
+function sessionCookie(request: Request): string | null {
+  const cookieHeader = request.headers.get('cookie');
+  if (!cookieHeader) return null;
+
+  for (const part of cookieHeader.split(';')) {
+    const separator = part.indexOf('=');
+    if (separator < 0 || part.slice(0, separator).trim() !== '__Host-aisenhub_session') {
+      continue;
+    }
+    const value = part.slice(separator + 1).trim();
+    return value === '' ? null : value;
+  }
+  return null;
 }
 
 function apiPath(request: Request): string {
@@ -257,6 +282,78 @@ async function sessionExchange(token: string | null, id: string): Promise<Respon
   }
 }
 
+function isPlatformSession(value: unknown): value is PlatformSession {
+  if (!value || typeof value !== 'object') return false;
+  const session = value as Record<string, unknown>;
+  return (
+    typeof session.session_id === 'string' &&
+    typeof session.user_id === 'string' &&
+    typeof session.expires_at === 'string' &&
+    (typeof session.display_name === 'string' || session.display_name === null) &&
+    (typeof session.avatar_url === 'string' || session.avatar_url === null) &&
+    (typeof session.locale === 'string' || session.locale === null) &&
+    session.profile_status === 'active'
+  );
+}
+
+function sessionIdentity(session: PlatformSession): ProfileIdentity {
+  return {
+    userId: session.user_id,
+    displayName: session.display_name,
+    avatarUrl: session.avatar_url,
+    locale: session.locale,
+    status: session.profile_status,
+  };
+}
+
+function clearSessionCookie(): string {
+  return '__Host-aisenhub_session=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Lax';
+}
+
+async function sessionRead(request: Request, id: string): Promise<Response> {
+  const rawToken = sessionCookie(request);
+  if (!rawToken) {
+    return jsonResponse({ authenticated: false, identity: null, expiresAt: null }, 200, id);
+  }
+
+  try {
+    const rows = await rpc<PlatformSession>('get_platform_session', {
+      p_token_hash: await sha256Hex(rawToken),
+    });
+    const session = rows.length === 1 && isPlatformSession(rows[0]) ? rows[0] : null;
+    if (!session) {
+      return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+    }
+
+    return jsonResponse(
+      {
+        authenticated: true,
+        identity: sessionIdentity(session),
+        expiresAt: session.expires_at,
+      },
+      200,
+      id,
+    );
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'The session could not be read.', 502, id);
+  }
+}
+
+async function sessionDelete(request: Request, id: string): Promise<Response> {
+  const rawToken = sessionCookie(request);
+  try {
+    if (rawToken) {
+      await rpc<{ readonly revoked: boolean }>('revoke_platform_session', {
+        p_token_hash: await sha256Hex(rawToken),
+        p_reason: 'user_logout',
+      });
+    }
+    return jsonResponse({ revoked: true }, 200, id, { 'set-cookie': clearSessionCookie() });
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'The session could not be revoked.', 502, id);
+  }
+}
+
 export async function routePlatformApi(request: Request): Promise<Response> {
   const id = requestId();
   const path = apiPath(request);
@@ -267,6 +364,16 @@ export async function routePlatformApi(request: Request): Promise<Response> {
       return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
     }
     return sessionExchange(bearerToken(request), id);
+  }
+  if (path === '/v1/session') {
+    if (request.method === 'GET') return sessionRead(request, id);
+    if (request.method === 'DELETE') return sessionDelete(request, id);
+    return errorResponse(
+      'VALIDATION_ERROR',
+      'Only GET and DELETE requests are supported.',
+      405,
+      id,
+    );
   }
   if (request.method !== 'GET') {
     return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
