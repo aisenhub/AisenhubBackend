@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P1 — Identity / Application / Session
-Current Task: P1-T012 — Add automated Local Auth and multi-session E2E
-Overall Progress: 23 / 107 tasks completed
-Last Successful Quality Gate: P1-T011 Account session shell — PASS
+Current Task: P1-T013 — Complete P1 contract and security matrix
+Overall Progress: 24 / 107 tasks completed
+Last Successful Quality Gate: P1-T012 Local Auth and multi-session E2E — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P1-T011 Account session shell — PASS
 
 Status: IN_PROGRESS
 Goal: Implement the unified identity/application/session boundary on Supabase Local.
-Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T011 completed; remote repository synchronization completed to `origin/main`. P1-T012 is in progress.
+Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T012 completed; remote repository synchronization completed to `origin/main`. P1-T013 is in progress.
 
 ## Latest Verification
 
@@ -58,6 +58,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T011 completed; rem
 - P1-T009 Exact Origin/CORS: PASS — active exact-Origin resolver, app identity derived from Origin, declaration mismatch rejection, credentialed preflight policy, direct handler tests 5/5, database tests 156/156, and full code quality checks passed. Local Supabase Kong still applies its default outer CORS plugin during `functions serve`; production/local gateway configuration must preserve the handler's exact policy.
 - P1-T010 Session-bound CSRF: PASS — constant-time session/CSRF digest verification, mutation precondition enforcement, cross-session/invalid/expired/revoked rejection, safe GET behavior, direct handler tests 6/6, database tests 166/166, real Local HTTP logout smoke, and full code quality checks passed. Local Supabase Kong CORS behavior remains a gateway note documented under P1-T009.
 - P1-T011 Account session shell: PASS — Account-only Auth boundary with password and PKCE-compatible token exchange, typed platform-client session methods, in-memory CSRF bootstrap, accessible loading/error/login/authenticated states, Account tests 3/3, platform-client tests 3/3, root tests 26/26, full build, and real Local login/session/logout smoke passed.
+- P1-T012 Local Auth and multi-session E2E: PASS — Playwright headless Local startup passed 3/3: UI login and session exchange, independent browser session isolation with one-context logout, invalid Origin/application rejection, and revoked/unknown session error redaction. Account Auth browser `fetch` binding was repaired; the E2E harness uses a test-only Vite proxy without weakening browser security flags.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -76,12 +77,12 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T011 completed; rem
 
 ## Next Tasks
 
-1. P1-T012 — Add automated Local Auth and multi-session E2E.
-2. P1-T013 — Complete P1 contract and security matrix.
-3. P1-T014 — Execute Identity/Application/Session quality gate.
+1. P1-T013 — Complete P1 contract and security matrix.
+2. P1-T014 — Execute Identity/Application/Session quality gate.
 
 ## Recent Commits
 
+- `dc8b2a5` — test(e2e): cover identity and platform sessions
 - `650ba7d` — feat(session): implement platform session exchange
 - `e313467` — feat(session): add validation and revocation lifecycle
 - `de8501f` — feat(security): enforce exact app origins and CORS

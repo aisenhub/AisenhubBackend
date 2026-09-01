@@ -27,7 +27,7 @@
 | P1-T009 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | de8501f + 0d086f6 | Exact active-Origin resolution, origin-derived app identity, CORS/preflight policy, declaration mismatch rejection, database/handler tests, and quality gates passed; Local Kong outer CORS behavior recorded as a runtime note. |
 | P1-T010 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 04ea2ef | Constant-time session-bound CSRF verification, mutation precondition enforcement, invalid/cross-session/expired/revoked rejection, database/API tests, and quality gates passed. |
 | P1-T011 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | 90260df | Account-only Auth boundary, password/PKCE-compatible token exchange, typed platform-client session methods, in-memory CSRF bootstrap, accessible shell, frontend tests, build, and Local HTTP smoke passed. |
-| P1-T012 | Identity / App / Session | in_progress | 2026-09-01 |  |  | Implementing automated Local Auth login, exchange, multi-session, logout, CORS, and CSRF E2E coverage. |
+| P1-T012 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | dc8b2a5 | Playwright headless Local E2E passed 3/3 for login/exchange, independent sessions, one-context logout, invalid Origin/application rejection, and revoked/unknown session error redaction; browser Auth fetch binding and test-only proxy were delivered. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |
