@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P4 — Admin Catalog / Customer + Integration
-Current Task: P4-T013
-Overall Progress: 65 / 107 tasks completed
-Last Successful Quality Gate: P4-T012 Account and AisenLens Platform Integration — PASS
+Current Task: P4-T014
+Overall Progress: 66 / 107 tasks completed
+Last Successful Quality Gate: P4-T013 Admin B/C and product integration E2E — PASS
 
 ## Phase Progress
 
@@ -26,7 +26,7 @@ Last Successful Quality Gate: P4-T012 Account and AisenLens Platform Integration
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Run complete Admin B/C and product integration E2E.
+Goal: Execute the Admin B/C and product integration quality gate and publish the Phase 04 checkpoint.
 Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T011 completed; P4-T001 through P4-T012 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
@@ -99,6 +99,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P4-T010 Customer Business Commands: PASS — named audited and idempotent Grant/Revoke/Restore/Disable User/deletion-processing commands, exact role and MFA policy, Support Restore denial, new linked restore grants, session revocation, retry-safe deletion transition, database/RLS 699/699, root 94/94, integration 32/32, Contracts 14/14, Admin Client 14/14, function shell, typecheck, build, lint, format, boundaries, and secret scan passed.
 - P4-T011 Customer Operations UI: PASS — `/customers` workspace and User 360 route with server-provided Profile/Entitlement/Redemption/Feedback/Deletion/Audit views, typed dangerous commands, role/state action visibility, request/audit trace, post-command refetch, Admin tests 9/9, root tests 94/94, Admin typecheck/build, format, boundaries, and Impeccable detector passed; commit `d41b2b8`.
 - P4-T012 Account and AisenLens Platform Integration: PASS — Account now reads public products, server-resolved entitlements, redemption and deletion through `platform-client`; AisenLens moved platform session/profile/access/redemption/feedback adapters to `@aisenhub/platform-client`, removed legacy platform services/migrations and `free/supporter` authorization logic, preserved local media/project code, and added the Local `5175` origin. Account 3/3, AisenLens integration 2/2, AisenLens auto-shot contract 6/6, platform-client 6/6, root 94/94, database 699/699, Platform E2E 12/12, typecheck/lint/format/build/boundaries/secrets passed; AisenLens commit `01fbe49`, platform commit `1c2e6f2`.
+- P4-T013 Admin B/C and product integration E2E: PASS — added cross-module browser proof for Catalog/Product 360, Redemption, User 360/Audit Timeline, AisenLens access, private-field redaction, Owner/Support MFA enforcement, and Finance denial; fixed the missing explicit Admin Product list projection through migration `20260901150000_admin_products_query.sql`. Clean database tests passed 699/699, full Playwright passed 14/14, typecheck/lint/format/build/boundaries/secrets passed. Local AAL1 Admin sessions remain fail-closed for high-risk writes; command success/audit semantics remain covered by the database/integration suites.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -117,10 +118,11 @@ None.
 
 ## Next Tasks
 
-1. P4-T013 — Run complete Admin B/C and product integration E2E.
+1. P4-T014 — Execute Admin B/C and product integration quality gate.
 
 ## Recent Commits
 
+- `d3a182a` — test(e2e): cover admin catalog customer integration
 - `379b641` — feat(catalog): add controlled admin draft mutations
 - `c65a601` — feat(admin-api): expose catalog business commands
 - `00b3ddf` — feat(admin-api): add redemption batch commands
