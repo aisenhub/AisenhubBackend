@@ -94,6 +94,20 @@ async function rpc<T>(name: string, body: Record<string, unknown>, token?: strin
   throw new Error('Supabase read entry returned an invalid shape.');
 }
 
+function randomToken(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replace(/=+$/, '');
+}
+
+async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 async function authenticatedUser(token: string): Promise<string | null> {
   const key = anonKey();
   if (!key) return null;
@@ -192,11 +206,68 @@ async function meRead(token: string | null, id: string): Promise<Response> {
   }
 }
 
+async function sessionExchange(token: string | null, id: string): Promise<Response> {
+  if (!token)
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+
+  const userId = await authenticatedUser(token);
+  if (!userId)
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+
+  try {
+    const profileRows = await rpc<ProfileIdentity>('current_profile', {}, token);
+    const profile = profileRows.length === 1 ? toProfileIdentity(profileRows[0]) : null;
+    if (!profile) return errorResponse('PROFILE_NOT_FOUND', 'Profile was not found.', 404, id);
+    if (profile.status !== 'active') {
+      return errorResponse('ACCOUNT_DISABLED', 'This account cannot create a session.', 403, id);
+    }
+
+    const sessionToken = randomToken();
+    const csrfToken = randomToken();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const rows = await rpc<{ readonly session_id: string; readonly expires_at: string }>(
+      'create_platform_session',
+      {
+        p_user_id: userId,
+        p_token_hash: await sha256Hex(sessionToken),
+        p_csrf_hash: await sha256Hex(csrfToken),
+        p_expires_at: expiresAt,
+      },
+      token,
+    );
+    if (rows.length !== 1 || typeof rows[0]?.session_id !== 'string') {
+      return errorResponse('INTERNAL_ERROR', 'The session could not be created.', 502, id);
+    }
+
+    return jsonResponse(
+      {
+        authenticated: true,
+        identity: profile,
+        expiresAt,
+        csrfToken,
+      },
+      201,
+      id,
+      {
+        'set-cookie': `__Host-aisenhub_session=${sessionToken}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Lax`,
+      },
+    );
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'The session could not be created.', 502, id);
+  }
+}
+
 export async function routePlatformApi(request: Request): Promise<Response> {
   const id = requestId();
   const path = apiPath(request);
 
   if (path === '/' || path === '') return healthResponse('platform-api');
+  if (path === '/v1/session/exchange') {
+    if (request.method !== 'POST') {
+      return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
+    }
+    return sessionExchange(bearerToken(request), id);
+  }
   if (request.method !== 'GET') {
     return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
   }

@@ -40,6 +40,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_platform_session: {
+        Args: {
+          p_csrf_hash: string
+          p_expires_at: string
+          p_token_hash: string
+          p_user_id: string
+        }
+        Returns: {
+          expires_at: string
+          session_id: string
+        }[]
+      }
       current_profile: {
         Args: never
         Returns: {
