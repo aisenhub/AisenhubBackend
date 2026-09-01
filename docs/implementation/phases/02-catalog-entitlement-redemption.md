@@ -1006,7 +1006,7 @@ P2-T012.
 
 ## P2-T012 — Implement platform-client catalog, entitlement, redemption, and feedback methods
 
-Status: pending  
+Status: completed  
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: client  
@@ -1063,10 +1063,10 @@ Mock/Local API success, malformed payload, stable errors, CSRF/idempotency, no f
 
 ### Acceptance Criteria
 
-- [ ] All methods use contracts.
-- [ ] No table/Supabase dependency.
-- [ ] Retry policy cannot duplicate redemption.
-- [ ] Tests pass.
+- [x] All methods use contracts.
+- [x] No table/Supabase dependency.
+- [x] Retry policy cannot duplicate redemption.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -1078,7 +1078,7 @@ Do not calculate final entitlements in client.
 
 ### Output
 
-P2 platform-client.
+P2 platform-client delivered in `660a95b`: typed methods for public products, entitlements, access decisions, redemption, and feedback; contract-backed input/response validation; credentialed CSRF transport; and explicit caller-supplied idempotency keys for safe redemption retries. Package tests passed 5/5, root tests 49/49, typecheck, lint, format, boundary, and workspace build passed.
 
 ### Human Gate
 
@@ -1086,7 +1086,7 @@ None. Local Catalog/Entitlement/Redemption work is fully autonomous.
 
 ### Commit
 
-`feat(client): add catalog entitlement redemption methods` — Task P2-T012.
+`feat(client): add catalog entitlement redemption methods` — Task P2-T012 (`660a95b`).
 
 ### Next
 

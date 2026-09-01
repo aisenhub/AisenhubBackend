@@ -41,6 +41,7 @@
 | P2-T009 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 942e0fa | Executable redemption transaction matrix for valid/invalid/time/status/limit cases, retry identity, rollback, no-orphan guarantees, plus repeatable two-session concurrency runner. |
 | P2-T010 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 60b27e6 | Backend-only atomic `redeem_code` locks idempotency/code/batch, validates availability and limits, reuses grant entitlement, writes receipt/code/audit atomically, and returns saved retries. Database tests 475/475 and concurrency check passed. |
 | P2-T011 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | db1584c | Public catalog projection, session-bound access and entitlement APIs, hashed redemption command, server-attributed feedback command, stable contracts/errors, database tests 499/499, RLS 29/29, integration 22/22, contract 7/7, and full root quality gates passed. |
+| P2-T012 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 660a95b | Contract-backed platform-client methods for public products, entitlements, access, redemption, and feedback; explicit idempotency, CSRF transport, input/response validation, package tests 5/5, root tests 49/49, and full root quality gates passed. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |
