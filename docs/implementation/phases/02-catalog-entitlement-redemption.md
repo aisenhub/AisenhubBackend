@@ -4,7 +4,7 @@ Goal: implement the approved catalog, immutable entitlement history, determinist
 
 ## P2-T001 — Create features, products, and product versions schema
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: database-test-first  
@@ -64,10 +64,10 @@ Unique/immutable code/SKU/version, valid current ownership/status, active produc
 
 ### Acceptance Criteria
 
-- [ ] Schema matches architecture.
-- [ ] Published version mutation fails.
-- [ ] Cross-product current version fails.
-- [ ] Tests pass.
+- [x] Schema matches architecture.
+- [x] Published version mutation fails.
+- [x] Cross-product current version fails.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -79,7 +79,7 @@ Do not store price or user entitlement in product/version.
 
 ### Output
 
-Core catalog schema.
+Core catalog schema delivered in `a5828b0`: features, products, product versions, exact enum/check constraints, private RLS boundary, controlled current-version validation, published-version immutability, and deterministic draft AisenLens seed. Database tests passed 225/225; RLS, root quality, and build checks passed.
 
 ### Human Gate
 
@@ -95,7 +95,7 @@ P2-T002.
 
 ## P2-T002 — Create product feature snapshot and price schema
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: database-test-first  
@@ -152,10 +152,10 @@ JSON types, duplicate features, amount/currency/windows, active price only on pu
 
 ### Acceptance Criteria
 
-- [ ] Price is not stored on version.
-- [ ] Feature values are validated.
-- [ ] Invalid windows/amounts fail.
-- [ ] Tests pass.
+- [x] Price is not stored on version.
+- [x] Feature values are validated.
+- [x] Invalid windows/amounts fail.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -167,7 +167,7 @@ Do not add Offer/Promotion engine.
 
 ### Output
 
-Version feature and price model.
+Version feature and price model delivered in `25b415a`: composite feature snapshots with JSON type validation and published immutability, independent channel/currency prices, price-window and external-ID constraints, active-price publication guard, private RLS boundary, and deterministic draft AisenLens feature/price seed. Database tests passed 255/255.
 
 ### Human Gate
 

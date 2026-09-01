@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P2 — Catalog / Entitlement / Redemption
-Current Task: P2-T001 — Create features, products, and product versions schema
-Overall Progress: 27 / 107 tasks completed
-Last Successful Quality Gate: P1-T014 Identity/Application/Session phase checkpoint — PASS
+Current Task: P2-T003 — Implement catalog publish, retire, and set-current domain functions
+Overall Progress: 29 / 107 tasks completed
+Last Successful Quality Gate: P2-T002 Catalog feature snapshot and price schema — PASS
 
 ## Phase Progress
 
@@ -61,6 +61,8 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T014 completed; P3-
 - P1-T012 Local Auth and multi-session E2E: PASS — Playwright headless Local startup passed 3/3: UI login and session exchange, independent browser session isolation with one-context logout, invalid Origin/application rejection, and revoked/unknown session error redaction. Account Auth browser `fetch` binding was repaired; the E2E harness uses a test-only Vite proxy without weakening browser security flags.
 - P1-T013 security and Admin Session matrix: PASS — database 187, RLS 29, Function shell 4, Contract 6, Integration 16, E2E 3/3, root typecheck/lint/format/unit/build all passed. Admin fixture HTTP returned 200, normal-user fixture returned 403 `ADMIN_ACCESS_DENIED`, and no sensitive fields were exposed. Coverage report is `docs/implementation/reports/P1-T013-security-matrix.md`.
 - P1-T014 Phase 01 checkpoint: PASS — clean-state `pnpm platform:verify` completed all applicable Local checks: database 187, RLS 29, Function shell 4, root tests 35, Contract 6, Integration 16, Playwright 4/4, stable type generation, typecheck, lint, format, build, boundary, and failure-propagation checks. Checkpoint: `docs/implementation/checkpoints/PHASE-01.md`.
+- P2-T001 catalog core schema: PASS — `pnpm db:reset` and `pnpm db:test` passed 225/225, including 38 catalog invariants; RLS 29, root tests 35, typecheck, lint, format, and workspace build passed. Deterministic draft AisenLens features/product/version seed is present.
+- P2-T002 feature snapshots and prices: PASS — `pnpm db:reset` and `pnpm db:test` passed 255/255, including 30 feature/price invariants; RLS 29, root tests 35, typecheck, lint, format, and workspace build passed. JSON value validation, immutable published snapshots, active-price publication guard, validity windows, and channel-scoped external IDs are covered.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -79,8 +81,8 @@ None.
 
 ## Next Tasks
 
-1. P2-T001 — Create features, products, and product versions schema.
-2. P2-T002 — Create catalog read contracts and API boundary.
+1. P2-T003 — Implement catalog publish, retire, and set-current domain functions.
+2. P2-T004 — Create entitlement grant schema and immutable history constraints.
 
 ## Recent Commits
 
