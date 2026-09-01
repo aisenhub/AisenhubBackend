@@ -1,1 +1,8 @@
--- Deterministic Local seed data is added by P0-T007.
+-- AisenHub Platform Local-only seed entrypoint.
+--
+-- Auth fixtures are created by `pnpm fixtures:verify` through the Local Auth
+-- Admin API. This is intentional: direct writes to auth.users are not a
+-- supported way to make users visible to the running GoTrue service.
+--
+-- Keep this file available for deterministic non-Auth seed data introduced by
+-- later phases. Never add production data or production credentials here.

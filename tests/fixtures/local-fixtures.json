@@ -1,0 +1,35 @@
+{
+  "environment": "local-only",
+  "users": [
+    {
+      "role": "owner",
+      "id": "10000000-0000-4000-8000-000000000001",
+      "email": "owner.local@aisenhub.test",
+      "password": "LocalOnly-Owner-2026!"
+    },
+    {
+      "role": "admin",
+      "id": "10000000-0000-4000-8000-000000000002",
+      "email": "admin.local@aisenhub.test",
+      "password": "LocalOnly-Admin-2026!"
+    },
+    {
+      "role": "support",
+      "id": "10000000-0000-4000-8000-000000000003",
+      "email": "support.local@aisenhub.test",
+      "password": "LocalOnly-Support-2026!"
+    },
+    {
+      "role": "finance",
+      "id": "10000000-0000-4000-8000-000000000004",
+      "email": "finance.local@aisenhub.test",
+      "password": "LocalOnly-Finance-2026!"
+    },
+    {
+      "role": "normal-user",
+      "id": "10000000-0000-4000-8000-000000000005",
+      "email": "normal-user.local@aisenhub.test",
+      "password": "LocalOnly-NormalUser-2026!"
+    }
+  ]
+}

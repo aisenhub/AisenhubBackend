@@ -22,6 +22,7 @@
     "supabase:reset": "supabase db reset",
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
+    "fixtures:verify": "node scripts/verify-fixtures.mjs",
     "rls:test": "node scripts/test-rls.mjs",
     "supabase:functions:serve": "supabase functions serve --no-verify-jwt",
     "supabase:typegen": "node scripts/generate-supabase-types.mjs",
