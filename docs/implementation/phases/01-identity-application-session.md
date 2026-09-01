@@ -552,7 +552,7 @@ P1-T007.
 
 ## P1-T007 — Implement secure Platform Session exchange
 
-Status: in_progress
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: api-test-first  
@@ -613,11 +613,11 @@ Valid/invalid/expired JWT, disabled profile, random-token uniqueness, no plainte
 
 ### Acceptance Criteria
 
-- [ ] Exchange succeeds for valid local user.
-- [ ] Cookie is Secure/HttpOnly/SameSite=Lax/Path=/ with no Domain.
-- [ ] Database stores only hashes.
-- [ ] Failure creates no session.
-- [ ] Tests pass.
+- [x] Exchange succeeds for valid local user.
+- [x] Cookie is Secure/HttpOnly/SameSite=Lax/Path=/ with no Domain.
+- [x] Database stores only hashes.
+- [x] Failure creates no session.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -645,7 +645,7 @@ P1-T008.
 
 ## P1-T008 — Implement session read, logout, revocation, and lifecycle
 
-Status: pending  
+Status: in_progress  
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: api-test-first  
