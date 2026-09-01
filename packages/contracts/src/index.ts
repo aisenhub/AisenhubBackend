@@ -9,12 +9,18 @@ export interface ContractSchema<T> {
 }
 
 export const ErrorCodes = {
+  APP_ORIGIN_MISMATCH: 'APP_ORIGIN_MISMATCH',
   ADMIN_ACCESS_DENIED: 'ADMIN_ACCESS_DENIED',
+  AUTHENTICATION_REQUIRED: 'AUTHENTICATION_REQUIRED',
+  CSRF_INVALID: 'CSRF_INVALID',
   INVALID_STATE_TRANSITION: 'INVALID_STATE_TRANSITION',
   IDEMPOTENCY_KEY_REUSED: 'IDEMPOTENCY_KEY_REUSED',
   MFA_REQUIRED: 'MFA_REQUIRED',
+  ORIGIN_NOT_ALLOWED: 'ORIGIN_NOT_ALLOWED',
   REASON_REQUIRED: 'REASON_REQUIRED',
   RESOURCE_VERSION_CONFLICT: 'RESOURCE_VERSION_CONFLICT',
+  SESSION_EXPIRED: 'SESSION_EXPIRED',
+  SESSION_REVOKED: 'SESSION_REVOKED',
   VALIDATION_ERROR: 'VALIDATION_ERROR',
 } as const;
 
@@ -101,3 +107,36 @@ export type PermissionAction = (typeof PermissionActions)[number];
 export const AdminRoles = ['owner', 'admin', 'support', 'finance'] as const;
 export const AdminRoleSchema = z.enum(AdminRoles);
 export type AdminRole = (typeof AdminRoles)[number];
+
+export {
+  AdminAalSchema,
+  AdminMfaStateSchema,
+  AdminSessionResponseSchema,
+  AnonymousSessionSchema,
+  ApplicationIdentitySchema,
+  AuthenticatedSessionSchema,
+  IsoDateTimeSchema,
+  MeResponseSchema,
+  ProfileIdentitySchema,
+  ProfileStatusSchema,
+  SessionDeleteResponseSchema,
+  SessionExchangeRequestSchema,
+  SessionExchangeResponseSchema,
+  SessionResponseSchema,
+  UserIdSchema,
+} from './identity';
+
+export type {
+  AdminAal,
+  AdminMfaState,
+  AdminSessionResponse,
+  ApplicationIdentity,
+  MeResponse,
+  ProfileIdentity,
+  ProfileStatus,
+  SessionDeleteResponse,
+  SessionExchangeRequest,
+  SessionExchangeResponse,
+  SessionResponse,
+  UserId,
+} from './identity';
