@@ -365,7 +365,7 @@ P2-T005.
 
 ## P2-T005 — Implement the single grant/revoke/restore domain operations
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: domain-test-first  
@@ -427,10 +427,10 @@ Valid grant, duplicate source, revoked grant, restore new ID, repeated restore p
 
 ### Acceptance Criteria
 
-- [ ] All grant sources reuse one function.
-- [ ] Original grant remains revoked on restore.
-- [ ] Every success has audit.
-- [ ] Tests pass.
+- [x] All grant sources reuse one function.
+- [x] Original grant remains revoked on restore.
+- [x] Every success has audit.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -442,7 +442,7 @@ Do not accept arbitrary feature lists or directly edit status from API.
 
 ### Output
 
-Entitlement command core.
+Entitlement command core delivered in `faebd5b`: common grant path for admin/redemption/order-item sources, revoke-only operation, new-grant admin restore, one-time restore policy, append-only audit logs in the same transaction, and backend-only execution grants. Database tests passed 367/367; RLS, root quality, and build checks passed.
 
 ### Human Gate
 
@@ -458,7 +458,7 @@ P2-T006.
 
 ## P2-T006 — Implement deterministic checkAccess resolution
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: domain-test-first  
@@ -517,10 +517,10 @@ No grant, expired/revoked, multiple grants, every strategy, retired historical v
 
 ### Acceptance Criteria
 
-- [ ] Callers do not merge locally.
-- [ ] Retired version preserves historical snapshot.
-- [ ] Result is deterministic.
-- [ ] Tests pass.
+- [x] Callers do not merge locally.
+- [x] Retired version preserves historical snapshot.
+- [x] Result is deterministic.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -532,7 +532,7 @@ Do not use products.current_version_id for historical grants.
 
 ### Output
 
-Unified access decision.
+Unified access decision delivered in `supabase/migrations/20260901055000_entitlement_access.sql`: backend-only `check_access` resolves active nonexpired snapshot grants, supports app-scoped and `hub.all_apps_access` matches, merges every approved strategy, and returns the allowed value, source SKUs, earliest finite expiry, and decision ID. Database tests passed 398/398; integration, root quality, typecheck, lint, format, and workspace build checks passed.
 
 ### Human Gate
 

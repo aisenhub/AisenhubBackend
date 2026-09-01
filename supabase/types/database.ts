@@ -40,6 +40,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_access: {
+        Args: { p_app_slug: string; p_feature_code: string; p_user_id: string }
+        Returns: {
+          allowed: boolean
+          decision_id: string
+          expires_at: string
+          feature: string
+          source_product: string
+          value: Json
+        }[]
+      }
       create_platform_session: {
         Args: {
           p_csrf_hash: string
