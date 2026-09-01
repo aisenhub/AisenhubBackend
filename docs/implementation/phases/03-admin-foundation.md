@@ -6,7 +6,7 @@ Repository reality: read root `AGENTS.md` and the Admin rules currently stored i
 
 ## P3-T001 — Finalize Admin workspace under repository AGENTS rules
 
-Status: pending
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: frontend-foundation  
@@ -70,10 +70,10 @@ Workspace build, dependency graph, scoped AGENTS presence/content hash, negative
 
 ### Acceptance Criteria
 
-- [ ] Admin builds with Refine + Ant Design.
-- [ ] Scoped AGENTS rules are preserved.
-- [ ] No second UI system/Supabase Data SDK exists.
-- [ ] Boundary tests pass.
+- [x] Admin builds with Refine + Ant Design.
+- [x] Scoped AGENTS rules are preserved.
+- [x] No second UI system/Supabase Data SDK exists.
+- [x] Boundary tests pass.
 
 ### Failure Recovery
 
@@ -85,7 +85,11 @@ Do not use shadcn/MUI/Tailwind component system or rewrite Ant primitives.
 
 ### Output
 
-Rule-compliant Admin workspace.
+Rule-compliant Admin workspace delivered with separated app, provider, layout, and overview
+module layers. Ant Design is the only UI system; Refine remains the application framework;
+Admin source boundary checks reject alternate UI systems, Tailwind, and direct Supabase/
+database imports. `apps/admin/AGENTS.md` remains byte-identical to the repository's original
+Admin rules.
 
 ### Human Gate
 
@@ -97,7 +101,7 @@ None. Admin Local work and browser verification are autonomous; visual review is
 
 ### Next
 
-P3-T002 and P3-T004.
+P3-T003 and P3-T004.
 
 ## P3-T002 — Implement Admin session and backend permission service
 
