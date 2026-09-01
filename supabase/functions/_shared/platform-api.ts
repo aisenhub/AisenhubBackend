@@ -450,11 +450,21 @@ async function sessionRead(request: Request, id: string): Promise<Response> {
       return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
     }
 
+    const csrfToken = randomToken();
+    const csrfRows = await rpc<{ readonly issued: boolean }>('rotate_platform_csrf', {
+      p_token_hash: await sha256Hex(rawToken),
+      p_csrf_hash: await sha256Hex(csrfToken),
+    });
+    if (csrfRows.length !== 1 || csrfRows[0]?.issued !== true) {
+      return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+    }
+
     return jsonResponse(
       {
         authenticated: true,
         identity: sessionIdentity(session),
         expiresAt: session.expires_at,
+        csrfToken,
       },
       200,
       id,

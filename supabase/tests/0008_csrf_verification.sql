@@ -1,6 +1,6 @@
 begin;
 
-select plan(10);
+select plan(15);
 
 select ok(
   to_regprocedure('public.verify_platform_csrf(text, text)') is not null,
@@ -23,6 +23,14 @@ select ok(
        and proconfig @> array['search_path=pg_catalog, auth, platform']::text[]
   ),
   'CSRF verification uses SECURITY DEFINER with a fixed search_path'
+);
+select ok(
+  to_regprocedure('public.rotate_platform_csrf(text, text)') is not null,
+  'CSRF rotation function exists'
+);
+select ok(
+  has_function_privilege('anon', 'public.rotate_platform_csrf(text, text)', 'EXECUTE'),
+  'anon can invoke CSRF rotation through the opaque session digest'
 );
 
 insert into auth.users (id, email)
@@ -50,6 +58,21 @@ select is(
   (select valid from public.verify_platform_csrf('csrf-session-1', 'wrong-digest')),
   false,
   'a wrong CSRF digest is rejected'
+);
+select is(
+  (select issued from public.rotate_platform_csrf('csrf-session-1', 'csrf-digest-rotated')),
+  true,
+  'a current session can rotate its CSRF digest'
+);
+select is(
+  (select valid from public.verify_platform_csrf('csrf-session-1', 'csrf-digest-rotated')),
+  true,
+  'the rotated CSRF digest is accepted'
+);
+select is(
+  (select valid from public.verify_platform_csrf('csrf-session-1', 'csrf-digest-1')),
+  false,
+  'the previous CSRF digest is invalidated after rotation'
 );
 select is(
   (select valid from public.verify_platform_csrf('unknown-session', 'csrf-digest-1')),

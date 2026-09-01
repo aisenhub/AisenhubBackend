@@ -41,6 +41,12 @@ importers:
 
   apps/account:
     dependencies:
+      '@aisenhub/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@aisenhub/platform-client':
+        specifier: workspace:*
+        version: link:../../packages/platform-client
       react:
         specifier: 19.2.8
         version: 19.2.8

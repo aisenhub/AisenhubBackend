@@ -74,4 +74,61 @@ describe('platform client transport', () => {
       status: 200,
     });
   });
+
+  it('provides typed session methods and derives the application declaration from options', async () => {
+    const calls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
+    const client = createPlatformClient({
+      baseUrl: 'https://api.example.test',
+      appSlug: 'account',
+      csrfToken: () => 'csrf-memory-token',
+      fetch: async (input, init) => {
+        calls.push({ input, init });
+        const path = new URL(String(input)).pathname;
+        if (path.endsWith('/session/exchange')) {
+          return new Response(
+            JSON.stringify({
+              data: {
+                authenticated: true,
+                identity: {
+                  userId: '00000000-0000-4000-8000-000000000001',
+                  displayName: null,
+                  avatarUrl: null,
+                  locale: null,
+                  status: 'active',
+                },
+                expiresAt: '2026-09-02T00:00:00.000Z',
+                csrfToken: 'csrf-memory-token',
+              },
+              requestId,
+            }),
+            { headers: { 'content-type': 'application/json' } },
+          );
+        }
+        if (init?.method === 'DELETE') {
+          return new Response(JSON.stringify({ data: { revoked: true }, requestId }), {
+            headers: { 'content-type': 'application/json' },
+          });
+        }
+        return new Response(
+          JSON.stringify({
+            data: { authenticated: false, identity: null, expiresAt: null },
+            requestId,
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      },
+    });
+
+    await client.exchangeSession('supabase-access-token');
+    await client.getSession();
+    await client.logout();
+
+    expect(calls).toHaveLength(3);
+    expect(new Headers(calls[0].init?.headers).get('authorization')).toBe(
+      'Bearer supabase-access-token',
+    );
+    for (const call of calls) {
+      expect(new Headers(call.init?.headers).get('x-aisenhub-app')).toBe('account');
+    }
+  });
 });

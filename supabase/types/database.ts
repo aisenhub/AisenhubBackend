@@ -102,6 +102,12 @@ export type Database = {
           revoked: boolean
         }[]
       }
+      rotate_platform_csrf: {
+        Args: { p_csrf_hash: string; p_token_hash: string }
+        Returns: {
+          issued: boolean
+        }[]
+      }
       verify_platform_csrf: {
         Args: { p_csrf_hash: string; p_token_hash: string }
         Returns: {

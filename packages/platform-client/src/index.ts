@@ -1,6 +1,12 @@
 import {
   ApiSuccessEnvelopeSchema,
+  SessionDeleteResponseSchema,
+  SessionExchangeResponseSchema,
+  SessionResponseSchema,
   parseApiError,
+  type SessionDeleteResponse,
+  type SessionExchangeResponse,
+  type SessionResponse,
   type ApiErrorEnvelope,
   type ContractSchema,
   type RequestId,
@@ -10,6 +16,7 @@ export interface PlatformClientOptions {
   baseUrl: string;
   fetch?: typeof globalThis.fetch;
   csrfToken?: () => string | undefined;
+  appSlug?: string;
 }
 
 export interface PlatformResponse<T> {
@@ -49,6 +56,9 @@ export interface PlatformClient {
     responseSchema: ContractSchema<T>,
     init?: RequestInit,
   ): Promise<PlatformResponse<T>>;
+  exchangeSession(accessToken: string): Promise<PlatformResponse<SessionExchangeResponse>>;
+  getSession(): Promise<PlatformResponse<SessionResponse>>;
+  logout(): Promise<PlatformResponse<SessionDeleteResponse>>;
 }
 
 export function createPlatformClient(options: PlatformClientOptions): PlatformClient {
@@ -63,6 +73,7 @@ export function createPlatformClient(options: PlatformClientOptions): PlatformCl
     ): Promise<PlatformResponse<T>> {
       const headers = new Headers(init.headers);
       headers.set('accept', 'application/json');
+      if (options.appSlug) headers.set('x-aisenhub-app', options.appSlug);
       const csrfToken = options.csrfToken?.();
       if (csrfToken) headers.set('x-csrf-token', csrfToken);
 
@@ -115,6 +126,19 @@ export function createPlatformClient(options: PlatformClientOptions): PlatformCl
           status: response.status,
         });
       }
+    },
+    exchangeSession(accessToken: string) {
+      if (accessToken.trim() === '') throw new Error('An access token is required.');
+      return this.request('/v1/session/exchange', SessionExchangeResponseSchema, {
+        method: 'POST',
+        headers: { authorization: `Bearer ${accessToken}` },
+      });
+    },
+    getSession() {
+      return this.request('/v1/session', SessionResponseSchema);
+    },
+    logout() {
+      return this.request('/v1/session', SessionDeleteResponseSchema, { method: 'DELETE' });
     },
   };
 }
