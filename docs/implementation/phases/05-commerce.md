@@ -599,7 +599,7 @@ P5-T007.
 
 ## P5-T007 — Implement OrderItem refund transaction
 
-Status: pending  
+Status: completed
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: domain-api-test-first  
@@ -659,10 +659,10 @@ Partial retain, full revoke, overrefund, duplicate/retry, different key, already
 
 ### Acceptance Criteria
 
-- [ ] Refund always targets item.
-- [ ] Full returned item revokes only its Grant.
-- [ ] Whole order refunded only when all items qualify.
-- [ ] Tests pass.
+- [x] Refund always targets item.
+- [x] Full returned item revokes only its Grant.
+- [x] Whole order refunded only when all items qualify.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -674,7 +674,19 @@ Do not revive original grants or use order-level source.
 
 ### Output
 
-Audited idempotent OrderItem refund.
+Audited idempotent OrderItem refund with explicit compensation/product-return modes, item-level
+Grant handling, payment/order state transitions, and Admin command routing.
+
+### Verification
+
+- Commerce state specification: 39/41 assertions pass; all 2 remaining failures are the explicitly
+  deferred P5-T008 chargeback function expectations.
+- Admin refund integration: `tests/integration/admin-api.test.mjs` — 34/34 PASS.
+- Contract tests: 15/15 PASS; Admin Client transport tests: 16/16 PASS.
+- Root unit tests: 99/99 PASS; RLS tests: 29/29 PASS.
+- Refund function smoke check: PASS; typecheck, lint, format check, workspace build, boundary check,
+  and secret scan: PASS.
+- Full database suite is expected to retain the same 2 P5-T008 chargeback failures until that task.
 
 ### Human Gate
 
@@ -682,7 +694,7 @@ None. Use manual-channel fixtures and a Local fake provider; real commercial/pay
 
 ### Commit
 
-`feat(commerce): implement order item refunds` — Task P5-T007.
+`0c8ceed feat(commerce): implement order item refunds` — Task P5-T007.
 
 ### Next
 

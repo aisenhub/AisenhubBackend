@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P5 — Commerce + Admin D
-Current Task: P5-T007 — Implement OrderItem refund transaction
-Overall Progress: 73 / 107 tasks completed
-Last Successful Quality Gate: P5-T006 manual order verification — PASS
+Current Task: P5-T008 — Implement chargeback and delayed-event exception handling
+Overall Progress: 74 / 107 tasks completed
+Last Successful Quality Gate: P5-T007 OrderItem refund transaction — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P5-T006 manual order verification — PASS
 
 Status: IN_PROGRESS
 Goal: Continue Commerce + Admin D implementation at the earliest incomplete task.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, and P5-T001 through P5-T006 completed. Remote repository synchronization is complete to `origin/main`.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, and P5-T001 through P5-T007 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -43,6 +43,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P5-T004 commerce/Admin contracts: PASS — Contract 15/15, root unit 95/95, typecheck, lint, format, workspace build, boundaries, and secret scan passed.
 - P5-T005 atomic paid-order fulfillment: PASS — multi-item grants, duplicate-event idempotency, cancelled-order rejection, and all-or-nothing rollback pass in the focused suite (26/26 fulfillment assertions); root unit 95/95, RLS 29/29, typecheck, lint, format, workspace build, boundaries, and secret scan passed. The shared state suite has 9 expected future refund/chargeback failures for P5-T007/P5-T008.
 - P5-T006 manual order verification: PASS — Finance/Owner + AAL2/MFA authorization, strict manual evidence validation, shared atomic fulfillment, payment-event minimization, idempotency, audit linkage, and unauthorized-role coverage; focused SQL 24/24, Admin integration 33/33, contracts 15/15, Admin Client 15/15, root unit 97/97, RLS 29/29, typecheck/lint/format/build/boundary/secret gates passed. Full DB retains only the 9 explicitly deferred P5-T007/P5-T008 assertions.
+- P5-T007 OrderItem refund transaction: PASS — partial compensation retains the item Grant, complete product return revokes only its sourced Grant, full-item refunds transition the whole Order/Payment only when all items qualify, and Admin retries are idempotent with one audit; Commerce state refund assertions 39/39, Admin integration 34/34, contracts 15/15, Admin Client 16/16, root unit 99/99, RLS 29/29, typecheck/lint/format/build/boundary/secret gates passed. Two remaining full-suite assertions are the explicit P5-T008 chargeback expectations.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
@@ -124,12 +125,13 @@ None.
 
 ## Next Tasks
 
-1. P5-T007 — Implement OrderItem refund transaction.
+1. P5-T008 — Implement chargeback and delayed-event exception handling.
 
 ## Recent Commits
 
 - `6e3fca2` — feat(commerce): implement paid order fulfillment
 - `3624563` — feat(admin-api): add manual order verification
+- `0c8ceed` — feat(commerce): implement order item refunds
 - `bcbebd0` — feat(contracts): add commerce and refund APIs
 - `cd1802d` — test(commerce): specify order payment refund states
 - `78c0512` — feat(commerce): add payments and payment events
