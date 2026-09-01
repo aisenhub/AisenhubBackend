@@ -72,7 +72,7 @@
 | P4-T013 | Admin Catalog / Customer + Integration | completed | 2026-09-01 | 2026-09-01 | d3a182a | Cross-module Playwright proof covers Catalog/Product 360, Redemption, User 360/Audit Timeline, AisenLens access, redaction, Owner/Support MFA enforcement, and Finance denial; added explicit Admin Product list projection migration `20260901150000_admin_products_query.sql`; database 699/699, full E2E 14/14, typecheck, lint, format, build, boundaries, and secret scan passed. |
 | P4-T014 | Admin Catalog / Customer + Integration | completed | 2026-09-01 | 2026-09-01 | 156d9cb | Final clean `platform:verify` passed database 699/699, RLS 29/29, function 4/4, unit 94/94, contract 14/14, integration 32/32, Playwright 14/14, typecheck, lint, format, workspace build, boundaries, secret scan, and failure propagation; AisenLens integration 2/2, auto-shot contract 6/6, typecheck/lint/build passed; PHASE-04 checkpoint published with Architecture Deviations: None. |
 | P5-T001 | Commerce | completed | 2026-09-01 | 2026-09-01 | 57da41f | Orders/order_items schema with exact status constraints, amount/refund bounds, catalog-linked immutable purchase snapshots, anonymization-safe customer references, and database 737/737 plus root quality gates passed. |
-| P5-T002 | Commerce | pending |  |  |  |  |
+| P5-T002 | Commerce | completed | 2026-09-01 | 2026-09-01 | 78c0512 | Payments/payment_events schema with exact payment/event states, provider identity and external event uniqueness, order/payment consistency, minimized credential-safe summaries, backend-only access, database 775/775, RLS 29/29, and full quality gates passed. |
 | P5-T003 | Commerce | pending |  |  |  |  |
 | P5-T004 | Commerce | pending |  |  |  |  |
 | P5-T005 | Commerce | pending |  |  |  |  |

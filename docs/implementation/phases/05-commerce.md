@@ -104,7 +104,7 @@ P5-T002.
 
 ## P5-T002 — Create payments and payment_events schema
 
-Status: pending  
+Status: completed
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: database-test-first  
@@ -165,10 +165,10 @@ Duplicate event, invalid states/amount/currency, cross-order event, direct role 
 
 ### Acceptance Criteria
 
-- [ ] No full payment credentials stored.
-- [ ] External event uniqueness works.
-- [ ] Sensitive access denied.
-- [ ] Tests pass.
+- [x] No full payment credentials stored.
+- [x] External event uniqueness works.
+- [x] Sensitive access denied.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -181,6 +181,15 @@ Do not choose/activate a real payment provider.
 ### Output
 
 Payment/event model.
+
+### Verification
+
+- Migration: `supabase/migrations/20260901170000_commerce_payments.sql`
+- Database tests: `supabase/tests/0028_commerce_payments.sql` — 38/38 assertions
+- Full database suite: 775/775 tests passed; RLS suite: 29/29 tests passed
+- Auth fixtures, Edge Function shell tests, unit 94/94, contracts 14/14, integration 32/32, Playwright 14/14: PASS
+- Typecheck, lint, format check, workspace build, boundary check, failure-propagation harness, and secret scan: PASS
+- Payment identities and event summaries are backend-only; `(provider, external_event_id)` is unique, cross-order/provider/amount/currency mismatches are rejected, and nested credential keys are rejected.
 
 ### Human Gate
 
