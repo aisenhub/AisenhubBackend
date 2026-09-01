@@ -4,7 +4,7 @@ Goal: implement OrderItem-based Commerce, payment event handling, fulfillment, r
 
 ## P5-T001 — Create orders and order_items schema with immutable purchase snapshots
 
-Status: pending  
+Status: completed
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: database-test-first  
@@ -64,10 +64,10 @@ Invalid amounts/currency/status/quantity, snapshot mutation, order item sums, us
 
 ### Acceptance Criteria
 
-- [ ] OrderItem is smallest fulfillment/refund unit.
-- [ ] Snapshots retain SKU/name/terms.
-- [ ] Constraints/tests pass.
-- [ ] No entitlement is inferred by frontend.
+- [x] OrderItem is the smallest fulfillment/refund unit.
+- [x] Snapshots retain SKU/name/terms.
+- [x] Constraints/tests pass.
+- [x] No entitlement is inferred by frontend.
 
 ### Failure Recovery
 
@@ -80,6 +80,15 @@ Do not use order.id as grant source.
 ### Output
 
 Orders and items model.
+
+### Verification
+
+- Migration: `supabase/migrations/20260901160000_commerce_orders.sql`
+- Database tests: `supabase/tests/0027_commerce_orders.sql` — 38/38 assertions
+- Full database suite: 737/737 tests passed
+- Root unit suite: 94/94 tests passed
+- Typecheck, lint, format check, workspace build, boundary check, and secret scan: PASS
+- OrderItem snapshots are validated against the catalog and become immutable once the order is paid; fulfillment/refund source remains `order_items.id`, never `orders.id`.
 
 ### Human Gate
 

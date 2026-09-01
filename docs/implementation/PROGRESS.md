@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P5 — Commerce + Admin D
-Current Task: P5-T001
-Overall Progress: 67 / 107 tasks completed
-Last Successful Quality Gate: P4-T014 Admin B/C and product integration quality gate — PASS
+Current Task: P5-T002
+Overall Progress: 68 / 107 tasks completed
+Last Successful Quality Gate: P5-T001 Commerce orders/order_items schema quality gate — PASS
 
 ## Phase Progress
 
@@ -26,7 +26,7 @@ Last Successful Quality Gate: P4-T014 Admin B/C and product integration quality 
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Begin Commerce + Admin D implementation at P5-T001.
+Goal: Continue Commerce + Admin D implementation at P5-T002.
 Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, and P4-T001 through P4-T014 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
@@ -37,6 +37,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - Human Interaction design: PASS — 102 AUTONOMOUS tasks, 5 conditional/explicit HUMAN_GATE tasks; Local budget remains 0
 - Markdown/local links: PASS — balanced code fences and no broken local links
 - Implementation format/lint/typecheck/tests/build: PASS — format, lint, database reset, and database tests pass; P0-T005 migration checks passed 14/14 across consecutive resets.
+- P5-T001 commerce orders/order_items: PASS — database 737/737, root unit 94/94, typecheck, lint, format, workspace build, boundary check, and secret scan passed.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
@@ -118,10 +119,11 @@ None.
 
 ## Next Tasks
 
-1. P5-T001 — Implement Commerce core schema and state model.
+1. P5-T002 — Create payments and payment_events schema.
 
 ## Recent Commits
 
+- `57da41f` — feat(commerce): add orders and order items
 - `d3a182a` — test(e2e): cover admin catalog customer integration
 - `379b641` — feat(catalog): add controlled admin draft mutations
 - `c65a601` — feat(admin-api): expose catalog business commands
