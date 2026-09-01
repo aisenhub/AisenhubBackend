@@ -40,6 +40,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_query_resource: {
+        Args: {
+          p_actor_id: string
+          p_cursor?: string
+          p_direction?: string
+          p_limit?: number
+          p_resource: string
+          p_search?: string
+          p_sort?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
       check_access: {
         Args: { p_app_slug: string; p_feature_code: string; p_user_id: string }
         Returns: {
