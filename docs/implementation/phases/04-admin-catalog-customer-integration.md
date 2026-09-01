@@ -201,7 +201,7 @@ P4-T003.
 
 ## P4-T003 — Expose Catalog publish, retire, set-current, and production-origin Commands
 
-Status: pending  
+Status: completed  
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: api-security  
@@ -262,10 +262,17 @@ Every success/forbidden/MFA/reason/state/idempotency/confirmation/rollback path.
 
 ### Acceptance Criteria
 
-- [ ] Named endpoints match architecture.
-- [ ] Repeated request does not duplicate effects.
-- [ ] Every success is audited.
-- [ ] Tests pass.
+- [x] Named endpoints match architecture: publish, retire, set-current-version, and change-production-origin.
+- [x] Repeated requests return the stored result without duplicating state changes or audit rows.
+- [x] Every successful command is audited atomically with the domain transition and idempotency record.
+- [x] Tests pass, including database, contract, client, integration, full verification, and Playwright checks.
+
+### Verification
+
+- `AisenHubBusinessCommandClient` uses the architecture endpoints `POST /v1/admin/product-versions/{id}/publish`, `POST /v1/admin/product-versions/{id}/retire`, `POST /v1/admin/products/{id}/set-current-version`, and `POST /v1/admin/app-origins/{id}/change-production-origin`.
+- Each command requires an active Admin member, the exact Action permission, AAL2/MFA, non-empty reason, typed confirmation, CSRF, and `Idempotency-Key`; production Origin additionally requires matching App Slug and exact Origin.
+- Database command wrapper delegates state transitions to the existing domain functions, switches production Origin atomically, records append-only audit history, and stores/replays the result through `idempotency_records`.
+- Quality gates passed: database 585/585, RLS 29/29, unit 80/80, contract 14/14, integration 26/26, Playwright 12/12, typecheck, lint, format, build, boundaries, secret scan, failure-propagation checks, and database advisors.
 
 ### Failure Recovery
 
@@ -285,7 +292,7 @@ None. All Local operations and E2E are autonomous; commercial values remain dete
 
 ### Commit
 
-`feat(admin-api): expose catalog business commands` — Task P4-T003.
+`c65a601 feat(admin-api): expose catalog business commands` — Task P4-T003.
 
 ### Next
 

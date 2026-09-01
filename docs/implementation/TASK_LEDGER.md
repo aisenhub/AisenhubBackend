@@ -59,7 +59,7 @@
 | P3-T002 | Admin Foundation | completed | 2026-09-01 | 2026-09-01 | 1c8d249 | Admin Session route and server-side active-membership authorization kernel delivered early because declared dependencies were satisfied; tests and Local HTTP verification passed. |
 | P4-T001 | Admin Catalog / Customer + Integration | completed | 2026-09-01 | 2026-09-01 | f4ac227 | Explicit typed Catalog/Redemption list and detail projections, Product 360 overview, code-hint-only redaction, stable detail-not-found error, database 537/537, RLS 29/29, unit 75/75, contract 13/13, integration 24/24, Playwright 12/12, and full platform:verify passed. |
 | P4-T002 | Admin Catalog / Customer + Integration | completed | 2026-09-01 | 2026-09-01 | 379b641 | Explicit allowlisted create/edit commands for Applications, Origins, Features, Products, draft Product Versions, and Prices; draft-only/status protections, optimistic conflicts, idempotency, stable errors, audit, and full quality gates passed. |
-| P4-T003 | Admin Catalog / Customer + Integration | pending |  |  |  |  |
+| P4-T003 | Admin Catalog / Customer + Integration | completed | 2026-09-01 | 2026-09-01 | c65a601 | Architecture-named publish/retire/set-current-version/production-origin commands with exact Admin Action, AAL2/MFA, reason, confirmation, CSRF, idempotency, atomic domain delegation, audit, stable errors, and full quality gates passed. |
 | P4-T004 | Admin Catalog / Customer + Integration | pending |  |  |  |  |
 | P4-T005 | Admin Catalog / Customer + Integration | pending |  |  |  |  |
 | P4-T006 | Admin Catalog / Customer + Integration | pending |  |  |  |  |
