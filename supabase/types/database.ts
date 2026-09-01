@@ -102,6 +102,12 @@ export type Database = {
           revoked: boolean
         }[]
       }
+      verify_platform_csrf: {
+        Args: { p_csrf_hash: string; p_token_hash: string }
+        Returns: {
+          valid: boolean
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

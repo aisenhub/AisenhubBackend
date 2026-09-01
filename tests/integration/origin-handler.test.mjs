@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it, vi } from 'vitest';
 
 const registeredOrigin = 'http://localhost:5173';
 const originalFetch = globalThis.fetch;
+let csrfIsValid = false;
 
 async function rpcResponse(url, init) {
   const pathname = new URL(url).pathname;
@@ -22,6 +23,11 @@ async function rpcResponse(url, init) {
       ]),
       { headers: { 'content-type': 'application/json' } },
     );
+  }
+  if (pathname.endsWith('/verify_platform_csrf')) {
+    return new Response(JSON.stringify([{ valid: csrfIsValid }]), {
+      headers: { 'content-type': 'application/json' },
+    });
   }
   throw new Error(`Unexpected mocked RPC: ${pathname}`);
 }
@@ -102,5 +108,45 @@ describe('platform API Origin and CORS handler', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get('access-control-allow-origin')).toBeNull();
+  });
+
+  it('rejects mutations without a session-bound CSRF token', async () => {
+    const missing = await routePlatformApi(
+      new Request('http://api.local/v1/future-command', {
+        method: 'POST',
+        headers: { Origin: registeredOrigin, 'X-AisenHub-App': 'account' },
+      }),
+    );
+    expect(missing.status).toBe(403);
+    expect((await missing.json()).error.code).toBe('CSRF_INVALID');
+
+    const wrong = await routePlatformApi(
+      new Request('http://api.local/v1/future-command', {
+        method: 'POST',
+        headers: {
+          Origin: registeredOrigin,
+          'X-AisenHub-App': 'account',
+          Cookie: '__Host-aisenhub_session=session-token',
+          'X-CSRF-Token': 'wrong-token',
+        },
+      }),
+    );
+    expect(wrong.status).toBe(403);
+    expect((await wrong.json()).error.code).toBe('CSRF_INVALID');
+
+    csrfIsValid = true;
+    const valid = await routePlatformApi(
+      new Request('http://api.local/v1/future-command', {
+        method: 'POST',
+        headers: {
+          Origin: registeredOrigin,
+          'X-AisenHub-App': 'account',
+          Cookie: '__Host-aisenhub_session=session-token',
+          'X-CSRF-Token': 'valid-token',
+        },
+      }),
+    );
+    expect(valid.status).toBe(405);
+    csrfIsValid = false;
   });
 });

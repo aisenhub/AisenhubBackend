@@ -43,6 +43,7 @@ const allowedCorsHeaders = new Set([
   'x-csrf-token',
   'idempotency-key',
 ]);
+const writeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 const apiUrl = () => Deno.env.get('SUPABASE_URL') ?? 'http://127.0.0.1:54321';
 const anonKey = () => Deno.env.get('SUPABASE_ANON_KEY');
@@ -478,6 +479,50 @@ async function sessionDelete(request: Request, id: string): Promise<Response> {
   }
 }
 
+async function enforceWritePreconditions(
+  request: Request,
+  path: string,
+  resolved: ResolvedOrigin | null,
+  id: string,
+): Promise<Response | null> {
+  if (!writeMethods.has(request.method) || path === '/v1/session/exchange') return null;
+  if (!resolved) {
+    return errorResponse('ORIGIN_NOT_ALLOWED', 'A request Origin is required.', 403, id);
+  }
+  if (request.headers.get('x-aisenhub-app') !== resolved.appSlug) {
+    return errorResponse(
+      'APP_ORIGIN_MISMATCH',
+      'The application declaration does not match the request Origin.',
+      403,
+      id,
+    );
+  }
+
+  const rawToken = sessionCookie(request);
+  const rawCsrf = request.headers.get('x-csrf-token');
+  if (!rawToken || !rawCsrf) {
+    return errorResponse('CSRF_INVALID', 'A valid CSRF token is required.', 403, id);
+  }
+
+  try {
+    const rows = await rpc<{ readonly valid: boolean }>('verify_platform_csrf', {
+      p_token_hash: await sha256Hex(rawToken),
+      p_csrf_hash: await sha256Hex(rawCsrf),
+    });
+    if (rows.length !== 1 || rows[0]?.valid !== true) {
+      return errorResponse('CSRF_INVALID', 'A valid CSRF token is required.', 403, id);
+    }
+    return null;
+  } catch {
+    return errorResponse(
+      'INTERNAL_ERROR',
+      'The request security checks could not be completed.',
+      502,
+      id,
+    );
+  }
+}
+
 async function routePlatformApiRoutes(request: Request, id: string): Promise<Response> {
   const path = apiPath(request);
 
@@ -520,5 +565,8 @@ export async function routePlatformApi(request: Request): Promise<Response> {
       ? preflightResponse(request, id, resolved)
       : errorResponse('ORIGIN_NOT_ALLOWED', 'A request Origin is required.', 403, id);
   }
+  const path = apiPath(request);
+  const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
+  if (preconditionFailure) return withCors(preconditionFailure, resolved);
   return withCors(await routePlatformApiRoutes(request, id), resolved);
 }
