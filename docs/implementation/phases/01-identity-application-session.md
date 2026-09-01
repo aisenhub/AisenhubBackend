@@ -187,7 +187,7 @@ P1-T003.
 
 ## P1-T003 — Create platform sessions and fixed admin membership schema
 
-Status: in_progress
+Status: completed
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: database  
@@ -248,10 +248,10 @@ Token hash uniqueness, invalid roles/statuses, one membership per user, session 
 
 ### Acceptance Criteria
 
-- [ ] No raw session/CSRF token column exists.
-- [ ] Only four approved roles pass constraints.
-- [ ] Normal user has no Admin membership.
-- [ ] Tests and seed verification pass.
+- [x] No raw session/CSRF token column exists.
+- [x] Only four approved roles pass constraints.
+- [x] Normal user has no Admin membership.
+- [x] Tests and seed verification pass.
 
 ### Failure Recovery
 
@@ -279,7 +279,7 @@ P1-T004.
 
 ## P1-T004 — Implement Identity/Application RLS and grants
 
-Status: pending  
+Status: in_progress
 Phase: P1 — Identity / Application / Session  
 Execution: AUTONOMOUS  
 Type: security-test-first  
