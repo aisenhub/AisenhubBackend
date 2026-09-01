@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P3 — Admin Foundation
-Current Task: P3-T007 — Build Ant Design theme and reusable Admin domain primitives
-Overall Progress: 48 / 107 tasks completed
-Last Successful Quality Gate: P3-T006 Refine Auth and Access Control Providers — PASS
+Current Task: P3-T008 — Implement protected Admin shell, routing, errors, and notifications
+Overall Progress: 49 / 107 tasks completed
+Last Successful Quality Gate: P3-T007 Ant Design theme and reusable Admin domain primitives — PASS
 
 ## Phase Progress
 
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P3-T006 Refine Auth and Access Control Providers �
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Build the Ant Design theme and reusable Admin domain primitives.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T006 completed. Remote repository synchronization is complete to `origin/main`.
+Goal: Build the protected Admin shell, routing, errors, and notifications.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T007 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -82,6 +82,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P3-T004 Admin Resource Data Provider: PASS — explicit five-resource mapping to `/v1/admin/*`, server query serialization, response/page validation, UUID-only item paths, stable transport error handling, arbitrary-resource rejection, Admin-client tests 5/5, typecheck, and boundaries passed; no generic table or Supabase mapping exists.
 - P3-T005 Admin Business Command Client: PASS — six typed catalog/redemption commands validate reason/confirmation and outputs, generate and reuse logical idempotency keys across safe transport retries, preserve requestId, map stable MFA/state/reason errors, and return entity/cache invalidation metadata; Admin-client tests 8/8, root tests 60/60, typecheck, lint, format, build, boundaries, and secret scan passed.
 - P3-T006 Admin Refine Auth and Access Control Providers: PASS — Account redirect, Backend Admin Session check, in-memory identity/AAL/CSRF state, logout/error handling, explicit Refine resource adapter, fixed-matrix access control with default deny, and no credential persistence; provider tests 3/3, root tests 63/63, Admin typecheck/build, lint, format, and boundaries passed. Existing Backend forbidden-action coverage retains server-authoritative 403 behavior.
+- P3-T007 Admin design system primitives: PASS — shared Ant Design theme, semantic status tones, minor-unit money formatting, exact/relative timestamp formatting, and accessible loading/empty/error/permission states; design-system tests 5/5, Admin tests 3/3, root tests 68/68, workspace typecheck/build, lint, format, and boundaries passed.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -100,15 +101,16 @@ None.
 
 ## Next Tasks
 
-1. P3-T007 — Build Ant Design theme and reusable Admin domain primitives.
-2. P3-T008 — Build Admin application/product catalog pages.
+1. P3-T008 — Implement protected Admin shell, routing, errors, and notifications.
+2. P3-T009 — Implement read-only Admin Query APIs and operational overview.
 
 ## Recent Commits
 
 - `94c05cc` — feat(admin-client): add command transport foundation
-- `e1995e2` — feat(admin-client): add resource data provider
-- `dd8cf73` — feat(authz): define admin action matrix
-- `b1ecbdb` — chore(admin): finalize refine antd workspace
+- `02cbca7` — feat(admin): add auth and access providers
+- `dbbae52` — feat(admin-client): add resource data provider
+- `36cbfad` — feat(authz): define admin action matrix
+- `dc2f399` — Merge remote-tracking branch 'origin/main'
 - `d81604b` — chore(checkpoint): complete catalog entitlement redemption
 - `1c8d249` — feat(admin-api): add admin session and permission checks
 - `db1584c` — feat(api): add catalog entitlement redemption feedback APIs

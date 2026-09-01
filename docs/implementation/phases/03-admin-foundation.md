@@ -589,7 +589,7 @@ P3-T007.
 
 ## P3-T007 — Build Ant Design theme and reusable Admin domain primitives
 
-Status: pending  
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: frontend-design-system  
@@ -654,10 +654,10 @@ Status mapping, money currencies/minor units, timezone exact/relative display, l
 
 ### Acceptance Criteria
 
-- [ ] Ant Design remains sole primitive system.
-- [ ] No duplicated Button/Table/Form wrappers.
-- [ ] Semantic components are tested.
-- [ ] Build passes.
+- [x] Ant Design remains sole primitive system.
+- [x] No duplicated Button/Table/Form wrappers.
+- [x] Semantic components are tested.
+- [x] Build passes.
 
 ### Failure Recovery
 
@@ -669,7 +669,13 @@ Do not add a second UI framework or business API calls.
 
 ### Output
 
-Admin theme and presentation primitives.
+The shared `@aisenhub/design-system` now exports the AisenHub Admin Ant Design theme,
+semantic `EntityStatus`, minor-unit `MoneyDisplay`, exact/relative `DateTimeDisplay`, and
+accessible Loading, Empty, Error, and Permission Denied states. Formatting helpers are
+deterministic and domain-free; the Admin root `ConfigProvider` consumes the shared theme.
+No second UI framework or duplicated Ant Design primitive wrappers were added. Design-system
+tests passed 5/5, root tests passed 68/68, Admin tests passed 3/3, workspace typecheck/build,
+lint, format, and boundary checks passed.
 
 ### Human Gate
 
