@@ -912,7 +912,7 @@ P2-T011.
 
 ## P2-T011 — Define and implement public catalog, entitlement, redemption, feedback contracts/APIs
 
-Status: pending  
+Status: completed  
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: contracts-api  
@@ -975,10 +975,10 @@ Public visibility, access results, redemption errors, feedback attribution/valid
 
 ### Acceptance Criteria
 
-- [ ] All approved P2 routes are typed/validated.
-- [ ] Feedback records server-derived app_id.
-- [ ] No table/error internals leak.
-- [ ] Tests pass.
+- [x] All approved P2 routes are typed/validated.
+- [x] Feedback records server-derived app_id.
+- [x] No table/error internals leak.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -990,7 +990,7 @@ Do not expose internal price strategy, code hashes, grants, or audit tables.
 
 ### Output
 
-P2 product API surface.
+P2 product API surface delivered in `db1584c`: public catalog projection, session-bound access and entitlement reads, hashed redemption command, server-attributed feedback command, stable runtime contracts/errors, and sensitive-field exclusion. Database tests passed 499/499, RLS 29/29, integration 22/22, contract 7/7, root tests 47/47, and all applicable typecheck/lint/format/boundary/function/build gates passed.
 
 ### Human Gate
 
@@ -998,7 +998,7 @@ None. Local Catalog/Entitlement/Redemption work is fully autonomous.
 
 ### Commit
 
-`feat(api): add catalog entitlement redemption feedback APIs` — Task P2-T011.
+`feat(api): add catalog entitlement redemption feedback APIs` — Task P2-T011 (`db1584c`).
 
 ### Next
 

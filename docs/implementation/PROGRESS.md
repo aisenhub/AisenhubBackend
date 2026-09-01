@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P2 — Catalog / Entitlement / Redemption
-Current Task: P2-T011 — Define and implement public catalog, entitlement, redemption, feedback contracts/APIs
-Overall Progress: 37 / 107 tasks completed
-Last Successful Quality Gate: P2-T010 Atomic redemption transaction — PASS
+Current Task: P2-T012 — Implement platform-client catalog, entitlement, redemption, and feedback methods
+Overall Progress: 38 / 107 tasks completed
+Last Successful Quality Gate: P2-T011 Product API surface — PASS
 
 ## Phase Progress
 
@@ -71,6 +71,7 @@ Dependencies: P0-T001 through P0-T012 and P1-T001 through P1-T014 completed; P3-
 - P2-T008 secure code generation: PASS — `pnpm functions:test -- code-generation` passed the generation security smoke check; root tests passed 40/40, including entropy/format, uniqueness, HMAC Pepper binding, plaintext-free persistence mapping, hint redaction, invalid configuration, and server-only Pepper loading. Typecheck, lint, format, and workspace build passed.
 - P2-T009 redemption transaction specification: PASS — executable SQL coverage now includes valid/invalid/paused/closed/future/expired claims, same-request and same-user retries, cross-user rejection, per-user limits, rollback/no-orphan assertions, and function security checks. The repeatable concurrency runner is committed for local verification.
 - P2-T010 atomic redemption transaction: PASS — `pnpm db:reset` and `pnpm db:test` passed 475/475; `pnpm test:redemption:concurrency` confirmed exactly one of two concurrent claims succeeds, with one code, receipt, grant, and redemption audit. Idempotency replay, different-hash rejection, generic unavailable errors, and failure rollback passed.
+- P2-T011 public catalog/entitlement/redemption/feedback APIs: PASS — public product projection, session-bound access and entitlement reads, hashed redemption command, server-attributed feedback command, stable contracts/errors, database tests 499/499, RLS 29/29, integration 22/22, contract 7/7, root tests 47/47, typecheck, lint, format, boundary, function checks, and workspace build all passed.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -89,12 +90,13 @@ None.
 
 ## Next Tasks
 
-1. P2-T011 — Define and implement public catalog, entitlement, redemption, feedback contracts/APIs.
-2. P2-T012 — Define and implement Admin catalog/redemption contracts/APIs.
+1. P2-T012 — Implement platform-client catalog, entitlement, redemption, and feedback methods.
+2. P2-T013 — Implement Admin catalog/redemption contracts/APIs.
 
 ## Recent Commits
 
 - `1c8d249` — feat(admin-api): add admin session and permission checks
+- `db1584c` — feat(api): add catalog entitlement redemption feedback APIs
 - `dc8b2a5` — test(e2e): cover identity and platform sessions
 - `650ba7d` — feat(session): implement platform session exchange
 - `e313467` — feat(session): add validation and revocation lifecycle
