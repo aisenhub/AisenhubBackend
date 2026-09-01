@@ -163,11 +163,13 @@ async function adminQueryRead(request: Request, resource: string, id: string): P
     ]);
     const customerResources = new Set(['account-deletion-requests']);
     const rows = await serviceRpc<unknown>(
-      catalogResources.has(resource)
-        ? 'admin_query_catalog_resource'
-        : customerResources.has(resource)
-          ? 'admin_query_customer_resource'
-          : 'admin_query_resource',
+      resource === 'products'
+        ? 'admin_query_products'
+        : catalogResources.has(resource)
+          ? 'admin_query_catalog_resource'
+          : customerResources.has(resource)
+            ? 'admin_query_customer_resource'
+            : 'admin_query_resource',
       {
         p_actor_id: session.user_id,
         p_resource: resource,
