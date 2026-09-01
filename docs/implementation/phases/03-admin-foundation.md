@@ -296,7 +296,7 @@ P3-T004 and P3-T005.
 
 ## P3-T004 — Implement admin-client Resource transport and Data Provider
 
-Status: pending  
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: client-contract  
@@ -357,10 +357,10 @@ Pagination/filter/sort/search, malformed response, stable errors, credentials/CS
 
 ### Acceptance Criteria
 
-- [ ] Provider calls only `/v1/admin/*`.
-- [ ] No generic table mapping exists.
-- [ ] All contract tests pass.
-- [ ] No Supabase dependency.
+- [x] Provider calls only `/v1/admin/*`.
+- [x] No generic table mapping exists.
+- [x] All contract tests pass.
+- [x] No Supabase dependency.
 
 ### Failure Recovery
 
@@ -372,7 +372,11 @@ Do not implement Publish/Refund/Grant through `update()`.
 
 ### Output
 
-AisenHubAdminDataProvider.
+AisenHubAdminDataProvider delivered in `packages/admin-client/src/data-provider.ts` with explicit
+products, productVersions, redemptionBatches, redemptionCodes, and redemptions resource routes.
+It validates server-side query filters/sorts/pagination and response page metadata, maps item
+reads to UUID-only paths, rejects unsupported resources before transport, and leaves business
+commands outside the provider. Admin-client tests passed 5/5, typecheck, and boundaries passed.
 
 ### Human Gate
 

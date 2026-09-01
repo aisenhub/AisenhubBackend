@@ -131,3 +131,11 @@ export function createAdminClient(options: AdminClientOptions): AdminClient {
     },
   };
 }
+
+export { AdminResourceNames, createAdminDataProvider } from './data-provider';
+export type {
+  AdminListResult,
+  AdminResourceItem,
+  AdminResourceName,
+  AisenHubAdminDataProvider,
+} from './data-provider';

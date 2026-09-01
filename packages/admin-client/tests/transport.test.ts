@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { AdminClientError, createAdminClient, withIdempotencyKey } from '../src/index';
+import {
+  AdminClientError,
+  createAdminClient,
+  createAdminDataProvider,
+  withIdempotencyKey,
+} from '../src/index';
 
 interface AdminHealthPayload {
   ok: boolean;
@@ -74,6 +79,107 @@ describe('admin client transport', () => {
     await expect(
       malformedClient.request('/v1/admin/operation', adminHealthSchema),
     ).rejects.toMatchObject({
+      code: 'MALFORMED_API_RESPONSE',
+      status: 200,
+    });
+  });
+
+  it('maps explicit resources to server queries with validated pagination', async () => {
+    const requestedUrls: string[] = [];
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async (input) => {
+        requestedUrls.push(String(input));
+        return new Response(
+          JSON.stringify({
+            data: {
+              items: [
+                {
+                  id: '00000000-0000-4000-8000-000000000010',
+                  sku: 'AISENLENS_PRO',
+                  name: 'AisenLens Pro',
+                  billingType: 'one_time',
+                  status: 'active',
+                  currentVersion: null,
+                },
+              ],
+              page: { hasMore: false, nextCursor: null },
+            },
+            requestId,
+          }),
+          { headers: { 'content-type': 'application/json' }, status: 200 },
+        );
+      },
+    });
+
+    const provider = createAdminDataProvider(client);
+    const result = await provider.getList('products', {
+      limit: 10,
+      search: 'Aisen Lens',
+      status: 'active',
+      sort: 'sku',
+      direction: 'asc',
+    });
+
+    expect(result.data.items[0]?.sku).toBe('AISENLENS_PRO');
+    const url = new URL(requestedUrls[0]);
+    expect(url.pathname).toBe('/v1/admin/products');
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      limit: '10',
+      search: 'Aisen Lens',
+      status: 'active',
+      sort: 'sku',
+      direction: 'asc',
+    });
+  });
+
+  it('maps getOne to an explicit resource path and rejects arbitrary resources or ids', async () => {
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async (input) =>
+        new Response(
+          JSON.stringify({
+            data: {
+              id: '00000000-0000-4000-8000-000000000010',
+              sku: 'AISENLENS_PRO',
+              name: 'AisenLens Pro',
+              billingType: 'one_time',
+              status: 'active',
+              currentVersion: null,
+            },
+            requestId,
+          }),
+          { headers: { 'content-type': 'application/json' }, status: 200 },
+        ),
+    });
+    const provider = createAdminDataProvider(client);
+
+    await expect(
+      provider.getOne('products', '00000000-0000-4000-8000-000000000010'),
+    ).resolves.toMatchObject({ data: { sku: 'AISENLENS_PRO' } });
+    await expect(provider.getOne('products', 'not-a-uuid')).rejects.toThrow(
+      'Admin resource IDs must be UUIDs.',
+    );
+    await expect(provider.getList('arbitraryTable' as never)).rejects.toThrow(
+      'Unsupported Admin resource: arbitraryTable',
+    );
+  });
+
+  it('rejects malformed page metadata through the shared response contract', async () => {
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async () =>
+        new Response(
+          JSON.stringify({
+            data: { items: [], page: { hasMore: true, nextCursor: '' } },
+            requestId,
+          }),
+          { status: 200 },
+        ),
+    });
+    const provider = createAdminDataProvider(client);
+
+    await expect(provider.getList('products')).rejects.toMatchObject({
       code: 'MALFORMED_API_RESPONSE',
       status: 200,
     });

@@ -96,6 +96,11 @@ export const AdminRedemptionCodeSummarySchema = z
   .strict();
 export type AdminRedemptionCodeSummary = z.infer<typeof AdminRedemptionCodeSummarySchema>;
 
+export const AdminRedemptionCodeListResponseSchema = z
+  .object({ items: z.array(AdminRedemptionCodeSummarySchema), page: PageMetaSchema })
+  .strict();
+export type AdminRedemptionCodeListResponse = z.infer<typeof AdminRedemptionCodeListResponseSchema>;
+
 export const AdminRedemptionSummarySchema = z
   .object({
     id: UuidSchema,
@@ -107,6 +112,11 @@ export const AdminRedemptionSummarySchema = z
   })
   .strict();
 export type AdminRedemptionSummary = z.infer<typeof AdminRedemptionSummarySchema>;
+
+export const AdminRedemptionListResponseSchema = z
+  .object({ items: z.array(AdminRedemptionSummarySchema), page: PageMetaSchema })
+  .strict();
+export type AdminRedemptionListResponse = z.infer<typeof AdminRedemptionListResponseSchema>;
 
 export const AdminCommandMetadataSchema = z
   .object({

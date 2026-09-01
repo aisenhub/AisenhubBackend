@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P3 — Admin Foundation
-Current Task: P3-T004 — Implement admin-client Resource transport and Data Provider
-Overall Progress: 45 / 107 tasks completed
-Last Successful Quality Gate: P3-T003 fixed Admin Action matrix — PASS
+Current Task: P3-T005 — Implement typed Business Command Client foundation
+Overall Progress: 46 / 107 tasks completed
+Last Successful Quality Gate: P3-T004 Admin Resource Data Provider — PASS
 
 ## Phase Progress
 
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P3-T003 fixed Admin Action matrix — PASS
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Implement the Admin client Resource transport and Data Provider.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001, P3-T002, and P3-T003 completed. Remote repository synchronization is complete to `origin/main`.
+Goal: Implement the typed Admin Business Command Client foundation.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T004 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -79,6 +79,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P2-T016 Phase 02 quality gate: PASS — clean `platform:verify` passed database 499/499, RLS 29/29, function shell 4/4, unit 50/50, contract 8/8, integration 22/22, Playwright discovery 7/7, typecheck, lint, format, build, boundary, and failure-propagation checks; P2 E2E 3/3, concurrency exactly one winner, secret scan 165 tracked files, and `PHASE-02.md` checkpoint completed.
 - P3-T001 Admin workspace foundation: PASS — Refine + Ant Design Admin shell was split into app, provider, layout, and overview module layers; Admin theme tokens and global error boundary were added; Admin typecheck/build, boundary scan, boundary negative tests 3/3, lint, and format checks passed. No second UI system, Tailwind, Supabase, or database imports are allowed in Admin source.
 - P3-T003 fixed Admin Action matrix: PASS — one JSON matrix covers all 17 approved Actions and four roles; contracts and Backend adapter deny unknown actions, unknown roles, inactive members, insufficient AAL2/MFA, Support restore, and Finance publish; Support grant/revoke requires reason plus MFA. Contract tests 11/11, Admin permission smoke 17/17, function runtime load, root tests 54/54, typecheck, lint, format, and boundary checks passed.
+- P3-T004 Admin Resource Data Provider: PASS — explicit five-resource mapping to `/v1/admin/*`, server query serialization, response/page validation, UUID-only item paths, stable transport error handling, arbitrary-resource rejection, Admin-client tests 5/5, typecheck, and boundaries passed; no generic table or Supabase mapping exists.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -97,11 +98,12 @@ None.
 
 ## Next Tasks
 
-1. P3-T004 — Implement admin-client Resource transport and Data Provider.
-2. P3-T005 — Implement typed Business Command Client foundation.
+1. P3-T005 — Implement typed Business Command Client foundation.
+2. P3-T006 — Implement Refine Auth and Access Control Providers.
 
 ## Recent Commits
 
+- `e1995e2` — feat(admin-client): add resource data provider
 - `dd8cf73` — feat(authz): define admin action matrix
 - `b1ecbdb` — chore(admin): finalize refine antd workspace
 - `d81604b` — chore(checkpoint): complete catalog entitlement redemption
