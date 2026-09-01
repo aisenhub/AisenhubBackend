@@ -13,6 +13,7 @@ type Redirect = (url: string) => void;
 
 export type AdminAuthProviderOptions = {
   client: AdminClient;
+  platformClient?: AdminClient;
   accountOrigin: string;
   sessionStore: AdminSessionStore;
   redirect?: Redirect;
@@ -33,9 +34,10 @@ function loginUrl(accountOrigin: string): string {
 
 export function createAdminAuthProvider(options: AdminAuthProviderOptions): AuthProvider {
   const redirect = options.redirect ?? ((url) => window.location.assign(url));
+  const platformClient = options.platformClient ?? options.client;
 
   async function readAdminSession(): Promise<AdminSessionResponse> {
-    const platformSession = await options.client.request('/v1/session', SessionResponseSchema);
+    const platformSession = await platformClient.request('/v1/session', SessionResponseSchema);
     if (!platformSession.data.authenticated) {
       options.sessionStore.clear();
       throw new Error('A Platform Session is required.');
@@ -97,7 +99,7 @@ export function createAdminAuthProvider(options: AdminAuthProviderOptions): Auth
     },
     async logout() {
       try {
-        await options.client.request('/v1/session', SessionDeleteResponseSchema, {
+        await platformClient.request('/v1/session', SessionDeleteResponseSchema, {
           method: 'DELETE',
         });
       } finally {

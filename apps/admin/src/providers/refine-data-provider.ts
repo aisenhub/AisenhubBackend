@@ -1,16 +1,24 @@
 import type { BaseRecord, DataProvider, GetListParams, GetOneParams } from '@refinedev/core';
 
-import type { AdminCatalogListQuery } from '@aisenhub/contracts';
-import type { AisenHubAdminDataProvider, AdminResourceName } from '@aisenhub/admin-client';
+import type {
+  AisenHubAdminDataProvider,
+  AdminResourceName,
+  AdminResourceQuery,
+} from '@aisenhub/admin-client';
 
 function assertResource(resource: string): AdminResourceName {
   if (
     ![
+      'applications',
+      'users',
       'products',
       'productVersions',
       'redemptionBatches',
       'redemptionCodes',
       'redemptions',
+      'entitlements',
+      'feedback',
+      'auditLogs',
     ].includes(resource)
   ) {
     throw new Error(`Unsupported Admin resource: ${resource}`);
@@ -18,8 +26,8 @@ function assertResource(resource: string): AdminResourceName {
   return resource as AdminResourceName;
 }
 
-function queryFromRefine(params: GetListParams): Partial<AdminCatalogListQuery> {
-  const query: Partial<AdminCatalogListQuery> = {};
+function queryFromRefine(params: GetListParams): Partial<AdminResourceQuery> {
+  const query: Partial<AdminResourceQuery> = {};
   const pageSize = params.pagination?.pageSize;
   const currentPage = params.pagination?.currentPage;
   if (pageSize !== undefined) query.limit = pageSize;
@@ -28,10 +36,24 @@ function queryFromRefine(params: GetListParams): Partial<AdminCatalogListQuery> 
   }
 
   for (const sorter of params.sorters ?? []) {
-    if (!['createdAt', 'updatedAt', 'name', 'sku', 'status'].includes(sorter.field)) {
+    if (
+      ![
+        'createdAt',
+        'updatedAt',
+        'name',
+        'slug',
+        'sku',
+        'status',
+        'displayName',
+        'title',
+        'action',
+        'targetType',
+        'redeemedAt',
+      ].includes(sorter.field)
+    ) {
       throw new Error(`Unsupported Admin sort field: ${sorter.field}`);
     }
-    query.sort = sorter.field as AdminCatalogListQuery['sort'];
+    query.sort = sorter.field;
     query.direction = sorter.order;
   }
 
@@ -45,7 +67,7 @@ function queryFromRefine(params: GetListParams): Partial<AdminCatalogListQuery> 
     if (filter.field === 'search' && typeof filter.value === 'string') {
       query.search = filter.value;
     } else if (filter.field === 'status' && typeof filter.value === 'string') {
-      query.status = filter.value as AdminCatalogListQuery['status'];
+      query.status = filter.value;
     } else {
       throw new Error(`Unsupported Admin filter field: ${filter.field}`);
     }

@@ -34,6 +34,13 @@ const webServerEnv = {
   REDEMPTION_PEPPER: 'local-e2e-only-pepper',
   REDEMPTION_PEPPER_VERSION: '1',
 };
+const adminWebServerEnv = {
+  ...webServerEnv,
+  E2E_PROXY_ORIGIN: 'http://localhost:5174',
+  VITE_PLATFORM_ADMIN_API_ORIGIN: '/functions/v1/platform-admin',
+  VITE_PLATFORM_API_ORIGIN: '/functions/v1/platform-api',
+  VITE_ACCOUNT_ORIGIN: 'http://localhost:5173',
+};
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -59,6 +66,13 @@ export default defineConfig({
       timeout: 120_000,
       reuseExistingServer: !process.env.CI,
       env: webServerEnv,
+    },
+    {
+      command: 'pnpm --dir apps/admin dev --host 0.0.0.0 --port 5174',
+      url: 'http://localhost:5174',
+      timeout: 120_000,
+      reuseExistingServer: !process.env.CI,
+      env: adminWebServerEnv,
     },
   ],
   projects: [

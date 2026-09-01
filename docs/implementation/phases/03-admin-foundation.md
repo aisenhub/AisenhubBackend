@@ -889,7 +889,7 @@ P3-T010.
 
 ## P3-T010 — Build read-only Overview and resource pages with RBAC E2E
 
-Status: pending  
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: frontend-e2e  
@@ -951,10 +951,10 @@ Provider components, URL persistence, role menu/route/page, direct forbidden API
 
 ### Acceptance Criteria
 
-- [ ] All four role flows pass headlessly.
-- [ ] Button hidden ≠ Backend permission is demonstrated.
-- [ ] No browser-side bulk filtering or direct fetch.
-- [ ] Tests/build pass.
+- [x] All four role flows pass headlessly.
+- [x] Button hidden ≠ Backend permission is demonstrated.
+- [x] No browser-side bulk filtering or direct fetch.
+- [x] Tests/build pass.
 
 ### Failure Recovery
 
@@ -966,7 +966,13 @@ Do not add write actions or beautiful-but-nonactionable BI.
 
 ### Output
 
-Admin Phase A read-only operations UI.
+Admin Phase A read-only operations UI delivered with Applications, Users, Audit Logs, System
+Health, server-side query state, reusable table/filter/timeline components, protected routes, and
+four-role Playwright coverage. Admin session bootstrap now uses the Platform API for the shared
+session and the Admin API for Admin authorization/query data.
+
+Verification: Admin-client tests 8/8, Admin tests 5/5, root tests 72/72, `pnpm test:e2e --grep
+ADM-A` 5/5, Admin typecheck/build, workspace boundaries, formatting, and diff checks passed.
 
 ### Human Gate
 

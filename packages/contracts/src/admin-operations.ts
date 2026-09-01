@@ -6,6 +6,31 @@ import { PageMetaSchema } from './pagination';
 const UuidSchema = z.string().uuid();
 const JsonObjectSchema = z.record(z.string(), z.unknown());
 
+export const AdminQueryListQuerySchema = z
+  .object({
+    cursor: z.string().min(1).max(512).optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(25),
+    search: z.string().min(1).max(200).optional(),
+    status: z.string().min(1).max(50).optional(),
+    sort: z
+      .enum([
+        'createdAt',
+        'updatedAt',
+        'name',
+        'slug',
+        'status',
+        'displayName',
+        'title',
+        'action',
+        'targetType',
+        'redeemedAt',
+      ])
+      .default('createdAt'),
+    direction: z.enum(['asc', 'desc']).default('desc'),
+  })
+  .strict();
+export type AdminQueryListQuery = z.infer<typeof AdminQueryListQuerySchema>;
+
 export const AdminApplicationSummarySchema = z
   .object({
     id: UuidSchema,

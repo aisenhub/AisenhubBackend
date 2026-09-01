@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P3 — Admin Foundation
-Current Task: P3-T010 — Build read-only Overview and resource pages with RBAC E2E
-Overall Progress: 51 / 107 tasks completed
-Last Successful Quality Gate: P3-T009 read-only Admin Query APIs and operational overview — PASS
+Current Task: P3-T011 — Execute Admin Foundation quality gate
+Overall Progress: 52 / 107 tasks completed
+Last Successful Quality Gate: P3-T010 read-only Overview and resource pages with RBAC E2E — PASS
 
 ## Phase Progress
 
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P3-T009 read-only Admin Query APIs and operational
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Build read-only Overview and resource pages with RBAC E2E.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T009 completed. Remote repository synchronization is complete to `origin/main`.
+Goal: Execute the Admin Foundation quality gate.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T010 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -85,6 +85,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P3-T007 Admin design system primitives: PASS — shared Ant Design theme, semantic status tones, minor-unit money formatting, exact/relative timestamp formatting, and accessible loading/empty/error/permission states; design-system tests 5/5, Admin tests 3/3, root tests 68/68, workspace typecheck/build, lint, format, and boundaries passed.
 - P3-T008 protected Admin shell: PASS — explicit module registry, Refine Authenticated route guard, forbidden/unknown/unavailable states, safe stable-error mapping, Ant Design notification provider, no fake module data, Admin tests 5/5, root tests 70/70, workspace typecheck/build, lint, format, and boundaries passed.
 - P3-T009 Admin query surface: PASS — allowlisted Applications/Users/Entitlements/Redemptions/Feedback/Audit Logs projections, System Health, stable contracts, opaque cursor pagination, role-based redaction, unknown resource/sort rejection, private service-role-only SQL function, database tests 514/514, contract tests 12/12, integration tests 23/23, query smoke, typecheck, lint, format, build, boundaries, and secrets passed.
+- P3-T010 Admin read-only operations workspace: PASS — Applications, Users, Audit Logs, and System Health pages use Refine/Ant Design with backend query state; reusable DataTable, FilterBar, and AuditTimeline components handle read-only states; all four role flows passed headlessly, Finance direct Applications access returned backend 403, unfinished Platform remained disabled, Admin-client tests 8/8, Admin tests 5/5, root tests 72/72, E2E 5/5, typecheck/build, formatting, and boundary checks passed.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -103,12 +104,13 @@ None.
 
 ## Next Tasks
 
-1. P3-T010 — Build read-only Overview and resource pages with RBAC E2E.
-2. P3-T011 — Implement Admin Business Command UX and DangerousActionDialog.
+1. P3-T011 — Execute Admin Foundation quality gate.
+2. P4-T001 — Begin Admin Catalog / Customer + Integration.
 
 ## Recent Commits
 
 - `94c05cc` — feat(admin-client): add command transport foundation
+- `PENDING` — feat(admin): add read-only operations workspace
 - `02cbca7` — feat(admin): add auth and access providers
 - `83f1b23` — feat(design-system): add admin theme and status primitives
 - `cd8fc13` — feat(admin): add protected refine shell

@@ -5,6 +5,10 @@ import { LoadingState, PermissionDeniedState } from '@aisenhub/design-system';
 import { Result } from 'antd';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { OverviewPage } from '../modules/overview/OverviewPage';
+import { ApplicationsPage } from '../modules/operations/pages/ApplicationsPage';
+import { AuditLogsPage } from '../modules/operations/pages/AuditLogsPage';
+import { SystemHealthPage } from '../modules/operations/pages/SystemHealthPage';
+import { UsersPage } from '../modules/operations/pages/UsersPage';
 
 function ModuleUnavailablePage() {
   return (
@@ -42,6 +46,24 @@ function ProtectedContent() {
         <Routes>
           <Route index element={<Navigate to="/overview" replace />} />
           <Route path="overview" element={<OverviewPage />} />
+          <Route
+            path="applications"
+            element={
+              <CanAccess resource="applications" action="list" fallback={<PermissionDeniedState />}>
+                <ApplicationsPage />
+              </CanAccess>
+            }
+          />
+          <Route path="users" element={<UsersPage />} />
+          <Route
+            path="audit-logs"
+            element={
+              <CanAccess resource="auditLogs" action="list" fallback={<PermissionDeniedState />}>
+                <AuditLogsPage />
+              </CanAccess>
+            }
+          />
+          <Route path="system-health" element={<SystemHealthPage />} />
           <Route
             path="catalog"
             element={

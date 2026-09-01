@@ -9,6 +9,7 @@ import {
 
 export interface AdminClientOptions {
   baseUrl: string;
+  app?: string;
   fetch?: typeof globalThis.fetch;
   csrfToken?: () => string | undefined;
 }
@@ -76,6 +77,7 @@ export function createAdminClient(options: AdminClientOptions): AdminClient {
     ): Promise<AdminResponse<T>> {
       const headers = new Headers(init.headers);
       headers.set('accept', 'application/json');
+      if (options.app) headers.set('X-AisenHub-App', options.app);
       const csrfToken = options.csrfToken?.();
       if (csrfToken) headers.set('x-csrf-token', csrfToken);
       if (init.idempotencyKey) headers.set('Idempotency-Key', init.idempotencyKey);
@@ -138,6 +140,7 @@ export type {
   AdminListResult,
   AdminResourceItem,
   AdminResourceName,
+  AdminResourceQuery,
   AisenHubAdminDataProvider,
 } from './data-provider';
 

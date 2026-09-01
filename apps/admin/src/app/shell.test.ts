@@ -8,6 +8,10 @@ describe('Admin module registry', () => {
     expect(adminModules.map((module) => module.path)).toEqual([
       '/overview',
       '/catalog',
+      '/applications',
+      '/users',
+      '/audit-logs',
+      '/system-health',
       '/growth',
       '/customers',
       '/platform',

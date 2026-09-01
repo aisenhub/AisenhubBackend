@@ -1,8 +1,9 @@
 import { Avatar, Badge, Layout, Menu, Space, Typography } from 'antd';
+import { useCan } from '@refinedev/core';
 import type { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { adminModules } from '../app/module-registry';
+import { adminModules, getAdminModule } from '../app/module-registry';
 
 type AdminLayoutProps = {
   children: ReactNode;
@@ -12,6 +13,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const selectedKey = location.pathname.split('/')[1] || 'overview';
+  const applicationAccess = useCan({ resource: 'applications', action: 'list' });
+  const auditAccess = useCan({ resource: 'auditLogs', action: 'list' });
+
+  const isModuleVisible = (module: (typeof adminModules)[number]) => {
+    if (module.key === 'applications') return applicationAccess.data?.can ?? false;
+    if (module.key === 'auditLogs') return auditAccess.data?.can ?? false;
+    return true;
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -25,7 +34,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </Typography.Text>
         </div>
         <Menu
-          items={adminModules.map((module) => ({
+          items={adminModules.filter(isModuleVisible).map((module) => ({
             key: module.key,
             label: module.available ? module.label : `${module.label} (coming soon)`,
             disabled: !module.available,
@@ -53,7 +62,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <div>
             <Typography.Text type="secondary">Platform operations</Typography.Text>
             <Typography.Title level={3} style={{ margin: 0 }}>
-              Overview
+              {getAdminModule(`/${selectedKey}`)?.label ?? 'Operations'}
             </Typography.Title>
           </div>
           <Space size="middle">

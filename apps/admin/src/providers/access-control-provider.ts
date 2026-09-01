@@ -7,6 +7,8 @@ import {
 } from '@aisenhub/contracts';
 
 const resourceActions: Readonly<Record<string, PermissionAction>> = {
+  'applications:list': 'applications.read',
+  'applications:show': 'applications.read',
   'products:list': 'products.read',
   'products:show': 'products.read',
   'products:create': 'products.create',
@@ -15,6 +17,8 @@ const resourceActions: Readonly<Record<string, PermissionAction>> = {
   'productVersions:publish': 'product_versions.publish',
   'productVersions:retire': 'product_versions.retire',
   'productVersions:setCurrent': 'product_versions.set_current',
+  'auditLogs:list': 'audit_logs.read',
+  'auditLogs:show': 'audit_logs.read',
 };
 
 function resolveAction(resource: string | undefined, action: string): PermissionAction | null {
