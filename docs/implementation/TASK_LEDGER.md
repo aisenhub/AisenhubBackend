@@ -13,8 +13,9 @@
 | P0-T007 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 39474e4 | Added local-only fixture constants and a supported Local Auth Admin API verifier for owner/admin/support/finance/normal-user; fixed UUIDs, credential login, and repeated reset verification passed. |
 | P0-T008 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 9494727 | Contract schemas, error codes, permission actions, pagination, validation, uniqueness, and serialization tests passed. |
 | P0-T009 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | a75ef69 + 0ab1a99 | Credentialed transports, CSRF/requestId handling, malformed-response safety, Admin idempotency, tests/typechecks/builds passed; follow-up build-lock repair verified. |
-| P0-T010 | Bootstrap | pending |  |  |  |  |
-| P0-T011 | Bootstrap | pending |  |  |  |  |
+| P0-T010 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | be9373e | Added fail-fast `platform:verify`, Local start/readiness handling, reset/fixture/typegen stability checks, full current quality gate, and safe captured startup output; clean and warm runs passed. |
+| P0-T011 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 779788c | Added zero-secret CI workflow, pinned Node/pnpm install, Local gate parity, safe failure artifacts, high-confidence committed-secret scan, and boundary scan; local scans and workflow format validation passed. |
+| P0-T012 | Bootstrap | completed | 2026-09-01 | 2026-09-01 | 793fe6b | Final clean-state `platform:verify`, secret scan, Git state audit, and Phase 00 checkpoint completed; Local-only gate passed with zero cloud credentials. |
 | P0-T012 | Bootstrap | pending |  |  |  |  |
 | P1-T001 | Identity / App / Session | pending |  |  |  |  |
 | P1-T002 | Identity / App / Session | pending |  |  |  |  |
