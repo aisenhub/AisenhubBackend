@@ -1,5 +1,13 @@
 import {
   AdminCatalogListQuerySchema,
+  AdminCatalogResourceQuerySchema,
+  AdminFeatureListResponseSchema,
+  AdminFeatureSummarySchema,
+  AdminOriginListResponseSchema,
+  AdminOriginSummarySchema,
+  AdminPriceListResponseSchema,
+  AdminPriceSummarySchema,
+  AdminProductOverviewSchema,
   AdminProductListResponseSchema,
   AdminProductSummarySchema,
   AdminProductVersionListResponseSchema,
@@ -26,6 +34,10 @@ import {
   type AdminAuditLogSummary,
   type AdminEntitlementSummary,
   type AdminFeedbackSummary,
+  type AdminFeatureSummary,
+  type AdminOriginSummary,
+  type AdminPriceSummary,
+  type AdminProductOverview,
   type AdminSystemHealthResponse,
   type AdminUserSummary,
   type AdminProductSummary,
@@ -42,8 +54,11 @@ import type { AdminClient, AdminResponse } from './index';
 export const AdminResourceNames = [
   'applications',
   'users',
+  'origins',
+  'features',
   'products',
   'productVersions',
+  'prices',
   'redemptionBatches',
   'redemptionCodes',
   'redemptions',
@@ -57,8 +72,11 @@ export type AdminResourceName = (typeof AdminResourceNames)[number];
 export type AdminResourceItem = {
   applications: AdminApplicationSummary;
   users: AdminUserSummary;
+  origins: AdminOriginSummary;
+  features: AdminFeatureSummary;
   products: AdminProductSummary;
   productVersions: AdminProductVersionSummary;
+  prices: AdminPriceSummary;
   redemptionBatches: AdminRedemptionBatchSummary;
   redemptionCodes: AdminRedemptionCodeSummary;
   redemptions: AdminRedemptionSummary;
@@ -118,21 +136,42 @@ const definitions: {
     itemPath: '/v1/admin/product-versions',
     listSchema: AdminProductVersionListResponseSchema,
     itemSchema: AdminProductVersionSummarySchema,
-    querySchema: AdminCatalogListQuerySchema,
+    querySchema: AdminCatalogResourceQuerySchema,
+  },
+  origins: {
+    listPath: '/v1/admin/origins',
+    itemPath: '/v1/admin/origins',
+    listSchema: AdminOriginListResponseSchema,
+    itemSchema: AdminOriginSummarySchema,
+    querySchema: AdminCatalogResourceQuerySchema,
+  },
+  features: {
+    listPath: '/v1/admin/features',
+    itemPath: '/v1/admin/features',
+    listSchema: AdminFeatureListResponseSchema,
+    itemSchema: AdminFeatureSummarySchema,
+    querySchema: AdminCatalogResourceQuerySchema,
   },
   redemptionBatches: {
     listPath: '/v1/admin/redemption-batches',
     itemPath: '/v1/admin/redemption-batches',
     listSchema: AdminRedemptionBatchListResponseSchema,
     itemSchema: AdminRedemptionBatchSummarySchema,
-    querySchema: AdminCatalogListQuerySchema,
+    querySchema: AdminCatalogResourceQuerySchema,
   },
   redemptionCodes: {
     listPath: '/v1/admin/redemption-codes',
     itemPath: '/v1/admin/redemption-codes',
     listSchema: AdminRedemptionCodeListResponseSchema,
     itemSchema: AdminRedemptionCodeSummarySchema,
-    querySchema: AdminCatalogListQuerySchema,
+    querySchema: AdminCatalogResourceQuerySchema,
+  },
+  prices: {
+    listPath: '/v1/admin/prices',
+    itemPath: '/v1/admin/prices',
+    listSchema: AdminPriceListResponseSchema,
+    itemSchema: AdminPriceSummarySchema,
+    querySchema: AdminCatalogResourceQuerySchema,
   },
   redemptions: {
     listPath: '/v1/admin/redemptions',
@@ -196,6 +235,7 @@ export interface AisenHubAdminDataProvider {
     id: string,
   ): Promise<AdminResponse<AdminResourceItem[R]>>;
   getSystemHealth(): Promise<AdminResponse<AdminSystemHealthResponse>>;
+  getProductOverview(id: string): Promise<AdminResponse<AdminProductOverview>>;
 }
 
 export function createAdminDataProvider(client: AdminClient): AisenHubAdminDataProvider {
@@ -225,6 +265,13 @@ export function createAdminDataProvider(client: AdminClient): AisenHubAdminDataP
 
     async getSystemHealth(): Promise<AdminResponse<AdminSystemHealthResponse>> {
       return client.request('/v1/admin/system-health', AdminSystemHealthResponseSchema);
+    },
+
+    async getProductOverview(id: string): Promise<AdminResponse<AdminProductOverview>> {
+      return client.request(
+        `/v1/admin/products/${encodeResourceId(id)}/overview`,
+        AdminProductOverviewSchema,
+      );
     },
   };
 }

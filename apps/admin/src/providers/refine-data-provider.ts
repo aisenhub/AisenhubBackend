@@ -11,8 +11,11 @@ function assertResource(resource: string): AdminResourceName {
     ![
       'applications',
       'users',
+      'origins',
+      'features',
       'products',
       'productVersions',
+      'prices',
       'redemptionBatches',
       'redemptionCodes',
       'redemptions',
@@ -49,6 +52,12 @@ function queryFromRefine(params: GetListParams): Partial<AdminResourceQuery> {
         'action',
         'targetType',
         'redeemedAt',
+        'origin',
+        'environment',
+        'code',
+        'version',
+        'channel',
+        'validFrom',
       ].includes(sorter.field)
     ) {
       throw new Error(`Unsupported Admin sort field: ${sorter.field}`);

@@ -56,6 +56,60 @@ async function mockedFetch(url, init) {
       { headers: { 'content-type': 'application/json' } },
     );
   }
+  if (pathname.endsWith('/admin_query_catalog_resource')) {
+    return new Response(
+      JSON.stringify([
+        {
+          items: [
+            {
+              id: '21000000-0000-4000-8000-000000000001',
+              appId: '20000000-0000-4000-8000-000000000002',
+              appSlug: 'account',
+              environment: 'development',
+              origin: 'http://localhost:5173',
+              isActive: true,
+              createdAt: '2026-09-01T12:00:00.000Z',
+              updatedAt: '2026-09-01T12:00:00.000Z',
+            },
+          ],
+          page: { hasMore: false, nextCursor: null },
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
+  if (pathname.endsWith('/admin_product_overview')) {
+    return new Response(
+      JSON.stringify([
+        {
+          product: { id: '23000000-0000-4000-8000-000000000001', sku: 'AISENLENS_LIFETIME' },
+          versions: [],
+          prices: [],
+          featureSnapshots: [],
+          redemptionBatches: [],
+          auditLogs: [],
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
+  if (pathname.endsWith('/admin_catalog_resource_detail')) {
+    return new Response(
+      JSON.stringify([
+        {
+          id: '21000000-0000-4000-8000-000000000001',
+          appId: '20000000-0000-4000-8000-000000000002',
+          appSlug: 'account',
+          environment: 'development',
+          origin: 'http://localhost:5173',
+          isActive: true,
+          createdAt: '2026-09-01T12:00:00.000Z',
+          updatedAt: '2026-09-01T12:00:00.000Z',
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
   throw new Error(`Unexpected mocked request: ${pathname}`);
 }
 
@@ -208,5 +262,46 @@ describe('platform Admin API', () => {
     expect(health.status).toBe(200);
     expect(healthBody.data.status).toBe('healthy');
     expect(healthBody.data.checks).toHaveLength(3);
+  });
+
+  it('serves Catalog projections and Product overview through explicit Admin routes', async () => {
+    const origins = await routePlatformAdmin(
+      new Request('http://api.local/v1/admin/origins?limit=10&sort=origin&direction=asc', {
+        headers: {
+          Origin: adminOrigin,
+          'X-AisenHub-App': 'admin',
+          Cookie: '__Host-aisenhub_session=valid-admin-session',
+        },
+      }),
+    );
+    expect(origins.status).toBe(200);
+    expect((await origins.json()).data.items[0].appSlug).toBe('account');
+
+    const overview = await routePlatformAdmin(
+      new Request(
+        'http://api.local/v1/admin/products/23000000-0000-4000-8000-000000000001/overview',
+        {
+          headers: {
+            Origin: adminOrigin,
+            'X-AisenHub-App': 'admin',
+            Cookie: '__Host-aisenhub_session=valid-admin-session',
+          },
+        },
+      ),
+    );
+    expect(overview.status).toBe(200);
+    expect((await overview.json()).data.product.sku).toBe('AISENLENS_LIFETIME');
+
+    const detail = await routePlatformAdmin(
+      new Request('http://api.local/v1/admin/origins/21000000-0000-4000-8000-000000000001', {
+        headers: {
+          Origin: adminOrigin,
+          'X-AisenHub-App': 'admin',
+          Cookie: '__Host-aisenhub_session=valid-admin-session',
+        },
+      }),
+    );
+    expect(detail.status).toBe(200);
+    expect((await detail.json()).data.origin).toBe('http://localhost:5173');
   });
 });

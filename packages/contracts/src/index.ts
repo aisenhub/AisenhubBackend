@@ -12,6 +12,7 @@ export const ErrorCodes = {
   APP_ORIGIN_MISMATCH: 'APP_ORIGIN_MISMATCH',
   APP_NOT_FOUND: 'APP_NOT_FOUND',
   ADMIN_ACCESS_DENIED: 'ADMIN_ACCESS_DENIED',
+  ADMIN_RESOURCE_NOT_FOUND: 'ADMIN_RESOURCE_NOT_FOUND',
   ACCOUNT_DISABLED: 'ACCOUNT_DISABLED',
   AUTHENTICATION_REQUIRED: 'AUTHENTICATION_REQUIRED',
   CSRF_INVALID: 'CSRF_INVALID',
@@ -147,6 +148,7 @@ export type {
 
 export {
   AdminCatalogListQuerySchema,
+  AdminCatalogResourceQuerySchema,
   AdminCloseRedemptionBatchRequestSchema,
   AdminCommandMetadataSchema,
   AdminGenerateRedemptionCodesRequestSchema,
@@ -166,6 +168,14 @@ export {
   AdminRedemptionCodeSummarySchema,
   AdminRedemptionListResponseSchema,
   AdminRedemptionSummarySchema,
+  AdminFeatureListResponseSchema,
+  AdminFeatureSnapshotSchema,
+  AdminFeatureSummarySchema,
+  AdminOriginListResponseSchema,
+  AdminOriginSummarySchema,
+  AdminPriceListResponseSchema,
+  AdminPriceSummarySchema,
+  AdminProductOverviewSchema,
   AdminRetireProductVersionRequestSchema,
   AdminSetCurrentProductVersionRequestSchema,
 } from './admin-catalog';
@@ -204,6 +214,7 @@ export type {
 
 export type {
   AdminCatalogListQuery,
+  AdminCatalogResourceQuery,
   AdminCloseRedemptionBatchRequest,
   AdminCommandMetadata,
   AdminGenerateRedemptionCodesRequest,
@@ -223,6 +234,14 @@ export type {
   AdminRedemptionCodeSummary,
   AdminRedemptionListResponse,
   AdminRedemptionSummary,
+  AdminFeatureListResponse,
+  AdminFeatureSnapshot,
+  AdminFeatureSummary,
+  AdminOriginListResponse,
+  AdminOriginSummary,
+  AdminPriceListResponse,
+  AdminPriceSummary,
+  AdminProductOverview,
   AdminRetireProductVersionRequest,
   AdminSetCurrentProductVersionRequest,
 } from './admin-catalog';

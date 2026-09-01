@@ -166,6 +166,66 @@ describe('admin client transport', () => {
     );
   });
 
+  it('maps Catalog resources and Product overview to explicit backend endpoints', async () => {
+    const requestedUrls: string[] = [];
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async (input) => {
+        const url = String(input);
+        requestedUrls.push(url);
+        const payload = url.includes('/overview')
+          ? {
+              product: {
+                id: '00000000-0000-4000-8000-000000000010',
+                sku: 'AISENLENS_PRO',
+                name: 'AisenLens Pro',
+                billingType: 'one_time',
+                status: 'active',
+                currentVersion: null,
+              },
+              versions: [],
+              prices: [],
+              featureSnapshots: [],
+              redemptionBatches: [],
+              auditLogs: [],
+            }
+          : {
+              items: [
+                {
+                  id: '00000000-0000-4000-8000-000000000011',
+                  appId: '00000000-0000-4000-8000-000000000012',
+                  appSlug: 'account',
+                  environment: 'development',
+                  origin: 'http://localhost:5173',
+                  isActive: true,
+                  createdAt: '2026-09-01T12:00:00.000Z',
+                  updatedAt: '2026-09-01T12:00:00.000Z',
+                },
+              ],
+              page: { hasMore: false, nextCursor: null },
+            };
+        return new Response(JSON.stringify({ data: payload, requestId }), {
+          headers: { 'content-type': 'application/json' },
+          status: 200,
+        });
+      },
+    });
+    const provider = createAdminDataProvider(client);
+
+    await expect(
+      provider.getList('origins', { search: 'localhost', sort: 'origin' }),
+    ).resolves.toMatchObject({
+      data: { items: [{ appSlug: 'account' }] },
+    });
+    await expect(
+      provider.getProductOverview('00000000-0000-4000-8000-000000000010'),
+    ).resolves.toMatchObject({ data: { product: { sku: 'AISENLENS_PRO' } } });
+    expect(new URL(requestedUrls[0]).pathname).toBe('/v1/admin/origins');
+    expect(new URL(requestedUrls[1]).pathname).toBe(
+      '/v1/admin/products/00000000-0000-4000-8000-000000000010/overview',
+    );
+  });
+
   it('rejects malformed page metadata through the shared response contract', async () => {
     const client = createAdminClient({
       baseUrl: 'https://api.example.test',

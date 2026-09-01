@@ -40,6 +40,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_catalog_resource_detail: {
+        Args: { p_actor_id: string; p_id: string; p_resource: string }
+        Returns: Json
+      }
+      admin_product_overview: {
+        Args: { p_actor_id: string; p_product_id: string }
+        Returns: Json
+      }
+      admin_query_catalog_resource: {
+        Args: {
+          p_actor_id: string
+          p_cursor?: string
+          p_direction?: string
+          p_limit?: number
+          p_resource: string
+          p_search?: string
+          p_sort?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
       admin_query_resource: {
         Args: {
           p_actor_id: string

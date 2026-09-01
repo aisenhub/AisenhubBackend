@@ -150,16 +150,27 @@ async function adminQueryRead(request: Request, resource: string, id: string): P
   try {
     const session = await activeAdminSession(request);
     if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
-    const rows = await serviceRpc<unknown>('admin_query_resource', {
-      p_actor_id: session.user_id,
-      p_resource: resource,
-      p_cursor: parsed.cursor,
-      p_limit: parsed.limit,
-      p_search: parsed.search,
-      p_status: parsed.status,
-      p_sort: parsed.sort,
-      p_direction: parsed.direction,
-    });
+    const catalogResources = new Set([
+      'origins',
+      'features',
+      'product-versions',
+      'prices',
+      'redemption-batches',
+      'redemption-codes',
+    ]);
+    const rows = await serviceRpc<unknown>(
+      catalogResources.has(resource) ? 'admin_query_catalog_resource' : 'admin_query_resource',
+      {
+        p_actor_id: session.user_id,
+        p_resource: resource,
+        p_cursor: parsed.cursor,
+        p_limit: parsed.limit,
+        p_search: parsed.search,
+        p_status: parsed.status,
+        p_sort: parsed.sort,
+        p_direction: parsed.direction,
+      },
+    );
     if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
       return errorResponse(
         'INTERNAL_ERROR',
@@ -177,6 +188,99 @@ async function adminQueryRead(request: Request, resource: string, id: string): P
       return errorResponse('VALIDATION_ERROR', 'The Admin query is invalid.', 400, id);
     }
     return errorResponse('INTERNAL_ERROR', 'The Admin query could not be read.', 502, id);
+  }
+}
+
+async function adminProductOverviewRead(
+  request: Request,
+  productId: string,
+  id: string,
+): Promise<Response> {
+  if (request.method !== 'GET') {
+    return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+  }
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productId)
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'The Product ID is invalid.', 400, id);
+  }
+  if (!sessionCookie(request)) {
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  }
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const rows = await serviceRpc<unknown>('admin_product_overview', {
+      p_actor_id: session.user_id,
+      p_product_id: productId,
+    });
+    if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The Product overview returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    return errorResponse('INTERNAL_ERROR', 'The Product overview could not be read.', 502, id);
+  }
+}
+
+async function adminCatalogDetailRead(
+  request: Request,
+  resource: string,
+  resourceId: string,
+  id: string,
+): Promise<Response> {
+  if (request.method !== 'GET') {
+    return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+  }
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(resourceId)
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'The resource ID is invalid.', 400, id);
+  }
+  if (!sessionCookie(request)) {
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  }
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const rows = await serviceRpc<unknown>('admin_catalog_resource_detail', {
+      p_actor_id: session.user_id,
+      p_resource: resource,
+      p_id: resourceId,
+    });
+    if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The Admin resource detail returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '22023') {
+      return errorResponse('VALIDATION_ERROR', 'The Admin resource is invalid.', 400, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse(
+        'ADMIN_RESOURCE_NOT_FOUND',
+        'The Admin resource was not found.',
+        404,
+        id,
+      );
+    }
+    return errorResponse('INTERNAL_ERROR', 'The Admin resource could not be read.', 502, id);
   }
 }
 
@@ -234,8 +338,21 @@ export async function routePlatformAdmin(
   if (path === '/v1/admin/system-health') {
     return withCors(await adminSystemHealthRead(request, id), resolved);
   }
+  const productOverviewMatch = path.match(/^\/v1\/admin\/products\/([^/]+)\/overview$/);
+  if (productOverviewMatch) {
+    return withCors(await adminProductOverviewRead(request, productOverviewMatch[1], id), resolved);
+  }
+  const detailMatch = path.match(
+    /^\/v1\/admin\/(applications|origins|features|products|product-versions|prices|redemption-batches|redemption-codes|redemptions|entitlements)\/([^/]+)$/,
+  );
+  if (detailMatch) {
+    return withCors(
+      await adminCatalogDetailRead(request, detailMatch[1], detailMatch[2], id),
+      resolved,
+    );
+  }
   const queryMatch = path.match(
-    /^\/v1\/admin\/(applications|users|entitlements|redemptions|feedback|audit-logs)$/,
+    /^\/v1\/admin\/(applications|users|origins|features|products|product-versions|prices|redemption-batches|redemption-codes|entitlements|redemptions|feedback|audit-logs)$/,
   );
   if (queryMatch) {
     return withCors(await adminQueryRead(request, queryMatch[1], id), resolved);

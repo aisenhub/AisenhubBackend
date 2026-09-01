@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { IsoDateTimeSchema, UserIdSchema } from './identity';
 import { PageMetaSchema } from './pagination';
+import { AdminAuditLogSummarySchema } from './admin-operations';
 
 const UuidSchema = z.string().uuid();
 
@@ -18,6 +19,33 @@ export const AdminCatalogListQuerySchema = z
   })
   .strict();
 export type AdminCatalogListQuery = z.infer<typeof AdminCatalogListQuerySchema>;
+
+export const AdminCatalogResourceQuerySchema = z
+  .object({
+    cursor: z.string().min(1).max(512).optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(25),
+    search: z.string().min(1).max(200).optional(),
+    status: z.string().min(1).max(50).optional(),
+    sort: z
+      .enum([
+        'createdAt',
+        'updatedAt',
+        'name',
+        'sku',
+        'status',
+        'origin',
+        'environment',
+        'code',
+        'version',
+        'channel',
+        'validFrom',
+        'redeemedAt',
+      ])
+      .default('createdAt'),
+    direction: z.enum(['asc', 'desc']).default('desc'),
+  })
+  .strict();
+export type AdminCatalogResourceQuery = z.infer<typeof AdminCatalogResourceQuerySchema>;
 
 export const AdminProductSummarySchema = z
   .object({
@@ -117,6 +145,88 @@ export const AdminRedemptionListResponseSchema = z
   .object({ items: z.array(AdminRedemptionSummarySchema), page: PageMetaSchema })
   .strict();
 export type AdminRedemptionListResponse = z.infer<typeof AdminRedemptionListResponseSchema>;
+
+export const AdminOriginSummarySchema = z
+  .object({
+    id: UuidSchema,
+    appId: UuidSchema,
+    appSlug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    environment: z.enum(['development', 'staging', 'production']),
+    origin: z.string().url(),
+    isActive: z.boolean(),
+    createdAt: IsoDateTimeSchema,
+    updatedAt: IsoDateTimeSchema,
+  })
+  .strict();
+export type AdminOriginSummary = z.infer<typeof AdminOriginSummarySchema>;
+
+export const AdminOriginListResponseSchema = z
+  .object({ items: z.array(AdminOriginSummarySchema), page: PageMetaSchema })
+  .strict();
+export type AdminOriginListResponse = z.infer<typeof AdminOriginListResponseSchema>;
+
+export const AdminFeatureSummarySchema = z
+  .object({
+    id: UuidSchema,
+    appSlug: z
+      .string()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+      .nullable(),
+    code: z.string().min(1),
+    name: z.string().min(1).max(200),
+    valueType: z.enum(['boolean', 'integer', 'string', 'json']),
+    status: z.enum(['active', 'retired']),
+    mergeStrategy: z.enum(['any_true', 'sum', 'max', 'min', 'latest']),
+    createdAt: IsoDateTimeSchema,
+  })
+  .strict();
+export type AdminFeatureSummary = z.infer<typeof AdminFeatureSummarySchema>;
+
+export const AdminFeatureListResponseSchema = z
+  .object({ items: z.array(AdminFeatureSummarySchema), page: PageMetaSchema })
+  .strict();
+export type AdminFeatureListResponse = z.infer<typeof AdminFeatureListResponseSchema>;
+
+export const AdminPriceSummarySchema = z
+  .object({
+    id: UuidSchema,
+    productId: UuidSchema,
+    productSku: z.string().regex(/^[A-Z0-9][A-Z0-9_-]*$/),
+    productVersion: z.number().int().positive(),
+    currency: z.string().regex(/^[A-Z]{3}$/),
+    amountMinor: z.number().int().nonnegative(),
+    channel: z.string().min(1),
+    externalPriceId: z.string().nullable(),
+    status: z.enum(['draft', 'active', 'retired']),
+    validFrom: IsoDateTimeSchema,
+    validUntil: IsoDateTimeSchema.nullable(),
+    createdAt: IsoDateTimeSchema,
+    updatedAt: IsoDateTimeSchema,
+  })
+  .strict();
+export type AdminPriceSummary = z.infer<typeof AdminPriceSummarySchema>;
+
+export const AdminPriceListResponseSchema = z
+  .object({ items: z.array(AdminPriceSummarySchema), page: PageMetaSchema })
+  .strict();
+export type AdminPriceListResponse = z.infer<typeof AdminPriceListResponseSchema>;
+
+export const AdminFeatureSnapshotSchema = z
+  .object({ featureCode: z.string().min(1), value: z.unknown() })
+  .strict();
+export type AdminFeatureSnapshot = z.infer<typeof AdminFeatureSnapshotSchema>;
+
+export const AdminProductOverviewSchema = z
+  .object({
+    product: AdminProductSummarySchema,
+    versions: z.array(AdminProductVersionSummarySchema),
+    prices: z.array(AdminPriceSummarySchema),
+    featureSnapshots: z.array(AdminFeatureSnapshotSchema),
+    redemptionBatches: z.array(AdminRedemptionBatchSummarySchema),
+    auditLogs: z.array(AdminAuditLogSummarySchema),
+  })
+  .strict();
+export type AdminProductOverview = z.infer<typeof AdminProductOverviewSchema>;
 
 export const AdminCommandMetadataSchema = z
   .object({

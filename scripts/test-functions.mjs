@@ -66,13 +66,16 @@ if (process.argv.includes('admin-permissions')) {
   console.log(`Admin permission mapping smoke check passed for ${actions.length} actions.`);
 }
 
-if (process.argv.includes('admin-query')) {
+if (process.argv.includes('admin-query') || process.argv.includes('admin-catalog-query')) {
   const source = fs.readFileSync(adminApiSource, 'utf8');
   const migration = fs.readFileSync(adminQueryMigration, 'utf8');
   for (const required of [
     '/v1/admin/system-health',
-    'applications|users|entitlements|redemptions|feedback|audit-logs',
+    'applications|users|origins|features|products|product-versions|prices|redemption-batches|redemption-codes|entitlements|redemptions|feedback|audit-logs',
     'admin_query_resource',
+    'admin_query_catalog_resource',
+    'admin_product_overview',
+    'admin_catalog_resource_detail',
     'ServiceRpcError',
   ]) {
     if (!source.includes(required) && !migration.includes(required)) {

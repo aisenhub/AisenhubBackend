@@ -4,11 +4,16 @@ import {
   AdminRoles,
   AdminActionMatrix,
   AdminCatalogListQuerySchema,
+  AdminCatalogResourceQuerySchema,
+  AdminFeatureListResponseSchema,
   AdminApplicationListResponseSchema,
   AdminAuditLogListResponseSchema,
   AdminEntitlementListResponseSchema,
   AdminFeedbackListResponseSchema,
   AdminSystemHealthResponseSchema,
+  AdminOriginListResponseSchema,
+  AdminPriceListResponseSchema,
+  AdminProductOverviewSchema,
   AdminUserListResponseSchema,
   AdminGenerateRedemptionCodesRequestSchema,
   AdminProductListResponseSchema,
@@ -221,6 +226,30 @@ describe('platform contract primitives', () => {
         productVersionId: '00000000-0000-4000-8000-000000000002',
       }).confirmation,
     ).toBe(true);
+  });
+
+  it('validates Catalog and Product overview projections without secret fields', () => {
+    expect(AdminCatalogResourceQuerySchema.parse({ sort: 'origin' }).sort).toBe('origin');
+    expect(
+      AdminOriginListResponseSchema.parse({
+        items: [
+          {
+            id: requestId,
+            appId: requestId,
+            appSlug: 'account',
+            environment: 'development',
+            origin: 'http://localhost:5173',
+            isActive: true,
+            createdAt: '2026-09-01T12:00:00.000Z',
+            updatedAt: '2026-09-01T12:00:00.000Z',
+          },
+        ],
+        page: { hasMore: false, nextCursor: null },
+      }).items[0].origin,
+    ).toBe('http://localhost:5173');
+    expect(AdminFeatureListResponseSchema.shape.items).toBeDefined();
+    expect(AdminPriceListResponseSchema.shape.items).toBeDefined();
+    expect(() => AdminProductOverviewSchema.parse({ product: {}, versions: [] })).toThrow();
   });
 
   it('validates read-only Admin operation projections and rejects leaked fields', () => {
