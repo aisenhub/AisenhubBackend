@@ -71,20 +71,8 @@ export const ApiSuccessEnvelopeSchema = <T>(
       requestId,
     }));
 
-export const PaginationQuerySchema = z.object({
-  cursor: z.string().min(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(25),
-  search: z.string().min(1).max(200).optional(),
-});
-
-export type PaginationQuery = z.infer<typeof PaginationQuerySchema>;
-
-export const PageMetaSchema = z.object({
-  hasMore: z.boolean(),
-  nextCursor: z.string().min(1).nullable(),
-});
-
-export type PageMeta = z.infer<typeof PageMetaSchema>;
+export { PageMetaSchema, PaginationQuerySchema } from './pagination';
+export type { PageMeta, PaginationQuery } from './pagination';
 
 export const PermissionActions = [
   'applications.read',
@@ -169,3 +157,49 @@ export type {
   RedemptionRequest,
   RedemptionResponse,
 } from './catalog';
+
+export {
+  AdminCatalogListQuerySchema,
+  AdminCloseRedemptionBatchRequestSchema,
+  AdminCommandMetadataSchema,
+  AdminGenerateRedemptionCodesRequestSchema,
+  AdminGenerateRedemptionCodesResponseSchema,
+  AdminGeneratedRedemptionCodeSchema,
+  AdminPauseRedemptionBatchRequestSchema,
+  AdminProductListResponseSchema,
+  AdminProductSummarySchema,
+  AdminProductVersionCommandResponseSchema,
+  AdminProductVersionListResponseSchema,
+  AdminProductVersionSummarySchema,
+  AdminPublishProductVersionRequestSchema,
+  AdminRedemptionBatchCommandResponseSchema,
+  AdminRedemptionBatchListResponseSchema,
+  AdminRedemptionBatchSummarySchema,
+  AdminRedemptionCodeSummarySchema,
+  AdminRedemptionSummarySchema,
+  AdminRetireProductVersionRequestSchema,
+  AdminSetCurrentProductVersionRequestSchema,
+} from './admin-catalog';
+
+export type {
+  AdminCatalogListQuery,
+  AdminCloseRedemptionBatchRequest,
+  AdminCommandMetadata,
+  AdminGenerateRedemptionCodesRequest,
+  AdminGenerateRedemptionCodesResponse,
+  AdminGeneratedRedemptionCode,
+  AdminPauseRedemptionBatchRequest,
+  AdminProductListResponse,
+  AdminProductSummary,
+  AdminProductVersionCommandResponse,
+  AdminProductVersionListResponse,
+  AdminProductVersionSummary,
+  AdminPublishProductVersionRequest,
+  AdminRedemptionBatchCommandResponse,
+  AdminRedemptionBatchListResponse,
+  AdminRedemptionBatchSummary,
+  AdminRedemptionCodeSummary,
+  AdminRedemptionSummary,
+  AdminRetireProductVersionRequest,
+  AdminSetCurrentProductVersionRequest,
+} from './admin-catalog';

@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
   AdminRoles,
+  AdminCatalogListQuerySchema,
+  AdminGenerateRedemptionCodesRequestSchema,
+  AdminProductListResponseSchema,
   AdminSessionResponseSchema,
+  AdminPublishProductVersionRequestSchema,
+  AdminRedemptionCodeSummarySchema,
+  AdminSetCurrentProductVersionRequestSchema,
   AccessResponseSchema,
   ApiErrorEnvelopeSchema,
   ApiSuccessEnvelopeSchema,
@@ -159,5 +165,53 @@ describe('platform contract primitives', () => {
     expect(() =>
       PublicProductsResponseSchema.parse({ products: [{ sku: 'X', price: 1 }] }),
     ).toThrow();
+  });
+
+  it('keeps Admin catalog queries and dangerous commands explicit', () => {
+    expect(AdminCatalogListQuerySchema.parse({ search: 'lens', status: 'active' })).toMatchObject({
+      limit: 25,
+      sort: 'createdAt',
+      direction: 'desc',
+    });
+    expect(() => AdminCatalogListQuerySchema.parse({ sort: 'priceSql' })).toThrow();
+
+    const product = AdminProductListResponseSchema.parse({
+      items: [
+        {
+          id: requestId,
+          sku: 'AISENLENS_PRO',
+          name: 'AisenLens Pro',
+          billingType: 'one_time',
+          status: 'active',
+          currentVersion: {
+            id: '00000000-0000-4000-8000-000000000002',
+            version: 2,
+            status: 'published',
+          },
+        },
+      ],
+      page: { hasMore: false, nextCursor: null },
+    });
+    expect(product.items[0].currentVersion?.version).toBe(2);
+    expect(() =>
+      AdminRedemptionCodeSummarySchema.parse({
+        id: requestId,
+        batchId: requestId,
+        codeHint: 'AH-****-2345',
+        status: 'issued',
+        redeemedAt: null,
+        codeHash: 'secret',
+      }),
+    ).toThrow();
+
+    expect(() => AdminPublishProductVersionRequestSchema.parse({ confirmation: true })).toThrow();
+    expect(() => AdminGenerateRedemptionCodesRequestSchema.parse({ reason: 'test' })).toThrow();
+    expect(
+      AdminSetCurrentProductVersionRequestSchema.parse({
+        reason: 'publish replacement',
+        confirmation: true,
+        productVersionId: '00000000-0000-4000-8000-000000000002',
+      }).confirmation,
+    ).toBe(true);
   });
 });
