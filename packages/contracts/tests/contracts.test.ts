@@ -16,8 +16,11 @@ import {
   AdminFeatureListResponseSchema,
   AdminApplicationListResponseSchema,
   AdminAuditLogListResponseSchema,
+  AdminChargebackOrderRequestSchema,
   AdminEntitlementListResponseSchema,
   AdminFeedbackListResponseSchema,
+  AdminOrderOverviewSchema,
+  AdminRefundOrderItemRequestSchema,
   AdminSystemHealthResponseSchema,
   AdminUpdateApplicationRequestSchema,
   AdminUpdateProductRequestSchema,
@@ -25,6 +28,7 @@ import {
   AdminPriceListResponseSchema,
   AdminProductOverviewSchema,
   AdminUserListResponseSchema,
+  AdminVerifyOrderRequestSchema,
   AdminGenerateRedemptionCodesRequestSchema,
   AdminProductListResponseSchema,
   AdminProductionOriginCommandResponseSchema,
@@ -46,6 +50,7 @@ import {
   PermissionActionSchema,
   evaluateAdminAction,
   PublicProductsResponseSchema,
+  PaymentWebhookEventSchema,
   RedemptionRequestSchema,
   RedemptionResponseSchema,
   SessionExchangeRequestSchema,
@@ -80,6 +85,61 @@ describe('platform contract primitives', () => {
     expect(new Set(Object.values(ErrorCodes)).size).toBe(Object.values(ErrorCodes).length);
     expect(new Set(PermissionActions).size).toBe(PermissionActions.length);
     expect(new Set(AdminRoles).size).toBe(AdminRoles.length);
+  });
+
+  it('keeps Commerce contracts item-oriented and excludes raw payment data', () => {
+    expect(
+      AdminVerifyOrderRequestSchema.parse({ reason: 'verify manual payment', confirmation: true }),
+    ).toEqual({ reason: 'verify manual payment', confirmation: true });
+    expect(
+      AdminRefundOrderItemRequestSchema.parse({
+        amountMinor: 250,
+        mode: 'compensation',
+        reason: 'service credit',
+        confirmation: true,
+      }).mode,
+    ).toBe('compensation');
+    expect(
+      AdminChargebackOrderRequestSchema.parse({ reason: 'provider dispute', confirmation: true }),
+    ).toEqual({ reason: 'provider dispute', confirmation: true });
+    expect(
+      PaymentWebhookEventSchema.parse({
+        paymentId: requestId,
+        orderId: '00000000-0000-4000-8000-000000000002',
+        provider: 'manual',
+        externalEventId: 'event-1',
+        eventType: 'payment.succeeded',
+        currency: 'USD',
+        amount: 1000,
+        occurredAt: '2026-09-01T12:00:00.000Z',
+        payloadSummary: { providerStatus: 'approved' },
+      }).eventType,
+    ).toBe('payment.succeeded');
+    expect(() =>
+      AdminRefundOrderItemRequestSchema.parse({ amountMinor: 1, mode: 'return' }),
+    ).toThrow();
+    expect(() =>
+      PaymentWebhookEventSchema.parse({
+        paymentId: requestId,
+        orderId: requestId,
+        provider: 'manual',
+        externalEventId: 'event-2',
+        eventType: 'payment.succeeded',
+        currency: 'USD',
+        amount: 1000,
+        occurredAt: '2026-09-01T12:00:00.000Z',
+        payloadSummary: { nested: { token: 'not-allowed' } },
+      }),
+    ).toThrow();
+    expect(() =>
+      AdminOrderOverviewSchema.parse({
+        order: {},
+        items: [],
+        payments: [],
+        events: [],
+        rawEvent: {},
+      }),
+    ).toThrow();
   });
 
   it('preserves the success envelope serialization shape', () => {
