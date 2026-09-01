@@ -4,7 +4,7 @@ import { getAdminErrorNotification } from './error-messages';
 import { adminModules, getAdminModule } from './module-registry';
 
 describe('Admin module registry', () => {
-  it('keeps routes explicit and marks unfinished modules unavailable', () => {
+  it('keeps routes explicit and marks only unfinished modules unavailable', () => {
     expect(adminModules.map((module) => module.path)).toEqual([
       '/overview',
       '/catalog',
@@ -20,6 +20,7 @@ describe('Admin module registry', () => {
     expect(new Set(adminModules.map((module) => module.path)).size).toBe(adminModules.length);
     expect(getAdminModule('/catalog')?.action).toBe('products.read');
     expect(getAdminModule('/growth')?.available).toBe(false);
+    expect(getAdminModule('/customers')?.available).toBe(true);
     expect(getAdminModule('/not-registered')).toBeUndefined();
   });
 });

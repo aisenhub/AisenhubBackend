@@ -22,6 +22,7 @@ import { ProductCreatePage } from '../modules/catalog/pages/ProductCreatePage';
 import { ProductOverviewPage } from '../modules/catalog/pages/ProductOverviewPage';
 import { ProductVersionsPage } from '../modules/catalog/pages/ProductVersionsPage';
 import { ProductsPage } from '../modules/catalog/pages/ProductsPage';
+import { UserOverviewPage } from '../modules/operations/pages/UserOverviewPage';
 
 function ModuleUnavailablePage() {
   return (
@@ -90,6 +91,8 @@ function ProtectedContent() {
             }
           />
           <Route path="users" element={<UsersPage />} />
+          <Route path="customers" element={<UsersPage />} />
+          <Route path="customers/users/:userId" element={<UserOverviewPage />} />
           <Route
             path="redemptions"
             element={
@@ -188,7 +191,6 @@ function ProtectedContent() {
             }
           />
           <Route path="growth" element={<ModuleUnavailablePage />} />
-          <Route path="customers" element={<ModuleUnavailablePage />} />
           <Route path="platform" element={<ModuleUnavailablePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

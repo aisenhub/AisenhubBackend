@@ -1,4 +1,5 @@
 import { DateTimeDisplay, EntityStatus } from '@aisenhub/design-system';
+import { Link } from 'react-router-dom';
 import type { AdminUserSummary } from '@aisenhub/contracts';
 
 import { ResourcePage } from './ResourcePage';
@@ -13,7 +14,15 @@ export function UsersPage() {
       initialSort="createdAt"
       statusOptions={['active', 'disabled', 'deletion_pending', 'deleted']}
       columns={[
-        { dataIndex: 'displayName', key: 'displayName', sorter: true, title: 'Display name' },
+        {
+          dataIndex: 'displayName',
+          key: 'displayName',
+          sorter: true,
+          title: 'Display name',
+          render: (value: string | null, user: AdminUserSummary) => (
+            <Link to={`/customers/users/${user.id}`}>{value ?? 'Unnamed user'}</Link>
+          ),
+        },
         { dataIndex: 'id', key: 'id', title: 'User ID' },
         {
           dataIndex: 'adminRole',

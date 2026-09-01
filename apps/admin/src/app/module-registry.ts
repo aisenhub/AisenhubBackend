@@ -39,7 +39,7 @@ export const adminModules: readonly AdminModule[] = [
   },
   { key: 'systemHealth', label: 'System health', path: '/system-health', available: true },
   { key: 'growth', label: 'Growth', path: '/growth', available: false },
-  { key: 'customers', label: 'Customers', path: '/customers', available: false },
+  { key: 'customers', label: 'Customers', path: '/customers', available: true },
   { key: 'platform', label: 'Platform', path: '/platform', available: false },
 ];
 
