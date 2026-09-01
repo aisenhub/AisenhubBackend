@@ -1094,7 +1094,7 @@ P2-T013.
 
 ## P2-T013 — Add minimal Admin Query/Command contracts required by Catalog and Redemption
 
-Status: pending  
+Status: completed  
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: contracts  
@@ -1152,10 +1152,10 @@ Request/response validation, stable pagination, error/action uniqueness, sensiti
 
 ### Acceptance Criteria
 
-- [ ] Query and Command schemas are distinct.
-- [ ] No generic status PATCH contract exists.
-- [ ] All Admin P2 actions are registered.
-- [ ] Tests pass.
+- [x] Query and Command schemas are distinct.
+- [x] No generic status PATCH contract exists.
+- [x] All Admin P2 actions are registered.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -1167,7 +1167,7 @@ Do not shape backend around Refine CRUD convenience.
 
 ### Output
 
-Admin P2 contract source.
+Admin P2 contract source delivered in `ac132fb`: whitelisted catalog queries with stable pagination, dedicated product/version/redemption projections, named publish/retire/current/generate/pause/close commands, reason/confirmation requirements, server-side MFA expectation, and code-hash exclusion. Contract tests passed 8/8, with typecheck, lint, format, and boundary checks passing.
 
 ### Human Gate
 
@@ -1175,7 +1175,7 @@ None. Local Catalog/Entitlement/Redemption work is fully autonomous.
 
 ### Commit
 
-`feat(contracts): add catalog redemption admin contracts` — Task P2-T013.
+`feat(contracts): add catalog redemption admin contracts` — Task P2-T013 (`ac132fb`).
 
 ### Next
 
