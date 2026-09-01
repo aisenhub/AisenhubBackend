@@ -1,4 +1,34 @@
 import { defineConfig, devices } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
+
+function localAnonKey(): string {
+  if (process.env.VITE_SUPABASE_ANON_KEY) return process.env.VITE_SUPABASE_ANON_KEY;
+
+  const pathValue = `D:\\APP\\Base\\DockerDesktop\\resources\\bin;${process.env.Path ?? ''}`;
+  const output = execFileSync(
+    process.env.ComSpec ?? 'cmd.exe',
+    ['/d', '/s', '/c', 'pnpm exec supabase status --output env'],
+    {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      env: { ...process.env, Path: pathValue },
+      stdio: ['ignore', 'pipe', 'ignore'],
+    },
+  );
+  const match = output.match(/^ANON_KEY="?([^"\r\n]+)"?$/m);
+  if (!match) throw new Error('Local Supabase anon key is unavailable for Account E2E.');
+  return match[1];
+}
+
+const localSupabaseAnonKey = localAnonKey();
+
+const webServerEnv = {
+  ...process.env,
+  Path: `D:\\APP\\Base\\DockerDesktop\\resources\\bin;${process.env.Path ?? ''}`,
+  VITE_SUPABASE_ANON_KEY: localSupabaseAnonKey,
+  E2E_PROXY_TARGET: 'http://127.0.0.1:54321',
+  VITE_PLATFORM_API_URL: '/functions/v1/platform-api',
+};
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -7,9 +37,25 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [['list']],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:54321',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173',
     trace: 'on-first-retry',
   },
+  webServer: [
+    {
+      command: 'pnpm exec supabase functions serve platform-api --no-verify-jwt',
+      url: `http://127.0.0.1:54321/functions/v1/platform-api/v1/session?apikey=${localSupabaseAnonKey}`,
+      timeout: 120_000,
+      reuseExistingServer: !process.env.CI,
+      env: webServerEnv,
+    },
+    {
+      command: 'pnpm --dir apps/account dev --host 0.0.0.0 --port 5173',
+      url: 'http://localhost:5173',
+      timeout: 120_000,
+      reuseExistingServer: !process.env.CI,
+      env: webServerEnv,
+    },
+  ],
   projects: [
     {
       name: 'chromium',

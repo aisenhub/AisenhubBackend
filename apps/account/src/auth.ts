@@ -24,7 +24,7 @@ export class AccountAuthClient {
   constructor(options: AuthClientOptions) {
     this.supabaseUrl = options.supabaseUrl.replace(/\/$/, '');
     this.anonKey = options.anonKey;
-    this.requestFetch = options.fetchImplementation ?? globalThis.fetch;
+    this.requestFetch = options.fetchImplementation ?? globalThis.fetch.bind(globalThis);
   }
 
   get accessToken(): string | null {
