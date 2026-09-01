@@ -29,6 +29,7 @@
     "supabase:functions:serve": "supabase functions serve --no-verify-jwt",
     "supabase:typegen": "node scripts/generate-supabase-types.mjs",
     "functions:test": "node scripts/test-functions.mjs",
+    "test:redemption:concurrency": "node scripts/test-redemption-concurrency.mjs",
     "test:contract": "pnpm --filter @aisenhub/contracts test",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
