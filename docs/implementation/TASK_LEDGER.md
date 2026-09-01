@@ -32,6 +32,8 @@
 | P1-T014 | Identity / App / Session | completed | 2026-09-01 | 2026-09-01 | ea1cbe2 | Phase 01 clean-state checkpoint passed: platform:verify completed database 187, RLS 29, function 4, root 35, Contract 6, Integration 16, Playwright 4/4, stable type generation, typecheck, lint, format, build, boundary, and failure-propagation checks. |
 | P2-T001 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | a5828b0 | Features, products, product versions, exact constraints, private RLS boundary, current-version validation, published immutability, deterministic draft AisenLens seed, and 38 catalog tests passed. |
 | P2-T002 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 25b415a | Product-version feature snapshots, JSON value validation, published snapshot immutability, independent prices, amount/currency/window/status/external-ID constraints, deterministic seed, and 30 catalog tests passed. |
+| P2-T003 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | ba9613a | Backend-only publish, retire, and set-current commands with safe search paths/grants, completeness/ownership/price checks, atomic retirement, rollback, and direct-write rejection; 37 command tests passed. |
+| P2-T004 | Catalog / Entitlement / Redemption | completed | 2026-09-01 | 2026-09-01 | 25a15cb | Append-only entitlement grant history with fixed snapshot resolution, source uniqueness, ownership FKs, revoke-only lifecycle, restore linkage validation, private RLS, indexes, and 33 grant tests passed. |
 | P1-T003 | Identity / App / Session | pending |  |  |  |  |
 | P1-T004 | Identity / App / Session | pending |  |  |  |  |
 | P1-T005 | Identity / App / Session | pending |  |  |  |  |

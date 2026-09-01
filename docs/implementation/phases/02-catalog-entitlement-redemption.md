@@ -183,7 +183,7 @@ P2-T003.
 
 ## P2-T003 — Implement catalog publish, retire, and set-current domain functions
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: domain-test-first  
@@ -243,10 +243,10 @@ Allowed/forbidden transitions, missing feature/price, wrong product, repeat requ
 
 ### Acceptance Criteria
 
-- [ ] No direct status/current update path remains.
-- [ ] Published snapshots are frozen.
-- [ ] Command functions have safe search_path/grants.
-- [ ] Tests pass.
+- [x] No direct status/current update path remains.
+- [x] Published snapshots are frozen.
+- [x] Command functions have safe search_path/grants.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -258,7 +258,7 @@ Do not let Refine CRUD determine state transitions.
 
 ### Output
 
-Catalog state machine functions.
+Catalog state machine functions delivered in `ba9613a`: backend-only publish, retire, and set-current RPCs with fixed search paths, controlled trigger context, publication completeness checks, active-price checks, atomic retirement price updates, and direct-write rejection. Database tests passed 292/292; RLS, function, integration, root quality, and build checks passed.
 
 ### Human Gate
 
@@ -274,7 +274,7 @@ P2-T004 and P2-T013.
 
 ## P2-T004 — Create entitlement grant schema and immutable history constraints
 
-Status: pending  
+Status: completed
 Phase: P2 — Catalog / Entitlement / Redemption  
 Execution: AUTONOMOUS  
 Type: database-test-first  
@@ -334,10 +334,10 @@ Source uniqueness, invalid source/status/mode, delete/revive denial, restore sel
 
 ### Acceptance Criteria
 
-- [ ] Grant history cannot be deleted/revived.
-- [ ] OrderItem source is reserved for later Commerce FK validation.
-- [ ] Indexes exist.
-- [ ] Tests pass.
+- [x] Grant history cannot be deleted/revived.
+- [x] OrderItem source is reserved for later Commerce FK validation.
+- [x] Indexes exist.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -349,7 +349,7 @@ Do not add `is_pro`, role-based entitlement, balance, or usage columns.
 
 ### Output
 
-Immutable entitlement storage.
+Immutable entitlement storage delivered in `25a15cb`: append-only grant history with fixed snapshot resolution, source uniqueness, product/version ownership, revoke-only transitions, restore linkage validation, private RLS, and required lookup indexes. Database tests passed 325/325.
 
 ### Human Gate
 
