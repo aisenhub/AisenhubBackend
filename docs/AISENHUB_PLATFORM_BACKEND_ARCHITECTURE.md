@@ -676,6 +676,7 @@ entitlements.grant
 entitlements.revoke
 entitlements.restore
 orders.read
+orders.verify
 order_items.refund
 admin_members.manage
 audit_logs.read

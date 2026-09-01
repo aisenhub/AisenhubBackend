@@ -496,7 +496,7 @@ P5-T006.
 
 ## P5-T006 — Implement manual order verification Command
 
-Status: pending  
+Status: completed
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: api-security  
@@ -555,10 +555,10 @@ Roles, reason/MFA, duplicate/retry, amount mismatch, invalid state, audit/rollba
 
 ### Acceptance Criteria
 
-- [ ] Manual path cannot bypass fulfillment checks.
-- [ ] Retry is idempotent.
-- [ ] Unauthorized Admin gets 403.
-- [ ] Tests pass.
+- [x] Manual path cannot bypass fulfillment checks.
+- [x] Retry is idempotent.
+- [x] Unauthorized Admin gets 403.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -570,7 +570,20 @@ Do not mark order paid by generic status update.
 
 ### Output
 
-Manual verify Command.
+Manual verify Command at `POST /v1/admin/orders/{id}/verify`, with strict evidence contracts,
+Finance/Owner + AAL2/MFA authorization, idempotency, minimized payment-event evidence, shared
+atomic fulfillment, and linked Admin/fulfillment audit records.
+
+### Verification
+
+- Focused SQL/RLS test: `supabase/tests/0030_admin_manual_order_verify.sql` — 24/24 PASS.
+- Admin API integration: `tests/integration/admin-api.test.mjs` — 33/33 PASS.
+- Contract tests: 15/15 PASS; Admin Client transport tests: 15/15 PASS.
+- Function smoke checks: manual verification and 20-action permission matrix PASS.
+- Root unit tests: 97/97 PASS; RLS tests: 29/29 PASS.
+- Typecheck, lint, format check, workspace build, boundary check, and secret scan: PASS.
+- Full database suite: 825/834 assertions pass; the only 9 failures are the explicitly deferred
+  P5-T007/P5-T008 refund/chargeback expectations in `0029_commerce_state_spec.sql`.
 
 ### Human Gate
 
@@ -578,7 +591,7 @@ None. Use manual-channel fixtures and a Local fake provider; real commercial/pay
 
 ### Commit
 
-`feat(admin-api): add manual order verification` — Task P5-T006.
+`3624563 feat(admin-api): add manual order verification` — Task P5-T006.
 
 ### Next
 
