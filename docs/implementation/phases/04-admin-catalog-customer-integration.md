@@ -991,7 +991,7 @@ P4-T011.
 
 ## P4-T011 — Build User 360, Feedback, Entitlement, and Deletion UI
 
-Status: pending  
+Status: completed  
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: frontend  
@@ -1051,10 +1051,17 @@ Owner/Admin/Support/Finance views/actions, restore semantics, disabled session, 
 
 ### Acceptance Criteria
 
-- [ ] Role field redaction matches backend.
-- [ ] Every command shows requestId/audit.
-- [ ] No browser entitlement calculation.
-- [ ] Tests pass.
+- [x] Role field redaction matches backend.
+- [x] Every command shows requestId/audit.
+- [x] No browser entitlement calculation.
+- [x] Tests pass.
+
+### Verification
+
+- Added the `/customers` workspace and `/customers/users/{userId}` User 360 route; user rows link to the server-provided overview containing profile, entitlements, redacted feedback, redemptions, deletion status, session counts, and audit timeline.
+- Connected Grant, Revoke, Restore, Disable User, and Process Deletion to the typed Admin Business Command Client and the existing DangerousActionDialog, including AAL2/MFA, reason, confirmation, request trace, and post-command refetch.
+- Customer actions are hidden by the current Admin role and authoritative state; the UI renders entitlement status from the backend and never calculates access or edits lifecycle fields in the browser.
+- Admin tests passed 9/9; root tests 94/94; Admin typecheck/build, format, boundaries, and Impeccable detector passed.
 
 ### Failure Recovery
 
