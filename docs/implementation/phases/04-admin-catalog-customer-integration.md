@@ -103,7 +103,7 @@ P4-T002 and P4-T006.
 
 ## P4-T002 — Implement safe Catalog draft mutations
 
-Status: pending  
+Status: completed  
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: api-domain  
@@ -163,10 +163,17 @@ Allowed fields, extra/status field rejection, SKU/slug/code immutability, confli
 
 ### Acceptance Criteria
 
-- [ ] No arbitrary PATCH exists.
-- [ ] Draft editing cannot publish/set-current.
-- [ ] Errors are stable.
-- [ ] Tests pass.
+- [x] No arbitrary PATCH exists; only explicit resource commands are routed.
+- [x] Draft editing cannot publish/set-current, and production Origin creation remains reserved for its named command.
+- [x] Errors are stable, including validation, authorization, stale-version, idempotency, and not-found mappings.
+- [x] Tests pass, including database, contract, client, integration, full verification, and Playwright checks.
+
+### Verification
+
+- Explicit create/edit endpoints now cover Applications, Origins, Features, Products, draft Product Versions, and Prices; no generic table update endpoint was introduced.
+- Writable fields are allowlisted. Status, slug, SKU, code, identity, publication, and current-version transitions cannot be changed through draft mutations.
+- Timestamped updates enforce `expectedUpdatedAt` optimistic concurrency where applicable; idempotency responses are persisted atomically with authoritative audit rows.
+- Quality gates passed: database 560/560, RLS 29/29, unit 78/78, contract 14/14, integration 25/25, Playwright 12/12, typecheck, lint, format, build, boundaries, secret scan, and failure-propagation checks.
 
 ### Failure Recovery
 
@@ -186,7 +193,7 @@ None. All Local operations and E2E are autonomous; commercial values remain dete
 
 ### Commit
 
-`feat(catalog): add controlled admin draft mutations` — Task P4-T002.
+`379b641 feat(catalog): add controlled admin draft mutations` — Task P4-T002.
 
 ### Next
 
