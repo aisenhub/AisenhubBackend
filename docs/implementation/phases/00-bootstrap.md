@@ -808,7 +808,7 @@ P0-T010.
 
 ## P0-T010 — Implement one-command Local verification orchestration
 
-Status: pending  
+Status: completed  
 Phase: P0 — Autonomous Bootstrap  
 Execution: AUTONOMOUS  
 Type: automation  
@@ -896,7 +896,7 @@ P0-T011.
 
 ## P0-T011 — Add CI parity and secret/dependency scans
 
-Status: pending  
+Status: completed  
 Phase: P0 — Autonomous Bootstrap  
 Execution: AUTONOMOUS  
 Type: CI/security  
@@ -984,7 +984,7 @@ P0-T012.
 
 ## P0-T012 — Execute Bootstrap quality gate and checkpoint
 
-Status: pending  
+Status: completed  
 Phase: P0 — Autonomous Bootstrap  
 Execution: AUTONOMOUS  
 Type: quality-gate  
