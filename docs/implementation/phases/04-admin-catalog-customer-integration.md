@@ -300,7 +300,7 @@ P4-T005 and P4-T006.
 
 ## P4-T004 — Implement Redemption batch create/generate/pause/close Commands
 
-Status: completed  
+Status: completed
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: api-security  
