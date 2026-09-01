@@ -260,6 +260,52 @@ async function mockedFetch(url, init) {
       { headers: { 'content-type': 'application/json' } },
     );
   }
+  if (pathname.endsWith('/admin_customer_command')) {
+    const body = JSON.parse(init?.body ?? '{}');
+    const results = {
+      grant_entitlement: {
+        grantId: '26000000-0000-4000-8000-000000000001',
+        sourceId: '26000000-0000-4000-8000-000000000002',
+        status: 'active',
+        startsAt: '2026-09-01T12:00:00.000Z',
+        expiresAt: null,
+        auditLogId: '26000000-0000-4000-8000-000000000003',
+      },
+      revoke_entitlement: {
+        grantId: body.p_resource_id,
+        status: 'revoked',
+        revokedAt: '2026-09-01T12:00:00.000Z',
+        auditLogId: '26000000-0000-4000-8000-000000000004',
+      },
+      restore_entitlement: {
+        grantId: '26000000-0000-4000-8000-000000000005',
+        sourceId: '26000000-0000-4000-8000-000000000006',
+        status: 'active',
+        startsAt: '2026-09-01T12:00:00.000Z',
+        expiresAt: null,
+        restoredGrantId: '26000000-0000-4000-8000-000000000005',
+        restoresGrantId: body.p_resource_id,
+        auditLogId: '26000000-0000-4000-8000-000000000007',
+      },
+      disable_user: {
+        userId: body.p_resource_id,
+        status: 'disabled',
+        revokedSessionCount: 2,
+        auditLogId: '26000000-0000-4000-8000-000000000008',
+      },
+      process_account_deletion: {
+        deletionRequestId: body.p_resource_id,
+        userId: '26000000-0000-4000-8000-000000000009',
+        status: 'processing',
+        attemptCount: 1,
+        processingStartedAt: '2026-09-01T12:00:00.000Z',
+        auditLogId: '26000000-0000-4000-8000-000000000010',
+      },
+    };
+    return new Response(JSON.stringify([results[body.p_action]]), {
+      headers: { 'content-type': 'application/json' },
+    });
+  }
   throw new Error(`Unexpected mocked request: ${pathname}`);
 }
 
@@ -560,6 +606,51 @@ describe('platform Admin API', () => {
     );
     expect(response.status).toBe(200);
     expect((await response.json()).data.auditLogId).toBe('22000000-0000-4000-8000-000000000003');
+  });
+
+  it('protects Customer commands with MFA, CSRF, idempotency, and named routes', async () => {
+    const userId = '26000000-0000-4000-8000-000000000011';
+    const missingMfa = await routePlatformAdmin(
+      new Request(`http://api.local/v1/admin/users/${userId}/entitlements/grant`, {
+        method: 'POST',
+        headers: {
+          Origin: adminOrigin,
+          'X-AisenHub-App': 'admin',
+          'X-CSRF-Token': 'csrf-token',
+          'Idempotency-Key': 'customer-grant-without-mfa',
+          Cookie: '__Host-aisenhub_session=valid-admin-session',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          productVersionId: '26000000-0000-4000-8000-000000000012',
+          reason: 'support correction',
+          confirmation: true,
+        }),
+      }),
+    );
+    expect(missingMfa.status).toBe(403);
+    expect((await missingMfa.json()).error.code).toBe('MFA_REQUIRED');
+
+    adminSessionState = 'mfa-ok';
+    const response = await routePlatformAdmin(
+      new Request(`http://api.local/v1/admin/users/${userId}/disable`, {
+        method: 'POST',
+        headers: {
+          Origin: adminOrigin,
+          'X-AisenHub-App': 'admin',
+          'X-CSRF-Token': 'csrf-token',
+          'Idempotency-Key': 'customer-disable-1',
+          Cookie: '__Host-aisenhub_session=valid-admin-session',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ reason: 'security review', confirmation: true }),
+      }),
+    );
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.data.status).toBe('disabled');
+    expect(body.data.revokedSessionCount).toBe(2);
+    expect(JSON.stringify(body)).not.toMatch(/token|secret|password|stack/i);
   });
 
   it('protects Redemption batch lifecycle and keeps retries plaintext-free', async () => {

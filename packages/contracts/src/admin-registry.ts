@@ -14,6 +14,8 @@ export const PermissionActions = [
   'entitlements.grant',
   'entitlements.revoke',
   'entitlements.restore',
+  'users.disable',
+  'account_deletion.process',
   'orders.read',
   'order_items.refund',
   'admin_members.manage',

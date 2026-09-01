@@ -1,4 +1,8 @@
 import {
+  AdminDisableUserRequestSchema,
+  AdminDisabledUserCommandResponseSchema,
+  AdminGrantEntitlementRequestSchema,
+  AdminGrantedEntitlementCommandResponseSchema,
   AdminCloseRedemptionBatchRequestSchema,
   AdminChangeProductionOriginRequestSchema,
   AdminCurrentProductVersionCommandResponseSchema,
@@ -7,13 +11,23 @@ import {
   AdminGenerateRedemptionCodesRequestSchema,
   AdminGenerateRedemptionCodesResponseSchema,
   AdminPauseRedemptionBatchRequestSchema,
+  AdminProcessDeletionRequestSchema,
+  AdminProcessedDeletionCommandResponseSchema,
   AdminProductVersionCommandResponseSchema,
   AdminProductionOriginCommandResponseSchema,
   AdminPublishProductVersionRequestSchema,
   AdminRedemptionBatchCommandResponseSchema,
   AdminRetireProductVersionRequestSchema,
+  AdminRestoreEntitlementRequestSchema,
+  AdminRestoredEntitlementCommandResponseSchema,
+  AdminRevokeEntitlementRequestSchema,
+  AdminRevokedEntitlementCommandResponseSchema,
   AdminSetCurrentProductVersionRequestSchema,
   type AdminCloseRedemptionBatchRequest,
+  type AdminDisableUserRequest,
+  type AdminDisabledUserCommandResponse,
+  type AdminGrantEntitlementRequest,
+  type AdminGrantedEntitlementCommandResponse,
   type AdminChangeProductionOriginRequest,
   type AdminCurrentProductVersionCommandResponse,
   type AdminCreateRedemptionBatchRequest,
@@ -21,11 +35,17 @@ import {
   type AdminGenerateRedemptionCodesRequest,
   type AdminGenerateRedemptionCodesResponse,
   type AdminPauseRedemptionBatchRequest,
+  type AdminProcessDeletionRequest,
+  type AdminProcessedDeletionCommandResponse,
   type AdminProductVersionCommandResponse,
   type AdminProductionOriginCommandResponse,
   type AdminPublishProductVersionRequest,
   type AdminRedemptionBatchCommandResponse,
   type AdminRetireProductVersionRequest,
+  type AdminRestoreEntitlementRequest,
+  type AdminRestoredEntitlementCommandResponse,
+  type AdminRevokeEntitlementRequest,
+  type AdminRevokedEntitlementCommandResponse,
   type AdminSetCurrentProductVersionRequest,
   type ContractSchema,
 } from '@aisenhub/contracts';
@@ -89,6 +109,31 @@ export interface AisenHubBusinessCommandClient {
     input: AdminCloseRedemptionBatchRequest,
     options?: AdminCommandOptions,
   ): Promise<AdminCommandResult<AdminRedemptionBatchCommandResponse>>;
+  grantEntitlement(
+    userId: string,
+    input: AdminGrantEntitlementRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminGrantedEntitlementCommandResponse>>;
+  revokeEntitlement(
+    grantId: string,
+    input: AdminRevokeEntitlementRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminRevokedEntitlementCommandResponse>>;
+  restoreEntitlement(
+    grantId: string,
+    input: AdminRestoreEntitlementRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminRestoredEntitlementCommandResponse>>;
+  disableUser(
+    userId: string,
+    input: AdminDisableUserRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminDisabledUserCommandResponse>>;
+  processAccountDeletion(
+    requestId: string,
+    input: AdminProcessDeletionRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminProcessedDeletionCommandResponse>>;
 }
 
 function encodeCommandId(id: string): string {
@@ -251,6 +296,71 @@ export function createBusinessCommandClient(client: AdminClient): AisenHubBusine
         AdminRedemptionBatchCommandResponseSchema,
         { resource: 'redemptionBatches', id: batchId },
         ['redemptionBatches'],
+        options,
+      );
+    },
+    grantEntitlement(userId, input, options) {
+      const id = encodeCommandId(userId);
+      return runCommand(
+        client,
+        `/v1/admin/users/${id}/entitlements/grant`,
+        input,
+        AdminGrantEntitlementRequestSchema,
+        AdminGrantedEntitlementCommandResponseSchema,
+        { resource: 'entitlements', id: userId },
+        ['users', 'entitlements'],
+        options,
+      );
+    },
+    revokeEntitlement(grantId, input, options) {
+      const id = encodeCommandId(grantId);
+      return runCommand(
+        client,
+        `/v1/admin/entitlements/${id}/revoke`,
+        input,
+        AdminRevokeEntitlementRequestSchema,
+        AdminRevokedEntitlementCommandResponseSchema,
+        { resource: 'entitlements', id: grantId },
+        ['users', 'entitlements'],
+        options,
+      );
+    },
+    restoreEntitlement(grantId, input, options) {
+      const id = encodeCommandId(grantId);
+      return runCommand(
+        client,
+        `/v1/admin/entitlements/${id}/restore`,
+        input,
+        AdminRestoreEntitlementRequestSchema,
+        AdminRestoredEntitlementCommandResponseSchema,
+        (output) => ({ resource: 'entitlements', id: output.restoredGrantId }),
+        ['users', 'entitlements'],
+        options,
+      );
+    },
+    disableUser(userId, input, options) {
+      const id = encodeCommandId(userId);
+      return runCommand(
+        client,
+        `/v1/admin/users/${id}/disable`,
+        input,
+        AdminDisableUserRequestSchema,
+        AdminDisabledUserCommandResponseSchema,
+        { resource: 'users', id: userId },
+        ['users', 'entitlements'],
+        options,
+      );
+    },
+    processAccountDeletion(requestId, input, options) {
+      const id = encodeCommandId(requestId);
+      return runCommand(
+        client,
+        `/v1/admin/account-deletion-requests/${id}/process`,
+        input,
+        AdminProcessDeletionRequestSchema,
+        AdminProcessedDeletionCommandResponseSchema,
+        { resource: 'accountDeletionRequests', id: requestId },
+        ['accountDeletionRequests', 'users'],
         options,
       );
     },

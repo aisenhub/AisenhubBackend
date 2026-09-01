@@ -266,6 +266,32 @@ export type {
   AdminUserSummary,
 } from './admin-operations';
 
+export {
+  AdminDisableUserRequestSchema,
+  AdminDisabledUserCommandResponseSchema,
+  AdminGrantEntitlementRequestSchema,
+  AdminGrantedEntitlementCommandResponseSchema,
+  AdminProcessDeletionRequestSchema,
+  AdminProcessedDeletionCommandResponseSchema,
+  AdminRestoreEntitlementRequestSchema,
+  AdminRestoredEntitlementCommandResponseSchema,
+  AdminRevokeEntitlementRequestSchema,
+  AdminRevokedEntitlementCommandResponseSchema,
+} from './admin-customer-commands';
+
+export type {
+  AdminDisableUserRequest,
+  AdminDisabledUserCommandResponse,
+  AdminGrantEntitlementRequest,
+  AdminGrantedEntitlementCommandResponse,
+  AdminProcessDeletionRequest,
+  AdminProcessedDeletionCommandResponse,
+  AdminRestoreEntitlementRequest,
+  AdminRestoredEntitlementCommandResponse,
+  AdminRevokeEntitlementRequest,
+  AdminRevokedEntitlementCommandResponse,
+} from './admin-customer-commands';
+
 export type {
   AdminCatalogListQuery,
   AdminCatalogResourceQuery,

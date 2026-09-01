@@ -349,6 +349,172 @@ type CatalogCommandRoute = {
   readonly resourceId: string;
 };
 
+type CustomerCommandRoute = {
+  readonly action:
+    | 'grant_entitlement'
+    | 'revoke_entitlement'
+    | 'restore_entitlement'
+    | 'disable_user'
+    | 'process_account_deletion';
+  readonly permission: string;
+  readonly resourceId: string;
+};
+
+function customerCommandRoute(request: Request, path: string): CustomerCommandRoute | null {
+  if (request.method !== 'POST') return null;
+
+  const grant = path.match(/^\/v1\/admin\/users\/([^/]+)\/entitlements\/grant$/);
+  if (grant) {
+    return { action: 'grant_entitlement', permission: 'entitlements.grant', resourceId: grant[1] };
+  }
+
+  const entitlement = path.match(/^\/v1\/admin\/entitlements\/([^/]+)\/(revoke|restore)$/);
+  if (entitlement) {
+    const action = entitlement[2] === 'revoke' ? 'revoke_entitlement' : 'restore_entitlement';
+    return {
+      action,
+      permission: `entitlements.${entitlement[2]}`,
+      resourceId: entitlement[1],
+    };
+  }
+
+  const disable = path.match(/^\/v1\/admin\/users\/([^/]+)\/disable$/);
+  if (disable) {
+    return { action: 'disable_user', permission: 'users.disable', resourceId: disable[1] };
+  }
+
+  const processDeletion = path.match(/^\/v1\/admin\/account-deletion-requests\/([^/]+)\/process$/);
+  if (processDeletion) {
+    return {
+      action: 'process_account_deletion',
+      permission: 'account_deletion.process',
+      resourceId: processDeletion[1],
+    };
+  }
+
+  return null;
+}
+
+async function adminCustomerCommand(
+  request: Request,
+  route: CustomerCommandRoute,
+  id: string,
+): Promise<Response> {
+  const body = await parseJsonObject(request);
+  if (!body) return errorResponse('VALIDATION_ERROR', 'A JSON object body is required.', 400, id);
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      route.resourceId,
+    )
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'The Customer command target is invalid.', 400, id);
+  }
+
+  const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+  const confirmation = body.confirmation;
+  const payload = { ...body };
+  delete payload.reason;
+  delete payload.confirmation;
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  if (!idempotencyKey || idempotencyKey.length > 255 || !reason || reason.length > 1000) {
+    return errorResponse('VALIDATION_ERROR', 'A reason and Idempotency-Key are required.', 400, id);
+  }
+  if (confirmation !== true) {
+    return errorResponse('VALIDATION_ERROR', 'Explicit command confirmation is required.', 400, id);
+  }
+
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const decision = authorizeAdminAction(
+      { role: session.role, status: 'active', aal: session.aal, mfaState: session.mfa_state },
+      route.permission,
+    );
+    if (!decision.allowed) {
+      return errorResponse(
+        decision.reason === 'mfa_required' ? 'MFA_REQUIRED' : 'ADMIN_ACCESS_DENIED',
+        decision.reason === 'mfa_required'
+          ? 'MFA is required for this Customer command.'
+          : 'Admin access is denied.',
+        403,
+        id,
+      );
+    }
+
+    const requestHash = await sha256Hex(
+      JSON.stringify({
+        action: route.action,
+        resourceId: route.resourceId,
+        payload,
+        reason,
+        confirmation,
+      }),
+    );
+    const rows = await serviceRpc<unknown>('admin_customer_command', {
+      p_actor_id: session.user_id,
+      p_action: route.action,
+      p_resource_id: route.resourceId,
+      p_payload: payload,
+      p_reason: reason,
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: requestHash,
+      p_request_id: id,
+    });
+    if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The Customer command returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '40001') {
+      return errorResponse(
+        'RESOURCE_VERSION_CONFLICT',
+        'The Customer command is already in progress or the resource changed.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
+      return errorResponse(
+        'IDEMPOTENCY_KEY_REUSED',
+        'The request key was already used for another request.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse(
+        'ADMIN_RESOURCE_NOT_FOUND',
+        'The Customer resource was not found.',
+        404,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && ['23505', '23514'].includes(error.databaseCode ?? '')) {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The Customer state transition is invalid.',
+        409,
+        id,
+      );
+    }
+    if (
+      error instanceof ServiceRpcError &&
+      ['22023', '22P02', '23503'].includes(error.databaseCode ?? '')
+    ) {
+      return errorResponse('VALIDATION_ERROR', 'The Customer command is invalid.', 400, id);
+    }
+    return errorResponse('INTERNAL_ERROR', 'The Customer command could not be completed.', 502, id);
+  }
+}
+
 type RedemptionCommandRoute = {
   readonly action:
     | 'create_redemption_batch'
@@ -970,6 +1136,12 @@ export async function routePlatformAdmin(
     const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
     if (preconditionFailure) return withCors(preconditionFailure, resolved);
     return withCors(await adminRedemptionCommand(request, redemptionRoute, id), resolved);
+  }
+  const customerRoute = customerCommandRoute(request, path);
+  if (customerRoute) {
+    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
+    if (preconditionFailure) return withCors(preconditionFailure, resolved);
+    return withCors(await adminCustomerCommand(request, customerRoute, id), resolved);
   }
   const commandRoute = catalogCommandRoute(request, path);
   if (commandRoute) {

@@ -576,6 +576,76 @@ describe('admin client transport', () => {
     ]);
   });
 
+  it('maps Customer commands to typed named routes and invalidation metadata', async () => {
+    const userId = '00000000-0000-4000-8000-000000000031';
+    const grantId = '00000000-0000-4000-8000-000000000032';
+    const paths: string[] = [];
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async (input) => {
+        const url = new URL(String(input));
+        paths.push(url.pathname);
+        const data = url.pathname.endsWith('/grant')
+          ? {
+              grantId,
+              sourceId: '00000000-0000-4000-8000-000000000033',
+              status: 'active',
+              startsAt: '2026-09-01T12:00:00.000Z',
+              expiresAt: null,
+              auditLogId: '00000000-0000-4000-8000-000000000034',
+            }
+          : url.pathname.endsWith('/restore')
+            ? {
+                grantId: '00000000-0000-4000-8000-000000000035',
+                sourceId: '00000000-0000-4000-8000-000000000036',
+                status: 'active',
+                startsAt: '2026-09-01T12:00:00.000Z',
+                expiresAt: null,
+                restoredGrantId: '00000000-0000-4000-8000-000000000035',
+                restoresGrantId: grantId,
+                auditLogId: '00000000-0000-4000-8000-000000000037',
+              }
+            : {
+                userId,
+                status: 'disabled',
+                revokedSessionCount: 2,
+                auditLogId: '00000000-0000-4000-8000-000000000038',
+              };
+        return new Response(JSON.stringify({ data, requestId }), {
+          headers: { 'content-type': 'application/json' },
+          status: 200,
+        });
+      },
+    });
+    const commands = createBusinessCommandClient(client);
+
+    const granted = await commands.grantEntitlement(userId, {
+      productVersionId: '00000000-0000-4000-8000-000000000039',
+      reason: 'support grant',
+      confirmation: true,
+    });
+    const restored = await commands.restoreEntitlement(grantId, {
+      reason: 'restore entitlement',
+      confirmation: true,
+    });
+    const disabled = await commands.disableUser(userId, {
+      reason: 'disable account',
+      confirmation: true,
+    });
+
+    expect(granted.data.sourceId).toBe('00000000-0000-4000-8000-000000000033');
+    expect(restored.command.entity).toEqual({
+      resource: 'entitlements',
+      id: '00000000-0000-4000-8000-000000000035',
+    });
+    expect(disabled.data.revokedSessionCount).toBe(2);
+    expect(paths).toEqual([
+      `/v1/admin/users/${userId}/entitlements/grant`,
+      `/v1/admin/entitlements/${grantId}/restore`,
+      `/v1/admin/users/${userId}/disable`,
+    ]);
+  });
+
   it('rejects missing command reason before transport and refuses non-UUID targets', async () => {
     let called = false;
     const client = createAdminClient({

@@ -57,6 +57,12 @@
       "reasonRoles": ["support"]
     },
     "entitlements.restore": { "roles": ["owner", "admin"], "requiresMfa": true, "reasonRoles": [] },
+    "users.disable": { "roles": ["owner", "admin"], "requiresMfa": true, "reasonRoles": [] },
+    "account_deletion.process": {
+      "roles": ["owner", "admin"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
     "orders.read": {
       "roles": ["owner", "admin", "support", "finance"],
       "requiresMfa": false,
