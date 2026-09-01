@@ -29,6 +29,27 @@ async function rpcResponse(url, init) {
       headers: { 'content-type': 'application/json' },
     });
   }
+  if (pathname.endsWith('/get_platform_session')) {
+    return new Response(
+      JSON.stringify([
+        {
+          session_id: '00000000-0000-4000-8000-000000000010',
+          user_id: '00000000-0000-4000-8000-000000000001',
+          expires_at: '2026-10-01T00:00:00.000Z',
+          display_name: 'Account User',
+          avatar_url: null,
+          locale: 'en-US',
+          profile_status: 'active',
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
+  if (pathname.endsWith('/rotate_platform_csrf')) {
+    return new Response(JSON.stringify([{ issued: true }]), {
+      headers: { 'content-type': 'application/json' },
+    });
+  }
   throw new Error(`Unexpected mocked RPC: ${pathname}`);
 }
 
@@ -108,6 +129,23 @@ describe('platform API Origin and CORS handler', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get('access-control-allow-origin')).toBeNull();
+  });
+
+  it('bootstraps a fresh CSRF token without exposing its digest', async () => {
+    const response = await routePlatformApi(
+      new Request('http://api.local/v1/session', {
+        headers: {
+          Origin: registeredOrigin,
+          Cookie: '__Host-aisenhub_session=session-token',
+        },
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.authenticated).toBe(true);
+    expect(typeof body.data.csrfToken).toBe('string');
+    expect(body.data).not.toHaveProperty('csrfHash');
   });
 
   it('rejects mutations without a session-bound CSRF token', async () => {
