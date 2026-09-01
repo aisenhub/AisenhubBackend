@@ -64,6 +64,17 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_admin_session: {
+        Args: { p_token_hash: string }
+        Returns: {
+          aal: string
+          display_name: string
+          expires_at: string
+          mfa_state: string
+          role: string
+          user_id: string
+        }[]
+      }
       get_platform_session: {
         Args: { p_token_hash: string }
         Returns: {

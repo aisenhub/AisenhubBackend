@@ -21,12 +21,15 @@ function localAnonKey(): string {
 }
 
 const localSupabaseAnonKey = localAnonKey();
+const accountBaseUrl = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173';
+const accountPort = new URL(accountBaseUrl).port || '5173';
 
 const webServerEnv = {
   ...process.env,
   Path: `D:\\APP\\Base\\DockerDesktop\\resources\\bin;${process.env.Path ?? ''}`,
   VITE_SUPABASE_ANON_KEY: localSupabaseAnonKey,
   E2E_PROXY_TARGET: 'http://127.0.0.1:54321',
+  E2E_PROXY_ORIGIN: 'http://localhost:5173',
   VITE_PLATFORM_API_URL: '/functions/v1/platform-api',
 };
 
@@ -37,7 +40,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [['list']],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173',
+    baseURL: accountBaseUrl,
     trace: 'on-first-retry',
   },
   webServer: [
@@ -45,12 +48,12 @@ export default defineConfig({
       command: 'pnpm exec supabase functions serve platform-api --no-verify-jwt',
       url: `http://127.0.0.1:54321/functions/v1/platform-api/v1/session?apikey=${localSupabaseAnonKey}`,
       timeout: 120_000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       env: webServerEnv,
     },
     {
-      command: 'pnpm --dir apps/account dev --host 0.0.0.0 --port 5173',
-      url: 'http://localhost:5173',
+      command: `pnpm --dir apps/account dev --host 0.0.0.0 --port ${accountPort}`,
+      url: accountBaseUrl,
       timeout: 120_000,
       reuseExistingServer: !process.env.CI,
       env: webServerEnv,

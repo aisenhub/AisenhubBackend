@@ -1,3 +1,4 @@
+import { routePlatformAdmin } from '../_shared/admin-api.ts';
 import { healthResponse } from '../_shared/health.ts';
 
-Deno.serve(() => healthResponse('platform-admin'));
+Deno.serve((request) => routePlatformAdmin(request, healthResponse));

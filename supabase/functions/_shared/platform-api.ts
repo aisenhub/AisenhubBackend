@@ -48,11 +48,11 @@ const writeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const apiUrl = () => Deno.env.get('SUPABASE_URL') ?? 'http://127.0.0.1:54321';
 const anonKey = () => Deno.env.get('SUPABASE_ANON_KEY');
 
-function requestId(): string {
+export function requestId(): string {
   return crypto.randomUUID();
 }
 
-function jsonResponse(
+export function jsonResponse(
   data: unknown,
   status: number,
   id: string,
@@ -68,7 +68,7 @@ function jsonResponse(
   });
 }
 
-function errorResponse(code: string, message: string, status: number, id: string): Response {
+export function errorResponse(code: string, message: string, status: number, id: string): Response {
   return new Response(
     JSON.stringify({
       error: {
@@ -94,7 +94,7 @@ function bearerToken(request: Request): string | null {
   return token === '' ? null : token;
 }
 
-function sessionCookie(request: Request): string | null {
+export function sessionCookie(request: Request): string | null {
   const cookieHeader = request.headers.get('cookie');
   if (!cookieHeader) return null;
 
@@ -119,7 +119,7 @@ function isResolvedOrigin(value: unknown): value is ResolvedOriginRow {
   );
 }
 
-async function resolveOrigin(
+export async function resolveOrigin(
   request: Request,
   id: string,
 ): Promise<ResolvedOrigin | Response | null> {
@@ -157,7 +157,7 @@ async function resolveOrigin(
   }
 }
 
-function withCors(response: Response, resolved: ResolvedOrigin | null): Response {
+export function withCors(response: Response, resolved: ResolvedOrigin | null): Response {
   if (!resolved) return response;
 
   const headers = new Headers(response.headers);
@@ -176,7 +176,11 @@ function withCors(response: Response, resolved: ResolvedOrigin | null): Response
   });
 }
 
-function preflightResponse(request: Request, id: string, resolved: ResolvedOrigin): Response {
+export function preflightResponse(
+  request: Request,
+  id: string,
+  resolved: ResolvedOrigin,
+): Response {
   const requestedMethod = request.headers.get('access-control-request-method');
   if (requestedMethod && !allowedCorsMethods.has(requestedMethod.toUpperCase())) {
     return withCors(
@@ -214,13 +218,17 @@ function preflightResponse(request: Request, id: string, resolved: ResolvedOrigi
   );
 }
 
-function apiPath(request: Request): string {
+export function apiPath(request: Request): string {
   const pathname = new URL(request.url).pathname;
-  const marker = pathname.indexOf('/v1/');
+  const marker = pathname.lastIndexOf('/v1/');
   return marker >= 0 ? pathname.slice(marker) : pathname;
 }
 
-async function rpc<T>(name: string, body: Record<string, unknown>, token?: string): Promise<T[]> {
+export async function rpc<T>(
+  name: string,
+  body: Record<string, unknown>,
+  token?: string,
+): Promise<T[]> {
   const key = anonKey();
   if (!key) throw new Error('Supabase anon key is not configured.');
 
@@ -253,7 +261,7 @@ function randomToken(): string {
     .replace(/=+$/, '');
 }
 
-async function sha256Hex(value: string): Promise<string> {
+export async function sha256Hex(value: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
