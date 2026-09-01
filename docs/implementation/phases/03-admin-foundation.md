@@ -488,7 +488,7 @@ P3-T006.
 
 ## P3-T006 — Implement Refine Auth and Access Control Providers
 
-Status: pending  
+Status: completed
 Phase: P3 — Admin Foundation  
 Execution: AUTONOMOUS  
 Type: frontend-security  
@@ -550,10 +550,10 @@ Valid/expired/non-admin/disabled/MFA sessions, role cells, unknown action, manip
 
 ### Acceptance Criteria
 
-- [ ] No Admin password/JWT persistence.
-- [ ] UI permissions match matrix.
-- [ ] Direct forbidden API still returns 403.
-- [ ] Tests pass.
+- [x] No Admin password/JWT persistence.
+- [x] UI permissions match matrix.
+- [x] Direct forbidden API still returns 403.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -565,7 +565,15 @@ Do not treat provider result as server authorization.
 
 ### Output
 
-Refine Auth/Access providers.
+Refine Auth and Access Control providers are delivered in `apps/admin/src/providers/`.
+The Auth Provider redirects login to Account, checks the Backend Admin Session, keeps
+session identity/AAL/CSRF state in memory, clears state on logout/auth errors, and never
+persists an Admin password or JWT. The Access Control Provider evaluates the shared fixed
+17-action matrix with default-deny behavior for unknown actions and MFA-required actions.
+The Refine data-provider adapter keeps catalog reads explicit and rejects generic CRUD
+mutations in favor of typed Business Commands. Provider tests passed 3/3; root tests passed
+63/63; Admin typecheck/build, lint, format, and boundary checks passed. Existing Backend
+Admin Session and forbidden-action tests retain server-authoritative 403 coverage.
 
 ### Human Gate
 

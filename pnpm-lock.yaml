@@ -69,6 +69,12 @@ importers:
 
   apps/admin:
     dependencies:
+      '@aisenhub/admin-client':
+        specifier: workspace:*
+        version: link:../../packages/admin-client
+      '@aisenhub/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@refinedev/antd':
         specifier: 6.0.3
         version: 6.0.3(@refinedev/core@5.0.12(@tanstack/react-query@5.102.8(react@19.2.8))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(antd@6.6.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(dayjs@1.11.23)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -100,6 +106,9 @@ importers:
       vite:
         specifier: 8.2.2
         version: 8.2.2(@types/node@24.10.1)
+      vitest:
+        specifier: 4.1.11
+        version: 4.1.11(@types/node@24.10.1)(vite@8.2.2(@types/node@24.10.1))
 
   packages/admin-client:
     dependencies:

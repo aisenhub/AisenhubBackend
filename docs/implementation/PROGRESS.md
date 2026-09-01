@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P3 — Admin Foundation
-Current Task: P3-T006 — Implement Refine Auth and Access Control Providers
-Overall Progress: 47 / 107 tasks completed
-Last Successful Quality Gate: P3-T005 Admin Business Command Client — PASS
+Current Task: P3-T007 — Build Ant Design theme and reusable Admin domain primitives
+Overall Progress: 48 / 107 tasks completed
+Last Successful Quality Gate: P3-T006 Refine Auth and Access Control Providers — PASS
 
 ## Phase Progress
 
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P3-T005 Admin Business Command Client — PASS
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Implement the Refine Auth and Access Control Providers.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T005 completed. Remote repository synchronization is complete to `origin/main`.
+Goal: Build the Ant Design theme and reusable Admin domain primitives.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T006 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -81,6 +81,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P3-T003 fixed Admin Action matrix: PASS — one JSON matrix covers all 17 approved Actions and four roles; contracts and Backend adapter deny unknown actions, unknown roles, inactive members, insufficient AAL2/MFA, Support restore, and Finance publish; Support grant/revoke requires reason plus MFA. Contract tests 11/11, Admin permission smoke 17/17, function runtime load, root tests 54/54, typecheck, lint, format, and boundary checks passed.
 - P3-T004 Admin Resource Data Provider: PASS — explicit five-resource mapping to `/v1/admin/*`, server query serialization, response/page validation, UUID-only item paths, stable transport error handling, arbitrary-resource rejection, Admin-client tests 5/5, typecheck, and boundaries passed; no generic table or Supabase mapping exists.
 - P3-T005 Admin Business Command Client: PASS — six typed catalog/redemption commands validate reason/confirmation and outputs, generate and reuse logical idempotency keys across safe transport retries, preserve requestId, map stable MFA/state/reason errors, and return entity/cache invalidation metadata; Admin-client tests 8/8, root tests 60/60, typecheck, lint, format, build, boundaries, and secret scan passed.
+- P3-T006 Admin Refine Auth and Access Control Providers: PASS — Account redirect, Backend Admin Session check, in-memory identity/AAL/CSRF state, logout/error handling, explicit Refine resource adapter, fixed-matrix access control with default deny, and no credential persistence; provider tests 3/3, root tests 63/63, Admin typecheck/build, lint, format, and boundaries passed. Existing Backend forbidden-action coverage retains server-authoritative 403 behavior.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -99,12 +100,12 @@ None.
 
 ## Next Tasks
 
-1. P3-T006 — Implement Refine Auth and Access Control Providers.
-2. P3-T007 — Build Ant Design theme and reusable Admin domain primitives.
+1. P3-T007 — Build Ant Design theme and reusable Admin domain primitives.
+2. P3-T008 — Build Admin application/product catalog pages.
 
 ## Recent Commits
 
-- `8047411` — feat(admin-client): add command transport foundation
+- `94c05cc` — feat(admin-client): add command transport foundation
 - `e1995e2` — feat(admin-client): add resource data provider
 - `dd8cf73` — feat(authz): define admin action matrix
 - `b1ecbdb` — chore(admin): finalize refine antd workspace

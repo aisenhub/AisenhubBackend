@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ErrorBoundary } from './ErrorBoundary';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { OverviewPage } from '../modules/overview/OverviewPage';
+import { adminRuntime } from '../providers/admin-runtime';
 import { AdminProviders } from '../providers/AdminProviders';
 
 export function AdminApp() {
@@ -11,7 +12,12 @@ export function AdminApp() {
     <ErrorBoundary>
       <AdminProviders>
         <BrowserRouter>
-          <Refine options={{ syncWithLocation: true }}>
+          <Refine
+            authProvider={adminRuntime.authProvider}
+            accessControlProvider={adminRuntime.accessControlProvider}
+            dataProvider={adminRuntime.refineDataProvider}
+            options={{ syncWithLocation: true }}
+          >
             <AdminLayout>
               <OverviewPage />
             </AdminLayout>
