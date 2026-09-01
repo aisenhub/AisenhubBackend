@@ -695,7 +695,7 @@ P4-T008.
 
 ## P4-T008 — Create account deletion request schema and recoverable workflow foundation
 
-Status: pending  
+Status: completed  
 Phase: P4 — Admin Catalog / Customer + Product Integration  
 Execution: AUTONOMOUS  
 Type: database-api-test-first  
@@ -757,10 +757,17 @@ Duplicate request, auth/re-auth, cancel states, session revocation, failed retry
 
 ### Acceptance Criteria
 
-- [ ] State machine matches architecture.
-- [ ] Cross-system step is retryable.
-- [ ] No all-table hard delete exists.
-- [ ] Tests pass.
+- [x] State machine matches architecture.
+- [x] Cross-system step is retryable.
+- [x] No all-table hard delete exists.
+- [x] Tests pass.
+
+### Verification
+
+- Added the private `account_deletion_requests` state machine with one-open-request enforcement, safe retry metadata, row-locked worker claim, and worker-owned stable failure recording.
+- Added reauthenticated user create/cancel API commands with idempotent create replay; request creation atomically revokes Platform Sessions and moves the Profile to `deletion_pending`, while cancellation never restores sessions or entitlements.
+- Added strict contracts, platform-client methods, API error mapping, Supabase type generation, and integration coverage for fresh Auth tokens, revoked-session cancellation, malformed input, and server-owned state.
+- Database/RLS tests: 642/642; root tests: 90/90; integration tests: 30/30; function shell, typecheck, build, lint, format, boundaries, and secret scan passed.
 
 ### Failure Recovery
 
@@ -780,7 +787,7 @@ None. All Local operations and E2E are autonomous; commercial values remain dete
 
 ### Commit
 
-`feat(identity): add recoverable account deletion workflow` — Task P4-T008.
+`f142a7a feat(identity): add recoverable account deletion workflow` — Task P4-T008.
 
 ### Next
 

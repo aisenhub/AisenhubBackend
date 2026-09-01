@@ -7,9 +7,9 @@ Last Updated: 2026-09-01
 Status: IN_PROGRESS
 
 Current Phase: P4 — Admin Catalog / Customer + Integration
-Current Task: P4-T008
-Overall Progress: 60 / 107 tasks completed
-Last Successful Quality Gate: P4-T007 Redemption Operations — PASS
+Current Task: P4-T009
+Overall Progress: 61 / 107 tasks completed
+Last Successful Quality Gate: P4-T008 Account Deletion Workflow Foundation — PASS
 
 ## Phase Progress
 
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P4-T007 Redemption Operations — PASS
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Build Customer list/detail and User 360.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T011 completed; P4-T001 through P4-T007 completed. Remote repository synchronization is complete to `origin/main`.
+Goal: Implement User 360 and Customer Resource Queries.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, and P3-T001 through P3-T011 completed; P4-T001 through P4-T008 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -94,6 +94,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P4-T005 Dangerous Action Workflow: PASS — reusable Ant Design DangerousActionDialog, MFA requirement, request/audit trace, and generic command hook; explicit safety metadata, no default reason, no direct API call, double-submit prevention, idempotency-preserving retry, safe error mapping, Admin tests 7/7, root tests 84/84, typecheck, build, formatting, and Impeccable detector passed; commit `f525b75`.
 - P4-T006 Catalog Operations and Product 360: PASS — explicit Products, Product Versions, Prices, Origins, Features, Product draft creation, and Product 360 routes; Refine/Ant URL state, backend aggregate overview, immutable published views, read-only status semantics, permission guards, Admin tests 7/7, root tests 84/84, typecheck, build, lint, format, boundaries, secret scan, and Impeccable detector passed; commit `fe53000`.
 - P4-T007 Redemption Operations: PASS — server-driven Redemption batch/code/receipt pages, Generate/Pause/Close commands, one-time in-memory download with object URL revocation, no plaintext persistence, Support query-only UI, Finance denial, Admin tests 9/9, root tests 86/86, typecheck, build, lint, format, secret scan, and Impeccable detector passed; commit `41ccf5c`.
+- P4-T008 Account Deletion Workflow Foundation: PASS — recoverable `account_deletion_requests` state machine, one-open-request constraint, reauthenticated user create/cancel API, idempotent create replay, immediate session revocation/profile freeze, row-locked retry claim/failure interface, database/RLS 642/642, root 90/90, integration 30/30, function shell, type generation, typecheck, build, lint, format, boundaries, and secret scan passed; commit `f142a7a`.
 - P0-T008 contracts: PASS — runtime schemas, stable error codes, pagination, permission actions, roles, uniqueness tests, invalid-input tests, serialization test, typecheck, build, and boundary check passed.
 - P0-T009 clients: PASS — credentialed transport, in-memory CSRF injection, requestId capture, stable error mapping, malformed-response rejection, Admin idempotency helper, package tests/typechecks/builds, and boundary checks passed.
 - Bootstrap quality checks: PASS — frozen install, format, lint, root/workspace typecheck, root/package tests, workspace builds, boundaries, and function smoke checks all exit 0.
@@ -112,7 +113,7 @@ None.
 
 ## Next Tasks
 
-1. P4-T008 — Build Customer list/detail and User 360.
+1. P4-T009 — Implement User 360 and Customer Resource Queries.
 
 ## Recent Commits
 
@@ -122,6 +123,7 @@ None.
 - `f525b75` — feat(admin): add dangerous action workflow
 - `fe53000` — feat(admin): add catalog operations and product overview
 - `41ccf5c` — feat(admin): add redemption operations
+- `f142a7a` — feat(identity): add recoverable account deletion workflow
 - `ededfb3` — docs(implementation): complete P4-T001 catalog queries
 - `f4ac227` — feat(admin-api): add catalog redemption queries
 - `94c05cc` — feat(admin-client): add command transport foundation
