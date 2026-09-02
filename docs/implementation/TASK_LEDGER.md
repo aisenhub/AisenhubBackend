@@ -91,7 +91,7 @@
 | P6-T005 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | 6d84e59 | Resource-scoped structured saved filters, explicit Refine React Router URL-state adapter, deep-link/history coverage, Admin tests 12/12, FILTERS E2E 1/1, operations E2E 7/7, root 127/127, integration 58/58, contracts 15/15, Admin Client 17/17, and full quality gates passed. |
 | P6-T006 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | f5cce39 | Accessible in-place list retry with preserved input, bounded query retry, independent overview/health recovery, lazy-loaded Admin routes, keyboard A11Y flow, RESILIENCE recovery flow, Admin operations E2E 9/9, and full quality gates passed. |
 | P6-T007 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | 8020a34 | Security/boundary audit, Admin asset and source scans, privileged SQL search_path/grant checks, DB 1014/1014, RLS 29/29, integration 58/58, security report, corrected E2E discovery orchestration, and complete Local verification passed. |
-| P6-T008 | Operations Hardening | pending |  |  |  |  |
+| P6-T008 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | ecf8393 | Deterministic release-candidate orchestrator, full normal-user Account/Catalog/Entitlement/Redemption/Feedback/Deletion journey, Owner User 360/Audit proof, and Commerce resilience integration 2/2 passed headlessly. |
 | P6-T009 | Operations Hardening | pending |  |  |  |  |
 | P6-T010 | Operations Hardening | pending |  |  |  |  |
 | P7-T001 | Staging | pending |  |  |  |  |

@@ -727,7 +727,7 @@ P6-T008.
 
 ## P6-T008 — Run complete release-candidate E2E journey
 
-Status: pending  
+Status: completed
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: e2e  
@@ -787,10 +787,10 @@ Full architecture user/Admin/Commerce/security journey.
 
 ### Acceptance Criteria
 
-- [ ] All journeys pass headlessly.
-- [ ] No test order dependency remains.
-- [ ] Audit trace is complete.
-- [ ] Artifacts are safe.
+- [x] All journeys pass headlessly.
+- [x] No test order dependency remains.
+- [x] Audit trace is complete.
+- [x] Artifacts are safe.
 
 ### Failure Recovery
 
@@ -802,7 +802,12 @@ Do not substitute manual UX review for E2E.
 
 ### Output
 
-Local release-candidate proof.
+Local release-candidate proof is recorded in
+`docs/implementation/reports/P6-T008-release-candidate.md`. The repeatable
+`pnpm test:e2e:release` orchestrator resets Local once, verifies deterministic
+fixtures, runs the named browser journey on isolated ports, and executes the
+focused Commerce resilience integration suite. Browser 1/1 and Commerce 2/2
+passed.
 
 ### Human Gate
 
@@ -810,7 +815,8 @@ None. Local hardening and optional visual review never block autonomous executio
 
 ### Commit
 
-`test(e2e): add platform release candidate journey` — Task P6-T008.
+`test(e2e): add platform release candidate journey` — Task P6-T008. Implementation
+commit: `ecf8393`.
 
 ### Next
 
