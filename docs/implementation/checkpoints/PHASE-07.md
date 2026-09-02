@@ -44,7 +44,8 @@ P7-T001 through P7-T009 are complete.
   API recovers after a simulated rejected deployment boundary.
 - Local payment webhook integration: 5/5; Edge Function shell: 6/6;
   typecheck, lint, format check, and documentation check: PASS.
-- Final release bundle is traceable to Git commit `f55ebb1`.
+- Final release bundle was rebuilt and checksum-verified from the final
+  Staging source commits; its manifest records the exact Git SHA.
 
 ## Known Limitations and Deferred Items
 

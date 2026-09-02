@@ -102,7 +102,7 @@
 | P7-T006 | Staging | completed | 2026-09-02 | 2026-09-02 | 18eb3e9 | Account and Admin Vercel provider URLs return HTTP 200, deployed frontend configuration points to Staging, and the reproducible release bundle rebuilt successfully from the pinned Git SHA. |
 | P7-T007 | Staging | completed | 2026-09-02 | 2026-09-02 | 18eb3e9 | Exact Account/Admin Origin allowlists, credentialed preflight, anonymous session, public API, rejected Origin, Platform Session exchange, and Admin Session role checks pass. Report `docs/implementation/reports/P7-T007-staging-browser-security.md`. |
 | P7-T008 | Staging | completed | 2026-09-02 | 2026-09-02 | 219fa64 + f55ebb1 | Remote smoke, temporary-fixture Auth/Platform Session/Admin role matrix, normal-user denial, requestId-to-Audit correlation, artifact checksum verification, and non-destructive recovery drill pass. Report `docs/implementation/reports/P7-T008-staging-smoke-recovery.md`. |
-| P7-T009 | Staging | completed | 2026-09-02 | 2026-09-02 | pending-commit | Final preflight, smoke, E2E, observability, recovery, artifact-to-Git trace, documentation check, and clean Production boundary review pass; PHASE-07 checkpoint created with Architecture Deviations: None. |
+| P7-T009 | Staging | completed | 2026-09-02 | 2026-09-02 | fd28b34 | Final preflight, smoke, E2E, observability, recovery, artifact-to-Git trace, documentation check, and clean Production boundary review pass; PHASE-07 checkpoint created with Architecture Deviations: None. |
 | P8-T001 | Production Readiness | pending |  |  |  |  |
 | P8-T002 | Production Readiness | pending |  |  |  |  |
 | P8-T003 | Production Readiness | pending |  |  |  |  |
