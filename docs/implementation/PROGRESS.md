@@ -7,9 +7,9 @@ Last Updated: 2026-09-02
 Status: IN_PROGRESS
 
 Current Phase: P6 — Operations Hardening
-Current Task: P6-T004 — Finalize System Health and actionable Admin dashboard
-Overall Progress: 83 / 107 tasks completed
-Last Successful Quality Gate: P6-T003 request context, metrics, and safe structured logging — PASS
+Current Task: P6-T005 — Implement structured saved filters and URL-state conventions
+Overall Progress: 84 / 107 tasks completed
+Last Successful Quality Gate: P6-T004 System Health and actionable Admin dashboard — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P6-T003 request context, metrics, and safe structu
 
 Status: IN_PROGRESS
 Goal: Continue Operations Hardening implementation at the earliest incomplete task.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001 through P6-T003 completed. Remote repository synchronization is complete to `origin/main`.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001 through P6-T004 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -53,6 +53,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P6-T001 retryable account deletion and anonymization worker: PASS — service-only worker anonymizes and bans Auth before a retry-safe database completion transaction; active Grants are revoked, sessions removed, Profile/Feedback de-identified, Orders detached while customer references remain, audit IP hashes scrubbed through a controlled path, and completion is idempotent. Database 969/969, worker integration 3/3, full integration 47/47, function smoke 5/5, typecheck, lint, format, boundaries, and secret scan passed. Implementation commit `2212c7f`.
 - P6-T002 retention and cleanup jobs: PASS — service-only, environment-configured cleanup removes expired Sessions after grace, clears aged Redemption/Audit IP hashes through controlled paths, and deletes or scrubs expired idempotency responses without touching Orders, Payments, Grants, Redemption facts, or Audit rows. Dry-run, batch bounds, retries, and idempotent reruns are covered. Database 997/997, root tests 117/117, integration 51/51, function smoke 6/6, type generation stability, typecheck, lint, format, build, boundaries, secrets, and failure-propagation checks passed.
 - P6-T003 request context, metrics, and safe structured logging: PASS — all six Edge Function entrypoints use one propagated UUID request ID, every JSON/health response is traceable, routes and result codes are bounded, required session/entitlement/redemption/payment/admin/feedback metrics are defined, and logger failures cannot alter responses. Sensitive body/header/code material is excluded. Root tests 120/120, integration 54/54, function smoke 6/6, typecheck, lint, format, build, boundaries, secrets, and failure-propagation checks passed. Implementation commit `509e46c`.
+- P6-T004 System Health and actionable Admin dashboard: PASS — fixed role-filtered `admin_operations_overview` aggregation, safe bounded cards, allowlisted drill-down URLs, Feedback list route, Finance feedback redaction, independent partial-failure handling, and System Health summary are delivered through the Admin API and Refine UI. Database 1014/1014, root tests 124/124, integration 58/58, Admin E2E 6/6 on isolated ports, function smoke, typecheck, lint, format, build, boundaries, and secret scan passed. Implementation commit `116a8b8`.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.

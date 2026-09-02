@@ -310,7 +310,7 @@ P6-T004.
 
 ## P6-T004 — Finalize System Health and actionable Admin dashboard
 
-Status: pending  
+Status: completed  
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: api-frontend  
@@ -371,10 +371,10 @@ Role cards, drill-down URLs, partial failure, safe payload, no arbitrary BI/quer
 
 ### Acceptance Criteria
 
-- [ ] Every important card drills down.
-- [ ] No free-form SQL/BI exists.
-- [ ] Health payload is safe.
-- [ ] Tests pass.
+- [x] Every important card drills down.
+- [x] No free-form SQL/BI exists.
+- [x] Health payload is safe.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -386,7 +386,16 @@ Do not prioritize decorative charts or add second analytics store.
 
 ### Output
 
-Actionable operations dashboard.
+Actionable operations dashboard delivered through the fixed `/v1/admin/overview` query and the
+existing System Health endpoint. The role-filtered aggregate returns only bounded counts and
+allowlisted drill-down paths; Finance receives chargeback visibility but no feedback card. Admin
+Overview loads independently from health so a partial service failure remains visible and
+actionable. A dedicated Feedback list route makes the open-feedback card directly usable.
+
+Verification: database 1014/1014, root tests 124/124, integration 58/58, Admin E2E 6/6 on
+isolated local ports, function smoke, typecheck, lint, format, build, boundaries, and secret scan
+passed. The local E2E harness now accepts `PLAYWRIGHT_BASE_URL` and
+`PLAYWRIGHT_ADMIN_BASE_URL` to avoid unrelated local port occupants.
 
 ### Human Gate
 
@@ -394,7 +403,7 @@ None. Local hardening and optional visual review never block autonomous executio
 
 ### Commit
 
-`feat(admin): add actionable operations dashboard` — Task P6-T004.
+`feat(admin): finalize actionable operations dashboard` — Task P6-T004. Implementation commit: `116a8b8`.
 
 ### Next
 
