@@ -496,7 +496,7 @@ async function recovery(settings) {
   for (const line of readFileSync(checksumsPath, 'utf8').split(/\r?\n/).filter(Boolean)) {
     const match = line.match(/^([0-9a-f]{64}) {2}(.+)$/i);
     if (!match) throw new Error('Staging checksum file contains an invalid line.');
-    const filePath = resolve(repositoryRoot, match[2]);
+    const filePath = resolve(match[2] === 'manifest.json' ? bundleRoot : repositoryRoot, match[2]);
     if (sha256(filePath) !== match[1].toLowerCase())
       throw new Error('Staging artifact checksum mismatch.');
   }
@@ -505,7 +505,9 @@ async function recovery(settings) {
     headers: { Origin: 'https://staging-invalid-origin.invalid' },
   });
   assertStatus(rejected, 403, 'simulated failed deployment boundary');
-  const healthy = await request(apiUrl(settings, 'platform-api'));
+  const healthy = await request(apiUrl(settings, 'platform-api', '/v1/session'), {
+    headers: { Origin: settings.accountOrigin },
+  });
   assertStatus(healthy, 200, 'recovery health check');
   assertRequestId(healthy, 'recovery health check');
   printPass('artifact checksum recovery stop/retry drill and health recovery');
