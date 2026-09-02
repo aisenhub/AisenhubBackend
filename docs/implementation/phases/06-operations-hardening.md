@@ -4,7 +4,7 @@ Goal: complete Admin Phase E, deletion/retention operations, observability, secu
 
 ## P6-T001 — Complete retryable account deletion and anonymization worker
 
-Status: pending  
+Status: completed
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: domain-operations  
@@ -64,10 +64,10 @@ Success, Auth failure/retry, duplicate worker, retained financial facts, no old 
 
 ### Acceptance Criteria
 
-- [ ] Workflow recovers after injected external failure.
-- [ ] PII removed per architecture.
-- [ ] Required facts remain pseudonymous.
-- [ ] Tests pass.
+- [x] Workflow recovers after injected external failure.
+- [x] PII removed per architecture.
+- [x] Required facts remain pseudonymous.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -81,13 +81,25 @@ Do not hardcode legal retention days or delete all rows.
 
 Recoverable deletion processing.
 
+Delivered through `supabase/functions/account-deletion-worker/index.ts` and
+`supabase/migrations/20260902230000_account_deletion_worker.sql`. Auth is
+anonymized and banned before the database completion transaction; external
+failures record only stable retry codes. The database transaction revokes active
+Grants, removes Platform Sessions, anonymizes Feedback, detaches Orders while
+retaining customer references, disables any Admin membership, clears audit IP
+hashes through a narrowly controlled scrub path, and completes idempotently.
+
+Verification: database 969/969, account-deletion worker integration 3/3, full
+integration 47/47, function smoke 5/5, typecheck, lint, format, boundaries, and
+secret scan all passed.
+
 ### Human Gate
 
 None. Local hardening and optional visual review never block autonomous execution.
 
 ### Commit
 
-`feat(identity): complete account deletion processing` — Task P6-T001.
+`feat(identity): complete account deletion processing` — Task P6-T001. Implementation commit: `2212c7f`.
 
 ### Next
 
