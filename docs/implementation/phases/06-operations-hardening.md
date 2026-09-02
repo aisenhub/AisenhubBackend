@@ -310,7 +310,7 @@ P6-T004.
 
 ## P6-T004 — Finalize System Health and actionable Admin dashboard
 
-Status: completed  
+Status: completed
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: api-frontend  
