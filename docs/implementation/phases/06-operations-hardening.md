@@ -1009,6 +1009,7 @@ None. Local hardening and optional visual review never block autonomous executio
 ### Commit
 
 `chore(checkpoint): complete local operations hardening` — Task P6-T010.
+Checkpoint commit: `b89668f`.
 
 ### Next
 
