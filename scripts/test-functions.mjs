@@ -50,6 +50,13 @@ const commerceChargebackMigration = path.join(
   'migrations',
   '20260902200000_commerce_chargebacks.sql',
 );
+const commerceWebhookMigration = path.join(
+  repositoryRoot,
+  'supabase',
+  'migrations',
+  '20260902210000_commerce_webhook_ingest.sql',
+);
+const paymentWebhookProviderSource = path.join(functionsRoot, 'payment-webhook', 'provider.ts');
 
 for (const functionName of functionNames) {
   const entrypoint = path.join(functionsRoot, functionName, 'index.ts');
@@ -64,7 +71,9 @@ for (const functionName of functionNames) {
   } else if (
     functionName === 'platform-public'
       ? !source.includes('../_shared/public-api.ts')
-      : !source.includes('../_shared/health.ts')
+      : functionName === 'payment-webhook'
+        ? !source.includes('../_shared/platform-api.ts')
+        : !source.includes('../_shared/health.ts')
   ) {
     throw new Error(`Function ${functionName} does not use the shared health handler.`);
   }
@@ -220,6 +229,52 @@ if (process.argv.includes('chargeback')) {
     throw new Error('Commerce exception handling must not persist raw payment payloads.');
   }
   console.log('Commerce chargeback and late-payment exception smoke check passed.');
+}
+
+if (process.argv.includes('webhook')) {
+  const source = fs.readFileSync(path.join(functionsRoot, 'payment-webhook', 'index.ts'), 'utf8');
+  const provider = fs.readFileSync(paymentWebhookProviderSource, 'utf8');
+  const migration = fs.readFileSync(commerceWebhookMigration, 'utf8');
+  for (const required of [
+    'webhookPath',
+    'request.text()',
+    'x-aisenhub-webhook-signature',
+    'verifyWebhookSignature',
+    'serviceRpc',
+    'receive_payment_webhook_event',
+  ]) {
+    if (!source.includes(required))
+      throw new Error(`Signed webhook boundary is missing ${required}.`);
+  }
+  for (const required of [
+    'LocalFakePaymentProvider',
+    'crypto.subtle',
+    'PAYMENT_WEBHOOK_SECRET_',
+    'timestamp',
+    'constantTimeEqual',
+    'payloadSummary',
+  ]) {
+    if (!provider.includes(required))
+      throw new Error(`Webhook provider adapter is missing ${required}.`);
+  }
+  for (const required of [
+    'receive_payment_webhook_event',
+    'on conflict (provider, external_event_id) do nothing',
+    'fulfill_paid_order',
+    'record_paid_after_cancelled_order',
+    'commerce.payment_event_ignored',
+  ]) {
+    if (!migration.includes(required))
+      throw new Error(`Webhook event intake migration is missing ${required}.`);
+  }
+  if (
+    source.includes('Authorization') ||
+    provider.includes('console.log') ||
+    provider.includes('console.error')
+  ) {
+    throw new Error('Webhook adapter must not use user JWTs or log secret material.');
+  }
+  console.log('Signed payment webhook adapter smoke check passed.');
 }
 
 console.log(`Function shell smoke check passed for ${functionNames.length} functions.`);

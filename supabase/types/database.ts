@@ -358,6 +358,20 @@ export type Database = {
           status: string
         }[]
       }
+      receive_payment_webhook_event: {
+        Args: {
+          p_amount: number
+          p_currency: string
+          p_event_type: string
+          p_external_event_id: string
+          p_occurred_at: string
+          p_order_id: string
+          p_payload_summary: Json
+          p_payment_id: string
+          p_provider: string
+        }
+        Returns: Json
+      }
       record_paid_after_cancelled_order: {
         Args: { p_payment_event_id: string; p_reason: string }
         Returns: Json
