@@ -31,7 +31,7 @@ export function AuditLogsPage() {
         Append-only operational history. Request IDs and before/after summaries come from the
         Platform Backend projection.
       </Typography.Paragraph>
-      <FilterBar formProps={searchFormProps} />
+      <FilterBar resource="auditLogs" formProps={searchFormProps} />
       <DataTable
         tableProps={{
           ...tableProps,

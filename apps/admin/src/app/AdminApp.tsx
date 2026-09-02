@@ -6,6 +6,8 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { ProtectedAdminRoutes } from './ProtectedAdminRoutes';
 import { adminRuntime } from '../providers/admin-runtime';
 import { AdminProviders } from '../providers/AdminProviders';
+import { adminResources } from './module-registry';
+import { adminRouterProvider } from './router-provider';
 
 export function AdminApp() {
   return (
@@ -13,6 +15,8 @@ export function AdminApp() {
       <AdminProviders>
         <BrowserRouter>
           <Refine
+            resources={adminResources}
+            routerProvider={adminRouterProvider}
             authProvider={adminRuntime.authProvider}
             accessControlProvider={adminRuntime.accessControlProvider}
             dataProvider={adminRuntime.refineDataProvider}

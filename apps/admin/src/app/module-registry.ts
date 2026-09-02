@@ -1,4 +1,5 @@
 import type { PermissionAction } from '@aisenhub/contracts';
+import type { ResourceProps } from '@refinedev/core';
 
 export type AdminModule = {
   key: string;
@@ -50,6 +51,25 @@ export const adminModules: readonly AdminModule[] = [
   { key: 'growth', label: 'Growth', path: '/growth', available: false },
   { key: 'customers', label: 'Customers', path: '/customers', available: true },
   { key: 'platform', label: 'Platform', path: '/platform', available: false },
+];
+
+export const adminResources: ResourceProps[] = [
+  { name: 'applications', list: '/applications' },
+  { name: 'users', list: '/users' },
+  { name: 'origins', list: '/catalog/origins' },
+  { name: 'features', list: '/catalog/features' },
+  { name: 'products', list: '/catalog/products' },
+  { name: 'productVersions', list: '/catalog/product-versions' },
+  { name: 'prices', list: '/catalog/prices' },
+  { name: 'redemptionBatches', list: '/redemptions' },
+  { name: 'redemptionCodes', list: '/redemption-codes' },
+  { name: 'redemptions', list: '/redemption-receipts' },
+  { name: 'entitlements', list: '/entitlements' },
+  { name: 'feedback', list: '/feedback' },
+  { name: 'auditLogs', list: '/audit-logs' },
+  { name: 'accountDeletionRequests', list: '/account-deletion-requests' },
+  { name: 'orders', list: '/orders' },
+  { name: 'payments', list: '/payments' },
 ];
 
 export function getAdminModule(pathname: string): AdminModule | undefined {

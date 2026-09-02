@@ -61,7 +61,7 @@ export function ResourcePage<TRecord extends BaseRecord>({
         </Typography.Paragraph>
       </div>
       <Card>
-        <FilterBar formProps={searchFormProps} statusOptions={statusOptions} />
+        <FilterBar resource={resource} formProps={searchFormProps} statusOptions={statusOptions} />
         {children}
         <DataTable
           tableProps={{ ...tableProps, columns }}

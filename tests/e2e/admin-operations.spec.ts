@@ -91,4 +91,35 @@ test.describe('ADM-A read-only operations and RBAC', () => {
       '/system-health',
     );
   });
+
+  test('FILTERS restores structured list state from deep links and browser history', async ({
+    page,
+  }) => {
+    await signInToAdmin(page, roles[0]);
+    const listUrl =
+      `${adminPageOrigin}/orders?currentPage=1&pageSize=25&` +
+      'sorters[0][field]=createdAt&sorters[0][order]=desc&' +
+      'filters[0][field]=status&filters[0][operator]=eq&filters[0][value]=paid';
+    const orderRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().includes('/v1/admin/orders')) orderRequests.push(request.url());
+    });
+
+    await page.goto(listUrl);
+    await expect(page.getByRole('heading', { name: 'Commerce' })).toBeVisible();
+    await expect
+      .poll(() => orderRequests.some((url) => new URL(url).searchParams.get('status') === 'paid'))
+      .toBe(true);
+    await expect(page).toHaveURL(/filters%5B0%5D%5Bvalue%5D=paid|filters\[0\]\[value\]=paid/);
+
+    await page.goto(`${adminPageOrigin}/overview`);
+    await page.goBack();
+    await expect(page).toHaveURL(/filters%5B0%5D%5Bvalue%5D=paid|filters\[0\]\[value\]=paid/);
+    await expect
+      .poll(
+        () =>
+          orderRequests.filter((url) => new URL(url).searchParams.get('status') === 'paid').length,
+      )
+      .toBeGreaterThan(1);
+  });
 });
