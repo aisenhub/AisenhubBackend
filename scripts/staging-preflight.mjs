@@ -3,8 +3,7 @@ import process from 'node:process';
 
 const checkOnly = process.argv.includes('--check-only');
 const offline = process.argv.includes('--offline');
-const requiredVariables = [
-  'SUPABASE_ACCESS_TOKEN',
+const requiredStagingVariables = [
   'STAGING_SUPABASE_PROJECT_REF',
   'STAGING_SUPABASE_URL',
   'STAGING_SUPABASE_ANON_KEY',
@@ -22,7 +21,6 @@ function present(name) {
 
 function inspectSupabaseAuth() {
   if (offline) return 'not_checked_offline';
-  if (!present('SUPABASE_ACCESS_TOKEN')) return 'missing_auth';
   const result = spawnSync(
     process.platform === 'win32' ? (process.env.ComSpec ?? 'cmd.exe') : 'pnpm',
     process.platform === 'win32'
@@ -40,7 +38,7 @@ const checks = {
   supabaseCliAuth: inspectSupabaseAuth(),
   hostingProvider: 'unconfigured',
   stagingDns: 'unconfigured',
-  variables: Object.fromEntries(requiredVariables.map((name) => [name, present(name)])),
+  variables: Object.fromEntries(requiredStagingVariables.map((name) => [name, present(name)])),
 };
 
 console.log(
@@ -52,6 +50,6 @@ console.log(
 );
 
 if (!checkOnly && !offline) {
-  const missing = requiredVariables.filter((name) => !checks.variables[name]);
+  const missing = requiredStagingVariables.filter((name) => !checks.variables[name]);
   if (checks.supabaseCliAuth !== 'available' || missing.length > 0) process.exitCode = 1;
 }

@@ -14,9 +14,11 @@ pnpm staging:preflight --check-only
 ```
 
 Supabase project discovery returned an authentication-required result: no
-Supabase CLI access token is available in the current environment. The
-preflight checker reports only capability names and booleans; it never prints
-environment values.
+usable saved Supabase CLI login or access-token environment variable is
+available in the current environment. The preflight checker invokes the CLI
+so either `supabase login` state or `SUPABASE_ACCESS_TOKEN` is accepted; it
+reports only capability names and booleans and never prints environment
+values.
 
 | Capability | Result | Evidence |
 | --- | --- | --- |
