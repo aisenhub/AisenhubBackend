@@ -21,6 +21,11 @@ The non-secret project/origin values are present in the Windows user
 environment; the already-running Codex process must be restarted before it
 can inherit those newly written values.
 
+The two Vercel pages return HTTP 200, but their current bundles still contain
+Local default hosts (`localhost`/`127.0.0.1`). Their Vercel build variables
+must be configured and the deployments must be rebuilt before Staging smoke
+tests.
+
 ## Discovery result
 
 The safe discovery command was:

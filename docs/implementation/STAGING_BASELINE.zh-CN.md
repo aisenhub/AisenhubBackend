@@ -1,12 +1,12 @@
 # Staging 环境检查说明（中文）
 
 更新时间：2026-09-02  
-当前状态：HG-001 部分完成，等待 4 个敏感变量
+当前状态：HG-001 部分完成，等待 4 个敏感变量和前端重新部署
 检查范围：只检查 Staging 能力，没有修改任何远程资源
 
 ## 先说结论
 
-Local、Docker、WSL 和项目代码目前都正常。你已经完成 Supabase 登录、创建 Staging 项目，并部署了两个 Vercel 前端；现在只剩 4 个敏感变量配置。
+Local、Docker、WSL 和项目代码目前都正常。你已经完成 Supabase 登录、创建 Staging 项目，并部署了两个 Vercel 前端。两个地址可以打开，但前端构建仍使用 Local 默认地址，需要补充 Vercel 构建变量并重新部署。
 
 这不是 Docker 启动失败，也不是代码测试失败。
 
@@ -50,14 +50,14 @@ Local 项目和 Staging 项目必须分开，不能把 Local 当成 Staging，�
 
 ### 3. 托管和 DNS（已完成）
 
-两个 Vercel 地址都能正常返回 HTTP 200：
+两个 Vercel 地址都能正常返回 HTTP 200，但当前构建仍指向 Local：
 
 ```text
 Account：https://aisenhub-backend-account-olive.vercel.app
 Admin：https://aisenhub-backend-admin.vercel.app
 ```
 
-初次 Staging 测试不要求自定义 DNS，直接使用这两个 Vercel 地址即可。
+初次 Staging 测试不要求自定义 DNS，直接使用这两个 Vercel 地址即可，但需要先重新部署前端。
 
 ### 4. 仍需配置的环境变量
 
@@ -128,6 +128,29 @@ STAGING_ADMIN_ORIGIN=https://aisenhub-backend-admin.vercel.app
 
 两个 Vercel 地址均已确认返回 HTTP 200，初次 Staging 测试不需要自定义 DNS。已经运行的 Codex 不会自动刷新环境变量；设置完剩余 4 个敏感变量后，请重启 Codex。
 
+### 第五步：给两个 Vercel 项目补充构建变量并重新部署
+
+进入每个 Vercel 项目的 `Settings → Environment Variables`。如果这两个地址是 Production 部署，就选择 `Production` 环境；保存后执行一次 `Redeploy`。
+
+Account 项目需要：
+
+```text
+VITE_SUPABASE_URL=https://egsokuicabbxspkdccqe.supabase.co
+VITE_SUPABASE_ANON_KEY=<Staging 的 anon/public key>
+VITE_PLATFORM_API_URL=https://egsokuicabbxspkdccqe.supabase.co/functions/v1/platform-api
+VITE_PLATFORM_PUBLIC_API_URL=https://egsokuicabbxspkdccqe.supabase.co/functions/v1/platform-public
+```
+
+Admin 项目需要：
+
+```text
+VITE_PLATFORM_ADMIN_API_ORIGIN=https://egsokuicabbxspkdccqe.supabase.co/functions/v1/platform-admin
+VITE_PLATFORM_API_ORIGIN=https://egsokuicabbxspkdccqe.supabase.co/functions/v1/platform-api
+VITE_ACCOUNT_ORIGIN=https://aisenhub-backend-account-olive.vercel.app
+```
+
+不要把 `SERVICE_ROLE_KEY`、`REDEMPTION_PEPPER` 或 `PAYMENT_WEBHOOK_SECRET` 放进 Vercel 前端变量；这些只能放在 Supabase Edge Functions 的受保护 Secret 配置中。
+
 ## 我会如何确认配置成功
 
 你配置完成后，我会运行：
@@ -137,6 +160,8 @@ pnpm staging:preflight --check-only
 ```
 
 这个检查只会显示“已配置/未配置”等状态，不会打印密钥。确认通过后，我会继续完成 Staging 部署、迁移、接口测试、浏览器测试和安全验证。
+
+重新部署后，我还会检查两个页面的构建内容，确认不再出现 `localhost` 或 `127.0.0.1`。
 
 ## 你完成后只需要告诉我
 
