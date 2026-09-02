@@ -797,7 +797,7 @@ P5-T009.
 
 ## P5-T009 — Implement signed webhook adapter with Local fake provider
 
-Status: completed  
+Status: completed
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: api-security-test-first  
@@ -981,7 +981,7 @@ P5-T011.
 
 ## P5-T011 — Build Admin Commerce operations and Order 360 UI
 
-Status: pending  
+Status: completed  
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: frontend-security  
@@ -1031,9 +1031,9 @@ Commerce Data Provider/Commands and Ant components.
 ### Commands
 
 ```bash
-pnpm --filter admin test -- commerce
-pnpm test:e2e --grep ADM-D
-pnpm --filter admin build
+pnpm --filter @aisenhub/admin test
+pnpm test:e2e --grep "P5 Commerce"
+pnpm --filter @aisenhub/admin build
 ```
 
 ### Tests
@@ -1042,10 +1042,10 @@ Owner/Admin/Support/Finance UI/API matrix, partial/full refund, retry/double cli
 
 ### Acceptance Criteria
 
-- [ ] Support cannot refund; Finance can per matrix.
-- [ ] No `amount/100` scattered formatting.
-- [ ] No status edit UI.
-- [ ] Tests pass.
+- [x] Support cannot refund; Finance can per matrix.
+- [x] No `amount/100` scattered formatting.
+- [x] No status edit UI.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -1059,13 +1059,16 @@ Do not expose provider secrets/raw payloads or infer payment state.
 
 Admin Commerce operations.
 
+The current Admin command contract exposes Verify and OrderItem Refund; chargeback resilience
+remains covered by the backend command and the P5-T012 end-to-end scenario.
+
 ### Human Gate
 
 None. Use manual-channel fixtures and a Local fake provider; real commercial/payment decisions are deferred to HG-002.
 
 ### Commit
 
-`feat(admin): add commerce operations and order overview` — Task P5-T011.
+`feat(admin): add commerce operations and order overview` — Task P5-T011. Implementation commit: `1eae9f7`.
 
 ### Next
 
