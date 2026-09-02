@@ -7,8 +7,8 @@ Last Updated: 2026-09-02
 Status: IN_PROGRESS
 
 Current Phase: P7 — Staging
-Current Task: P7-T005 — Deploy Staging database and Edge Functions
-Overall Progress: 94 / 107 tasks completed
+Current Task: P7-T008 — Run Staging smoke, E2E, observability, and recovery drill
+Overall Progress: 97 / 107 tasks completed
 Last Successful Quality Gate: P7-T002 immutable Staging deployment bundle — PASS
 
 ## Phase Progress
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P7-T002 immutable Staging deployment bundle — PA
 
 Status: IN_PROGRESS
 Goal: Continue Operations Hardening implementation at the earliest incomplete task.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001 through P6-T010, and P7-T001 through P7-T004 completed. P7-T005 backend deployment is in progress. Remote repository synchronization is complete to `origin/main`.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001 through P6-T010, and P7-T001 through P7-T007 completed. P7-T008 Staging smoke, observability, and recovery verification is in progress. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -65,6 +65,8 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P7-T003 consolidated Staging Human Gate: PASS — user supplied the authorized Staging project, Vercel provider URLs, Edge Function secrets, and protected Codex environment variables; HG-001 is resolved with one consolidated interaction and no secret value disclosed.
 - P7-T004 Staging environment configuration: PASS — all nine required variables are readable, both Staging key values match the selected project without printing values, Supabase CLI authorization is available, and Vercel provider URLs are selected without custom DNS.
 - P7-T005 Staging backend deployment: PASS — all 41 migrations and six Edge Functions are deployed to `workendstaging`; migration history matches local; Auth admin read is HTTP 200; exact Account/Admin Vercel Origins are registered; anonymous `/v1/session` API smoke returns HTTP 200 with the Account Origin; designated Staging account login, Platform Session exchange, and Admin Session verification pass with role `admin`. Report: `docs/implementation/reports/P7-T005-staging-backend-deployment.md`.
+- P7-T006 Staging application deployment: PASS — Account and Admin Vercel provider URLs return HTTP 200, deployed frontend configuration points to Staging, and the reproducible release bundle rebuilt successfully from Git SHA `18eb3e99120254c1d797f3184ec1c662d4c1005b`.
+- P7-T007 Staging browser security: PASS — exact Account/Admin Origin allowlists, credentialed preflight, anonymous session, public API, rejected Origin, Platform Session exchange, and Admin Session role checks pass. Report: `docs/implementation/reports/P7-T007-staging-browser-security.md`.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.

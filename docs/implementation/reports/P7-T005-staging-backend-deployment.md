@@ -20,15 +20,15 @@ Environment: Staging project `workendstaging` (`egsokuicabbxspkdccqe`)
 - The configured anon and service-role keys match the selected Staging project without printing values.
 - Staging Auth admin read check: HTTP 200.
 - Public catalog endpoint: HTTP 200 with an empty catalog response.
-- No Staging Auth users exist yet; therefore no Staging Admin membership exists.
 - Exact Account/Admin Vercel Origins are registered as active Staging Origins.
 - `GET /v1/session` with the Account Vercel Origin returns HTTP 200 and an anonymous session projection.
 - The deployed Account page now renders its sign-in form after the Origin fix.
 - The designated Staging Auth account signs in with HTTP 200, exchanges a Platform Session with HTTP 201, and receives an Admin Session with HTTP 200 and role `admin`.
 
-## Remaining bootstrap work
+## Follow-up
 
-1. Run authenticated API, browser-security, and Staging E2E smoke tests.
+Browser-security verification is recorded in
+`docs/implementation/reports/P7-T007-staging-browser-security.md`.
 
 No Production resource was contacted or changed. No secret value is recorded here.
 
