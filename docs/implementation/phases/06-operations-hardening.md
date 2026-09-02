@@ -411,7 +411,7 @@ P6-T005.
 
 ## P6-T005 — Implement structured saved filters and URL-state conventions
 
-Status: pending  
+Status: completed
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: frontend  
@@ -469,10 +469,10 @@ Round trip URL, invalid preset, role/resource isolation, no SQL/expression, refr
 
 ### Acceptance Criteria
 
-- [ ] Only allowlisted filters persist.
-- [ ] Deep links restore state.
-- [ ] No sensitive values are stored.
-- [ ] Tests pass.
+- [x] Only allowlisted filters persist.
+- [x] Deep links restore state.
+- [x] No sensitive values are stored.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -484,7 +484,19 @@ Do not add a saved-filter database table without architecture need.
 
 ### Output
 
-Safe Admin productivity filters.
+Safe Admin productivity filters delivered through the resource-scoped local
+preference adapter in `apps/admin/src/providers/saved-filters.ts`. Presets are
+limited to an explicit resource/status allowlist, capped at twenty entries per
+resource, sanitized on read, and never include search text, arbitrary filter
+expressions, SQL, credentials, or customer content. The Admin Refine shell now
+registers its resources and supplies a React Router adapter so Refine's
+pagination, filter, search, and sort state is represented in URL query state
+and restored on deep links and browser history navigation. No saved-filter
+database table was added.
+
+Verification: Admin tests 12/12, FILTERS E2E 1/1, Admin operations E2E 7/7,
+root tests 127/127, integration 58/58, contracts 15/15, Admin Client 17/17,
+typecheck, lint, format, workspace build, boundaries, and secret scan passed.
 
 ### Human Gate
 
@@ -492,7 +504,8 @@ None. Local hardening and optional visual review never block autonomous executio
 
 ### Commit
 
-`feat(admin): add structured saved filters` — Task P6-T005.
+`feat(admin): add structured saved filters` — Task P6-T005. Implementation
+commit: `6d84e59`.
 
 ### Next
 
