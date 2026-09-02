@@ -94,9 +94,9 @@
 | P6-T008 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | ecf8393 | Deterministic release-candidate orchestrator, full normal-user Account/Catalog/Entitlement/Redemption/Feedback/Deletion journey, Owner User 360/Audit proof, and Commerce resilience integration 2/2 passed headlessly. |
 | P6-T009 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | 5bc463f | Added Local Operations, API/type generation, and Security Response runbooks; documented recovery/release/secret/evidence boundaries; added `pnpm docs:check`; Markdown/env validation, secret scan, and boundary checks passed. |
 | P6-T010 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | b89668f | Clean Local Operations Hardening quality gate passed database 1014/1014, RLS 29/29, functions 6/6, unit 127/127, contracts 15/15, integration 58/58, release-candidate E2E 1/1, Commerce resilience 2/2, type generation, typecheck, lint, format, build, security, secret, docs, boundary, and failure-propagation checks; PHASE-06 checkpoint created. |
-| P7-T001 | Staging | completed | 2026-09-02 | 2026-09-02 | TBD | Created no-secret `staging:preflight` capability check and `STAGING_BASELINE.md`; Supabase project discovery confirmed missing CLI authorization, hosting/DNS/project configuration was unavailable, and HG-001 was marked ready once for consolidated resolution. |
-| P7-T002 | Staging | pending |  |  |  |  |
-| P7-T003 | Staging | pending |  |  |  |  |
+| P7-T001 | Staging | completed | 2026-09-02 | 2026-09-02 | 0b139e8 | Created no-secret `staging:preflight` capability check and `STAGING_BASELINE.md`; Supabase project discovery confirmed missing CLI authorization, hosting/DNS/project configuration was unavailable, and HG-001 was marked ready once for consolidated resolution. |
+| P7-T002 | Staging | completed | 2026-09-02 | 2026-09-02 | TBD | Reproducible offline Staging release bundle from a pinned Git SHA with 41 ordered migrations, 14 hashed Edge Function sources, Account/Admin builds, no-secret artifact scanning, variable/DNS/CORS/recovery checklist, and full Local quality gates; report `docs/implementation/reports/P7-T002-staging-bundle.md`. |
+| P7-T003 | Staging | ready |  |  |  | Consolidated HG-001 is ready: Staging authorization, project/provider/DNS configuration, and scoped variable presence remain unavailable; no secret values requested in chat. |
 | P7-T004 | Staging | pending |  |  |  |  |
 | P7-T005 | Staging | pending |  |  |  |  |
 | P7-T006 | Staging | pending |  |  |  |  |

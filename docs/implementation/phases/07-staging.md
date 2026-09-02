@@ -93,7 +93,7 @@ No immediate gate; prepare HG-001 only if checks prove it necessary.
 ### Commit
 
 `docs(staging): record environment capability baseline` — Task P7-T001.
-Implementation commit: pending.
+Implementation commit: `0b139e8`.
 
 ### Next
 
@@ -101,7 +101,7 @@ P7-T002; P7-T003 only if HG-001 is ready.
 
 ## P7-T002 — Build immutable Staging deployment bundle and preflight
 
-Status: pending  
+Status: completed  
 Phase: P7 — Staging  
 Execution: AUTONOMOUS  
 Type: release  
@@ -163,10 +163,10 @@ Artifact checksums, clean build, migration dry run, config-name validation.
 
 ### Acceptance Criteria
 
-- [ ] Bundle is reproducible from Git SHA.
-- [ ] No Local secret enters artifacts.
-- [ ] Preflight reports all requirements together.
-- [ ] Tests pass.
+- [x] Bundle is reproducible from Git SHA.
+- [x] No Local secret enters artifacts.
+- [x] Preflight reports all requirements together.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -178,7 +178,7 @@ Do not deploy or mutate any remote resource yet.
 
 ### Output
 
-Staging release bundle.
+Staging release bundle and `docs/implementation/reports/P7-T002-staging-bundle.md`.
 
 ### Human Gate
 
@@ -187,6 +187,7 @@ None.
 ### Commit
 
 `chore(release): prepare staging deployment bundle` — Task P7-T002.
+Implementation commit: pending.
 
 ### Next
 
@@ -194,7 +195,7 @@ P7-T003 or P7-T004.
 
 ## P7-T003 — Resolve consolidated HG-001 when Staging access is unavailable
 
-Status: pending  
+Status: ready  
 Phase: P7 — Staging  
 Execution: HUMAN_GATE  
 Type: human-gate  
