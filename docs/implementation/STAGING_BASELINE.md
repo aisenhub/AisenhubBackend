@@ -1,5 +1,7 @@
 # Staging Capability Baseline
 
+中文说明：[`STAGING_BASELINE.zh-CN.md`](STAGING_BASELINE.zh-CN.md)
+
 Date: 2026-09-02
 Status: HG-001 ready
 Environment inspected: Staging only; no remote resource was changed
