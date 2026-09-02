@@ -21,14 +21,14 @@ Environment: Staging project `workendstaging` (`egsokuicabbxspkdccqe`)
 - Staging Auth admin read check: HTTP 200.
 - Public catalog endpoint: HTTP 200 with an empty catalog response.
 - No Staging Auth users exist yet; therefore no Staging Admin membership exists.
-- Requests carrying the deployed Vercel Origin currently receive `ORIGIN_NOT_ALLOWED` until exact Staging Origins are registered.
+- Exact Account/Admin Vercel Origins are registered as active Staging Origins.
+- `GET /v1/session` with the Account Vercel Origin returns HTTP 200 and an anonymous session projection.
+- The deployed Account page now renders its sign-in form after the Origin fix.
+- The designated Staging Auth account signs in with HTTP 200, exchanges a Platform Session with HTTP 201, and receives an Admin Session with HTTP 200 and role `admin`.
 
 ## Remaining bootstrap work
 
-1. Create the intended non-production user through the Staging Account application.
-2. Provision that user as `owner` or `admin` through the controlled bootstrap path.
-3. Register the exact Account/Admin Vercel Origins as Staging Origins.
-4. Run authenticated API, browser-security, and Staging E2E smoke tests.
+1. Run authenticated API, browser-security, and Staging E2E smoke tests.
 
 No Production resource was contacted or changed. No secret value is recorded here.
 
