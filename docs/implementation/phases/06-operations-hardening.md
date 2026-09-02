@@ -824,7 +824,7 @@ P6-T009.
 
 ## P6-T009 — Synchronize implementation documentation and runbooks
 
-Status: pending  
+Status: completed
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: documentation  
@@ -884,10 +884,10 @@ Link/code-block/command checks and fresh-reader dry run where automated.
 
 ### Acceptance Criteria
 
-- [ ] Docs match actual commands.
-- [ ] No secret/sample looks production-valid.
-- [ ] Architecture remains unchanged unless approved.
-- [ ] Docs checks pass.
+- [x] Docs match actual commands.
+- [x] No secret/sample looks production-valid.
+- [x] Architecture remains unchanged unless approved.
+- [x] Docs checks pass.
 
 ### Failure Recovery
 
@@ -899,7 +899,12 @@ Do not hide known limitations or rewrite history.
 
 ### Output
 
-Implementation-aligned docs/runbooks.
+Implementation-aligned docs/runbooks are provided by
+`docs/implementation/OPERATIONS_RUNBOOK.md`,
+`docs/implementation/API_GENERATION.md`, and
+`docs/implementation/SECURITY_RESPONSE.md`. `pnpm docs:check` passed for 37
+Markdown files and the Local-safe environment example; secret and dependency
+boundary checks also passed.
 
 ### Human Gate
 
@@ -908,6 +913,7 @@ None. Local hardening and optional visual review never block autonomous executio
 ### Commit
 
 `docs(platform): add implementation and operations runbooks` — Task P6-T009.
+Implementation commit: pending.
 
 ### Next
 

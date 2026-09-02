@@ -7,9 +7,9 @@ Last Updated: 2026-09-02
 Status: IN_PROGRESS
 
 Current Phase: P6 — Operations Hardening
-Current Task: P6-T009 — Synchronize implementation documentation and runbooks
-Overall Progress: 88 / 107 tasks completed
-Last Successful Quality Gate: P6-T008 release-candidate E2E journey — PASS
+Current Task: P6-T010 — Execute Operations Hardening quality gate
+Overall Progress: 89 / 107 tasks completed
+Last Successful Quality Gate: P6-T009 implementation documentation and runbooks — PASS
 
 ## Phase Progress
 
@@ -58,6 +58,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P6-T006 accessibility, performance, and error recovery: PASS — list queries retry once and expose an accessible in-place retry while preserving filter input, overview/health errors retry independently, route modules are lazy-loaded into separate chunks, and keyboard-discoverable list controls are covered. Admin tests 12/12, Admin operations E2E 9/9 including A11Y 1/1 and RESILIENCE 1/1, root tests 127/127, integration 58/58, contracts 15/15, Admin Client 17/17, typecheck, lint, format, workspace build, boundaries, and secret scan passed. Implementation commit `f5cce39`.
 - P6-T007 security and architecture-boundary audit: PASS — added repeatable Admin bundle/source, privileged SQL, and grant/search_path audit; fixed E2E discovery orchestration to use true listing and included security/secret checks in `platform:verify`. Database 1014/1014, RLS 29/29, root 127/127, integration 58/58, contract 15/15, E2E discovery 20/20 listed, typecheck, lint, format, build, boundaries, secrets, failure harness, and security report all passed. Audit report: `docs/implementation/reports/P6-T007-security-audit.md`. Implementation commit `8020a34`.
 - P6-T008 release-candidate E2E journey: PASS — deterministic Local reset and five-fixture verification, normal-user sign-in/session, public Catalog, server Entitlements, valid Redemption, Feedback, reauthenticated Account Deletion, Owner User 360/Audit trace, and Commerce resilience integration 2/2 passed headlessly on isolated ports. Report: `docs/implementation/reports/P6-T008-release-candidate.md`.
+- P6-T009 implementation documentation and runbooks: PASS — added Local Operations, API/type generation, and Security Response runbooks; documented recovery, release ordering, secret boundaries, safe evidence export, and release-candidate commands; added `pnpm docs:check` for Markdown links/fences and Local-safe env examples. Documentation 37 files, secret scan 296 tracked files, and boundaries 7 manifests passed.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.

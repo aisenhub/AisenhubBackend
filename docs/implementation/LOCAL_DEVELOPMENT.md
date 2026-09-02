@@ -19,6 +19,17 @@ The command intentionally leaves the local Supabase stack running for a faster
 warm rerun. It does not contact Staging or Production and does not perform
 broad Docker or filesystem cleanup.
 
+For the full release-candidate Account and Commerce journey, see
+[OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md) and run:
+
+```bash
+pnpm test:e2e:release
+```
+
+The API/type-generation workflow is documented in
+[API_GENERATION.md](./API_GENERATION.md); suspected boundary or credential
+incidents follow [SECURITY_RESPONSE.md](./SECURITY_RESPONSE.md).
+
 ## Retention cleanup configuration
 
 The `retention-cleanup` Edge Function is a service-only scheduled entrypoint.

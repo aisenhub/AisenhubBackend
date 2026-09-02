@@ -1,7 +1,7 @@
 # P6-T008 Release-Candidate E2E Report
 
-Date: 2026-09-02  
-Environment: Local Supabase and Docker-compatible runtime  
+Date: 2026-09-02
+Environment: Local Supabase and Docker-compatible runtime
 Runner: Chromium, headless, one worker
 
 ## Scope
