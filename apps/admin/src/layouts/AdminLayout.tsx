@@ -20,6 +20,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const isModuleVisible = (module: (typeof adminModules)[number]) => {
     if (module.key === 'applications') return applicationAccess.data?.can ?? false;
     if (module.key === 'auditLogs') return auditAccess.data?.can ?? false;
+    if (module.key === 'orders') return true;
     if (module.key === 'redemptions') return adminRuntime.session.getSession()?.role !== 'finance';
     return true;
   };

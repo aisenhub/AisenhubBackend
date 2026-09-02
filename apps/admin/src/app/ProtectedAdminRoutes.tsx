@@ -23,6 +23,8 @@ import { ProductOverviewPage } from '../modules/catalog/pages/ProductOverviewPag
 import { ProductVersionsPage } from '../modules/catalog/pages/ProductVersionsPage';
 import { ProductsPage } from '../modules/catalog/pages/ProductsPage';
 import { UserOverviewPage } from '../modules/operations/pages/UserOverviewPage';
+import { OrderOverviewPage } from '../modules/commerce/pages/OrderOverviewPage';
+import { OrdersPage } from '../modules/commerce/pages/OrdersPage';
 
 function ModuleUnavailablePage() {
   return (
@@ -91,6 +93,22 @@ function ProtectedContent() {
             }
           />
           <Route path="users" element={<UsersPage />} />
+          <Route
+            path="orders"
+            element={
+              <CanAccess resource="orders" action="list" fallback={<PermissionDeniedState />}>
+                <OrdersPage />
+              </CanAccess>
+            }
+          />
+          <Route
+            path="orders/:orderId"
+            element={
+              <CanAccess resource="orders" action="show" fallback={<PermissionDeniedState />}>
+                <OrderOverviewPage />
+              </CanAccess>
+            }
+          />
           <Route path="customers" element={<UsersPage />} />
           <Route path="customers/users/:userId" element={<UserOverviewPage />} />
           <Route

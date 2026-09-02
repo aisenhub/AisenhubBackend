@@ -10,6 +10,7 @@ describe('Admin module registry', () => {
       '/catalog',
       '/applications',
       '/users',
+      '/orders',
       '/redemptions',
       '/audit-logs',
       '/system-health',
@@ -19,6 +20,7 @@ describe('Admin module registry', () => {
     ]);
     expect(new Set(adminModules.map((module) => module.path)).size).toBe(adminModules.length);
     expect(getAdminModule('/catalog')?.action).toBe('products.read');
+    expect(getAdminModule('/orders')?.action).toBe('orders.read');
     expect(getAdminModule('/growth')?.available).toBe(false);
     expect(getAdminModule('/customers')?.available).toBe(true);
     expect(getAdminModule('/not-registered')).toBeUndefined();

@@ -19,6 +19,10 @@ const resourceActions: Readonly<Record<string, PermissionAction>> = {
   'productVersions:setCurrent': 'product_versions.set_current',
   'auditLogs:list': 'audit_logs.read',
   'auditLogs:show': 'audit_logs.read',
+  'orders:list': 'orders.read',
+  'orders:show': 'orders.read',
+  'orders:verify': 'orders.verify',
+  'orders:refund': 'order_items.refund',
 };
 
 function resolveAction(resource: string | undefined, action: string): PermissionAction | null {

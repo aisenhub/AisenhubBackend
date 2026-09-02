@@ -28,6 +28,14 @@ export const adminModules: readonly AdminModule[] = [
     available: true,
   },
   { key: 'users', label: 'Users', path: '/users', available: true },
+  {
+    key: 'orders',
+    label: 'Commerce',
+    path: '/orders',
+    resource: 'orders',
+    action: 'orders.read',
+    available: true,
+  },
   { key: 'redemptions', label: 'Redemptions', path: '/redemptions', available: true },
   {
     key: 'auditLogs',

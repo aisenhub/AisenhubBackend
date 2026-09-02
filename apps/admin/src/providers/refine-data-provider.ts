@@ -29,6 +29,8 @@ function assertResource(resource: string): AdminResourceName {
       'entitlements',
       'feedback',
       'auditLogs',
+      'orders',
+      'payments',
     ].includes(resource)
   ) {
     throw new Error(`Unsupported Admin resource: ${resource}`);
