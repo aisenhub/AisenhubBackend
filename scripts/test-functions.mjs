@@ -9,6 +9,7 @@ const functionNames = [
   'platform-admin',
   'payment-webhook',
   'account-deletion-worker',
+  'retention-cleanup',
 ];
 const codeGenerationSource = path.join(functionsRoot, '_shared', 'redemption-code.ts');
 const adminPermissionsSource = path.join(functionsRoot, '_shared', 'admin-permissions.ts');
@@ -95,7 +96,10 @@ for (const functionName of functionNames) {
         : functionName === 'account-deletion-worker'
           ? !source.includes('handleDeletionWorker') ||
             !source.includes('complete_account_deletion_request')
-          : !source.includes('../_shared/health.ts')
+          : functionName === 'retention-cleanup'
+            ? !source.includes('handleRetentionCleanup') ||
+              !source.includes('run_retention_cleanup')
+            : !source.includes('../_shared/health.ts')
   ) {
     throw new Error(`Function ${functionName} does not use the shared health handler.`);
   }
@@ -328,6 +332,30 @@ if (process.argv.includes('deletion-worker')) {
     throw new Error('Account deletion worker must not log Auth or deletion details.');
   }
   console.log('Account deletion worker smoke check passed.');
+}
+
+if (process.argv.includes('cleanup')) {
+  const source = fs.readFileSync(path.join(functionsRoot, 'retention-cleanup', 'index.ts'), 'utf8');
+  const migration = fs.readFileSync(
+    path.join(repositoryRoot, 'supabase', 'migrations', '20260903010000_retention_cleanup.sql'),
+    'utf8',
+  );
+  for (const required of [
+    'handleRetentionCleanup',
+    'PLATFORM_CLEANUP_BATCH_SIZE',
+    'PLATFORM_CLEANUP_DRY_RUN',
+    'run_retention_cleanup',
+    'for update skip locked',
+    'response_body = null',
+  ]) {
+    if (!source.includes(required) && !migration.includes(required)) {
+      throw new Error(`Retention cleanup is missing ${required}.`);
+    }
+  }
+  if (source.includes('console.log') || source.includes('console.error')) {
+    throw new Error('Retention cleanup must not log operational or security context details.');
+  }
+  console.log('Retention cleanup worker smoke check passed.');
 }
 
 if (process.argv.includes('commerce-query')) {

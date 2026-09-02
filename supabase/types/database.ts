@@ -504,6 +504,16 @@ export type Database = {
           issued: boolean
         }[]
       }
+      run_retention_cleanup: {
+        Args: {
+          p_batch_size?: number
+          p_dry_run?: boolean
+          p_idempotency_response_before: string
+          p_security_context_before: string
+          p_session_expired_before: string
+        }
+        Returns: Json
+      }
       set_current_product_version: {
         Args: { p_product_id: string; p_product_version_id: string }
         Returns: {
