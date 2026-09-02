@@ -101,7 +101,7 @@ P7-T002; P7-T003 only if HG-001 is ready.
 
 ## P7-T002 — Build immutable Staging deployment bundle and preflight
 
-Status: completed  
+Status: completed
 Phase: P7 — Staging  
 Execution: AUTONOMOUS  
 Type: release  
@@ -187,7 +187,7 @@ None.
 ### Commit
 
 `chore(release): prepare staging deployment bundle` — Task P7-T002.
-Implementation commit: pending.
+Implementation commit: `a5a25ae`.
 
 ### Next
 
@@ -195,7 +195,7 @@ P7-T003 or P7-T004.
 
 ## P7-T003 — Resolve consolidated HG-001 when Staging access is unavailable
 
-Status: ready  
+Status: ready
 Phase: P7 — Staging  
 Execution: HUMAN_GATE  
 Type: human-gate  
