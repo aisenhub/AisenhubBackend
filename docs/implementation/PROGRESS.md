@@ -7,8 +7,8 @@ Last Updated: 2026-09-02
 Status: IN_PROGRESS
 
 Current Phase: P8 — Production Readiness
-Current Task: P8-T001 — Inspect unresolved commercial decisions
-Overall Progress: 99 / 107 tasks completed
+Current Task: P8-T002 — Inspect Production authorization and resources
+Overall Progress: 100 / 107 tasks completed
 Last Successful Quality Gate: P7-T009 Staging quality gate and PHASE-07 checkpoint — PASS
 
 ## Phase Progress
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P7-T009 Staging quality gate and PHASE-07 checkpoi
 
 Status: IN_PROGRESS
 Goal: Continue Operations Hardening implementation at the earliest incomplete task.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001 through P6-T010, and P7-T001 through P7-T009 completed. P8-T001 Production readiness inspection is in progress. Remote repository synchronization is complete to `origin/main`.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001 through P6-T010, and P7-T001 through P7-T009 completed. P8-T001 commercial freeze is deferred for the test-only scope. P8-T002 Production authorization/resource inspection is in progress. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -69,6 +69,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P7-T007 Staging browser security: PASS — exact Account/Admin Origin allowlists, credentialed preflight, anonymous session, public API, rejected Origin, Platform Session exchange, and Admin Session role checks pass. Report: `docs/implementation/reports/P7-T007-staging-browser-security.md`.
 - P7-T008 Staging smoke, E2E, observability, and recovery: PASS — remote smoke, temporary-fixture Auth/Platform Session/Admin role matrix, normal-user denial, requestId-to-Audit correlation, artifact checksum verification, and non-destructive recovery drill passed. The payment webhook remote path was corrected to use the shared `/v1/` path normalizer and redeployed; Local payment webhook tests 5/5 and Function shell 6/6 pass. Report: `docs/implementation/reports/P7-T008-staging-smoke-recovery.md`.
 - P7-T009 Staging quality gate and checkpoint: PASS — final preflight, smoke, E2E, observability, recovery, artifact-to-Git trace, documentation check, and clean Production boundary review passed. PHASE-07 checkpoint created with Architecture Deviations: None.
+- P8-T001 commercial configuration freeze: DEFERRED — no real-sale, Production payment, or cutover configuration is enabled; no commercial value or promise was invented. HG-002 remains deferred until a real-sale launch is approved. Report: `docs/implementation/reports/P8-T001-commercial-decision.md`.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.

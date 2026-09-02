@@ -30,6 +30,7 @@
     "staging:test:e2e": "node scripts/staging-verification.mjs e2e",
     "staging:test:observability": "node scripts/staging-verification.mjs observability",
     "staging:test:recovery": "node scripts/staging-verification.mjs recovery",
+    "production:commercial-preflight": "node scripts/production-commercial-preflight.mjs",
     "release:bundle": "node scripts/release-bundle.mjs",
     "secrets:check": "node scripts/check-secrets.mjs",
     "rls:test": "node scripts/test-rls.mjs",

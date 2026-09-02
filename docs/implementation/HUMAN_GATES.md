@@ -35,7 +35,7 @@ Secrets must never be pasted into chat. If authorization and resources already e
 
 ## HG-002 — Commercial Configuration Freeze
 
-Status: planned  
+Status: deferred
 Stage: Before real sale/payment activation  
 Category: H5  
 Maximum interactions: 1 consolidated decision
@@ -50,6 +50,11 @@ Needed only for unresolved commercial commitments from architecture §22:
 - jurisdiction-specific retention periods.
 
 The Agent may implement all model/state-machine behavior with deterministic non-production fixtures before this gate. It must not invent production commercial promises.
+
+Current outcome: deferred for the Staging/test-only release scope. No price,
+payment channel, sales promise, refund policy, cost policy, or jurisdictional
+retention period is frozen. Resolve this gate as one consolidated decision
+before creating formal Production products or accepting real money.
 
 ## HG-003 — Production Infrastructure and Secrets Authorization
 
