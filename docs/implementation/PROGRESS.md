@@ -7,9 +7,9 @@ Last Updated: 2026-09-02
 Status: IN_PROGRESS
 
 Current Phase: P6 — Operations Hardening
-Current Task: P6-T002 — Implement retention and cleanup jobs with safe defaults
-Overall Progress: 81 / 107 tasks completed
-Last Successful Quality Gate: P6-T001 retryable account deletion and anonymization worker — PASS
+Current Task: P6-T003 — Implement request context, metrics, and safe structured logging
+Overall Progress: 82 / 107 tasks completed
+Last Successful Quality Gate: P6-T002 retention and cleanup jobs with safe defaults — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P6-T001 retryable account deletion and anonymizati
 
 Status: IN_PROGRESS
 Goal: Continue Operations Hardening implementation at the earliest incomplete task.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, and P6-T001 completed. Remote repository synchronization is complete to `origin/main`.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001, and P6-T002 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -51,6 +51,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P5-T012 Commerce E2E and resilience scenarios: PASS — pgTAP cross-system flow covers multi-item fulfillment, duplicate webhook idempotency, out-of-order events, partial compensation, complete item return, chargeback Grant revocation, late-payment exception, exact refund/chargeback audit traces, and credential-free audits; database 938/938, resilience integration 2/2 (full integration 44/44), P5 Commerce UI E2E 2/2, root unit 110/110, typecheck, lint, format, build, boundaries, and secret scan passed. Implementation commit `887f91c`.
 - P5-T013 Commerce and Admin D quality gate: PASS — clean Local `platform:verify` completed after rerunning E2E on isolated port 5183; database 938/938, RLS 29/29, fixture verification, function smoke 4/4, root unit 110/110, contracts 15/15, integration 44/44, Playwright 16/16, type generation stability, typecheck, lint, format, workspace build, boundaries, failure-propagation harness, and secret scan passed. Phase checkpoint created; Architecture Deviations: None.
 - P6-T001 retryable account deletion and anonymization worker: PASS — service-only worker anonymizes and bans Auth before a retry-safe database completion transaction; active Grants are revoked, sessions removed, Profile/Feedback de-identified, Orders detached while customer references remain, audit IP hashes scrubbed through a controlled path, and completion is idempotent. Database 969/969, worker integration 3/3, full integration 47/47, function smoke 5/5, typecheck, lint, format, boundaries, and secret scan passed. Implementation commit `2212c7f`.
+- P6-T002 retention and cleanup jobs: PASS — service-only, environment-configured cleanup removes expired Sessions after grace, clears aged Redemption/Audit IP hashes through controlled paths, and deletes or scrubs expired idempotency responses without touching Orders, Payments, Grants, Redemption facts, or Audit rows. Dry-run, batch bounds, retries, and idempotent reruns are covered. Database 997/997, root tests 117/117, integration 51/51, function smoke 6/6, type generation stability, typecheck, lint, format, build, boundaries, secrets, and failure-propagation checks passed.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.

@@ -107,7 +107,7 @@ P6-T002.
 
 ## P6-T002 — Implement retention and cleanup jobs with safe defaults
 
-Status: pending  
+Status: completed
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: operations  
@@ -166,10 +166,10 @@ Boundary dates, retries, batching, protected orders/grants/audit, dry-run.
 
 ### Acceptance Criteria
 
-- [ ] Retained facts are untouched.
-- [ ] Jobs are bounded/idempotent.
-- [ ] Config is documented.
-- [ ] Tests pass.
+- [x] Retained facts are untouched.
+- [x] Jobs are bounded/idempotent.
+- [x] Config is documented.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -181,7 +181,19 @@ Do not invent jurisdiction retention or require queue/Redis.
 
 ### Output
 
-Safe retention jobs.
+Safe retention jobs delivered through
+`supabase/functions/retention-cleanup/index.ts` and
+`supabase/migrations/20260903010000_retention_cleanup.sql`. The service-only
+worker validates environment configuration, uses Local-safe defaults, and
+passes server-computed cutoffs to a bounded database function. The function
+supports dry-run, `FOR UPDATE SKIP LOCKED` batching, expired session removal,
+aged security-hash clearing, and expired idempotency-response scrubbing while
+retaining referenced response identities and all business facts.
+
+Configuration is documented in `LOCAL_DEVELOPMENT.md` and both environment
+examples. Verification: database 997/997, root tests 117/117, integration
+51/51, function smoke 6/6, type generation stability, typecheck, lint, format,
+build, boundaries, secrets, and failure-propagation checks all passed.
 
 ### Human Gate
 
@@ -189,7 +201,7 @@ None. Local hardening and optional visual review never block autonomous executio
 
 ### Commit
 
-`feat(operations): add bounded retention cleanup` — Task P6-T002.
+`feat(operations): add bounded retention cleanup` — Task P6-T002. Implementation commit: `dbfad01`.
 
 ### Next
 

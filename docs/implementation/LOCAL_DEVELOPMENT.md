@@ -18,3 +18,23 @@ build, Playwright discovery, boundary, and failure-propagation checks.
 The command intentionally leaves the local Supabase stack running for a faster
 warm rerun. It does not contact Staging or Production and does not perform
 broad Docker or filesystem cleanup.
+
+## Retention cleanup configuration
+
+The `retention-cleanup` Edge Function is a service-only scheduled entrypoint.
+It uses Local-safe technical defaults and accepts no caller-provided cutoffs:
+
+| Variable | Local default | Scope |
+| --- | ---: | --- |
+| `PLATFORM_RUNTIME_ENVIRONMENT` | `local` | `local`, `staging`, or `production` |
+| `PLATFORM_CLEANUP_SESSION_GRACE_SECONDS` | `86400` | Post-expiry session cleanup grace |
+| `PLATFORM_CLEANUP_SECURITY_CONTEXT_RETENTION_SECONDS` | `2592000` | IP-hash cleanup age |
+| `PLATFORM_CLEANUP_IDEMPOTENCY_RESPONSE_RETENTION_SECONDS` | `0` | Age after `expires_at` before response scrubbing |
+| `PLATFORM_CLEANUP_BATCH_SIZE` | `100` | Maximum rows per category per invocation, 1–1000 |
+| `PLATFORM_CLEANUP_DRY_RUN` | `false` | Count candidates without changing data |
+
+These are operational defaults, not legal retention periods. Staging and
+Production must explicitly provide every cleanup variable through their secret
+or environment manager. The job only removes expired sessions, clears aged
+security hashes, and scrubs expired idempotency response bodies; orders,
+payments, grants, redemption facts, and audit records remain retained.
