@@ -122,12 +122,58 @@ export const AdminOrderItemOverviewSchema = OrderItemSummarySchema.extend({
 }).strict();
 export type AdminOrderItemOverview = z.infer<typeof AdminOrderItemOverviewSchema>;
 
+export const AdminOrderRefundSchema = z
+  .object({
+    id: UuidSchema,
+    orderId: UuidSchema,
+    orderItemId: UuidSchema,
+    amountMinor: MoneyMinorSchema,
+    mode: z.enum(['compensation', 'return']),
+    reason: z.string().min(1).max(1000),
+    createdAt: IsoDateTimeSchema,
+  })
+  .strict();
+export type AdminOrderRefund = z.infer<typeof AdminOrderRefundSchema>;
+
+export const AdminOrderExceptionSchema = z
+  .object({
+    id: UuidSchema,
+    orderId: UuidSchema,
+    paymentId: UuidSchema,
+    paymentEventId: UuidSchema,
+    type: z.enum(['late_payment_after_cancel', 'ignored_event']),
+    reason: z.string().min(1).max(1000),
+    createdAt: IsoDateTimeSchema,
+  })
+  .strict();
+export type AdminOrderException = z.infer<typeof AdminOrderExceptionSchema>;
+
+export const AdminOrderAuditEventSchema = z
+  .object({
+    id: UuidSchema,
+    actorType: z.enum(['admin', 'system', 'user', 'webhook']),
+    actorId: UserIdSchema.nullable(),
+    action: z.string().min(1),
+    targetType: z.string().min(1),
+    targetId: UuidSchema,
+    requestId: UuidSchema.nullable(),
+    reason: z.string().min(1),
+    beforeSummary: JsonObjectSchema,
+    afterSummary: JsonObjectSchema,
+    createdAt: IsoDateTimeSchema,
+  })
+  .strict();
+export type AdminOrderAuditEvent = z.infer<typeof AdminOrderAuditEventSchema>;
+
 export const AdminOrderOverviewSchema = z
   .object({
     order: AdminOrderSummarySchema,
     items: z.array(AdminOrderItemOverviewSchema),
     payments: z.array(PaymentSummarySchema),
     events: z.array(PaymentEventSummarySchema),
+    refunds: z.array(AdminOrderRefundSchema),
+    exceptions: z.array(AdminOrderExceptionSchema),
+    auditTimeline: z.array(AdminOrderAuditEventSchema),
   })
   .strict();
 export type AdminOrderOverview = z.infer<typeof AdminOrderOverviewSchema>;

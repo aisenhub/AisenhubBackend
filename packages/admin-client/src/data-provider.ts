@@ -46,10 +46,12 @@ import {
   AdminUpdateProductRequestSchema,
   AdminUpdateProductVersionRequestSchema,
   AdminOrderListResponseSchema,
+  AdminOrderOverviewSchema,
   AdminOrderSummarySchema,
   AdminPaymentListResponseSchema,
   PaymentSummarySchema,
   type AdminOrderSummary,
+  type AdminOrderOverview,
   type PaymentSummary,
   type AdminApplicationSummary,
   type AdminCreateApplicationRequest,
@@ -353,6 +355,7 @@ export interface AisenHubAdminDataProvider {
   getSystemHealth(): Promise<AdminResponse<AdminSystemHealthResponse>>;
   getProductOverview(id: string): Promise<AdminResponse<AdminProductOverview>>;
   getUserOverview(id: string): Promise<AdminResponse<AdminUserOverview>>;
+  getOrderOverview(id: string): Promise<AdminResponse<AdminOrderOverview>>;
   createApplication(
     input: AdminCreateApplicationRequest,
     options?: AdminDraftMutationOptions,
@@ -452,6 +455,13 @@ export function createAdminDataProvider(client: AdminClient): AisenHubAdminDataP
       return client.request(
         `/v1/admin/users/${encodeResourceId(id)}/overview`,
         AdminUserOverviewSchema,
+      );
+    },
+
+    async getOrderOverview(id: string): Promise<AdminResponse<AdminOrderOverview>> {
+      return client.request(
+        `/v1/admin/orders/${encodeResourceId(id)}/overview`,
+        AdminOrderOverviewSchema,
       );
     },
 

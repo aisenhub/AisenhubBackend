@@ -163,13 +163,15 @@ async function adminQueryRead(request: Request, resource: string, id: string): P
     ]);
     const customerResources = new Set(['account-deletion-requests']);
     const rows = await serviceRpc<unknown>(
-      resource === 'products'
-        ? 'admin_query_products'
-        : catalogResources.has(resource)
-          ? 'admin_query_catalog_resource'
-          : customerResources.has(resource)
-            ? 'admin_query_customer_resource'
-            : 'admin_query_resource',
+      resource === 'orders' || resource === 'payments'
+        ? 'admin_query_commerce_resource'
+        : resource === 'products'
+          ? 'admin_query_products'
+          : catalogResources.has(resource)
+            ? 'admin_query_catalog_resource'
+            : customerResources.has(resource)
+              ? 'admin_query_customer_resource'
+              : 'admin_query_resource',
       {
         p_actor_id: session.user_id,
         p_resource: resource,
@@ -282,6 +284,50 @@ async function adminProductOverviewRead(
       return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
     }
     return errorResponse('INTERNAL_ERROR', 'The Product overview could not be read.', 502, id);
+  }
+}
+
+async function adminOrderOverviewRead(
+  request: Request,
+  orderId: string,
+  id: string,
+): Promise<Response> {
+  if (request.method !== 'GET') {
+    return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+  }
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId)) {
+    return errorResponse('VALIDATION_ERROR', 'The Order ID is invalid.', 400, id);
+  }
+  if (!sessionCookie(request)) {
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  }
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const rows = await serviceRpc<unknown>('admin_order_overview', {
+      p_actor_id: session.user_id,
+      p_order_id: orderId,
+    });
+    if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The Order overview returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse('ADMIN_RESOURCE_NOT_FOUND', 'The Order was not found.', 404, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '22023') {
+      return errorResponse('VALIDATION_ERROR', 'The Order overview request is invalid.', 400, id);
+    }
+    return errorResponse('INTERNAL_ERROR', 'The Order overview could not be read.', 502, id);
   }
 }
 
@@ -1491,6 +1537,10 @@ export async function routePlatformAdmin(
   if (userOverviewMatch) {
     return withCors(await adminUserOverviewRead(request, userOverviewMatch[1], id), resolved);
   }
+  const orderOverviewMatch = path.match(/^\/v1\/admin\/orders\/([^/]+)\/overview$/);
+  if (orderOverviewMatch) {
+    return withCors(await adminOrderOverviewRead(request, orderOverviewMatch[1], id), resolved);
+  }
   const redemptionRoute = redemptionCommandRoute(request, path);
   if (redemptionRoute) {
     const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
@@ -1537,7 +1587,7 @@ export async function routePlatformAdmin(
     );
   }
   const queryMatch = path.match(
-    /^\/v1\/admin\/(applications|users|origins|features|products|product-versions|prices|redemption-batches|redemption-codes|entitlements|redemptions|feedback|account-deletion-requests|audit-logs)$/,
+    /^\/v1\/admin\/(applications|users|origins|features|products|product-versions|prices|redemption-batches|redemption-codes|entitlements|redemptions|feedback|account-deletion-requests|audit-logs|orders|payments)$/,
   );
   if (queryMatch) {
     return withCors(await adminQueryRead(request, queryMatch[1], id), resolved);

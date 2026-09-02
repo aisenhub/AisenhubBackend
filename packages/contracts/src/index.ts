@@ -290,9 +290,12 @@ export {
 
 export {
   AdminChargebackOrderRequestSchema,
+  AdminOrderAuditEventSchema,
+  AdminOrderExceptionSchema,
   AdminOrderItemOverviewSchema,
   AdminOrderListResponseSchema,
   AdminOrderOverviewSchema,
+  AdminOrderRefundSchema,
   AdminOrderSummarySchema,
   AdminPaymentListResponseSchema,
   AdminRefundOrderItemRequestSchema,
@@ -313,9 +316,12 @@ export {
 
 export type {
   AdminChargebackOrderRequest,
+  AdminOrderAuditEvent,
+  AdminOrderException,
   AdminOrderItemOverview,
   AdminOrderListResponse,
   AdminOrderOverview,
+  AdminOrderRefund,
   AdminOrderSummary,
   AdminPaymentListResponse,
   AdminRefundOrderItemRequest,

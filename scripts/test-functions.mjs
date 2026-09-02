@@ -57,6 +57,12 @@ const commerceWebhookMigration = path.join(
   '20260902210000_commerce_webhook_ingest.sql',
 );
 const paymentWebhookProviderSource = path.join(functionsRoot, 'payment-webhook', 'provider.ts');
+const adminCommerceQueryMigration = path.join(
+  repositoryRoot,
+  'supabase',
+  'migrations',
+  '20260902220000_admin_commerce_queries.sql',
+);
 
 for (const functionName of functionNames) {
   const entrypoint = path.join(functionsRoot, functionName, 'index.ts');
@@ -275,6 +281,29 @@ if (process.argv.includes('webhook')) {
     throw new Error('Webhook adapter must not use user JWTs or log secret material.');
   }
   console.log('Signed payment webhook adapter smoke check passed.');
+}
+
+if (process.argv.includes('commerce-query')) {
+  const source = fs.readFileSync(adminApiSource, 'utf8');
+  const migration = fs.readFileSync(adminCommerceQueryMigration, 'utf8');
+  for (const required of [
+    'admin_query_commerce_resource',
+    'admin_order_overview',
+    'orders',
+    'refunds',
+    'exceptions',
+    'auditTimeline',
+  ]) {
+    if (!source.includes(required) && !migration.includes(required)) {
+      throw new Error(`Commerce query surface is missing ${required}.`);
+    }
+  }
+  for (const forbidden of ['external_payment_id', 'payload_summary']) {
+    if (migration.includes(forbidden)) {
+      throw new Error(`Commerce query projection must not expose ${forbidden}.`);
+    }
+  }
+  console.log('Commerce query and Order 360 smoke check passed.');
 }
 
 console.log(`Function shell smoke check passed for ${functionNames.length} functions.`);

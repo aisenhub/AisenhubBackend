@@ -288,6 +288,53 @@ describe('admin client transport', () => {
     );
   });
 
+  it('maps Order 360 to one typed aggregate endpoint', async () => {
+    const orderId = '00000000-0000-4000-8000-000000000031';
+    let requestedUrl = '';
+    const client = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async (input) => {
+        requestedUrl = String(input);
+        return new Response(
+          JSON.stringify({
+            data: {
+              order: {
+                id: orderId,
+                orderNo: 'AH-ORDER-031',
+                userId: null,
+                customerRef: '00000000-0000-4000-8000-000000000032',
+                status: 'cancelled',
+                currency: 'USD',
+                amountTotal: 0,
+                channel: 'local',
+                itemCount: 0,
+                createdAt: '2026-09-01T12:00:00.000Z',
+                paidAt: null,
+                fulfilledAt: null,
+                cancelledAt: '2026-09-01T12:00:00.000Z',
+                refundedAt: null,
+              },
+              items: [],
+              payments: [],
+              events: [],
+              refunds: [],
+              exceptions: [],
+              auditTimeline: [],
+            },
+            requestId,
+          }),
+          { headers: { 'content-type': 'application/json' }, status: 200 },
+        );
+      },
+    });
+    const provider = createAdminDataProvider(client);
+
+    await expect(provider.getOrderOverview(orderId)).resolves.toMatchObject({
+      data: { order: { orderNo: 'AH-ORDER-031' } },
+    });
+    expect(new URL(requestedUrl).pathname).toBe(`/v1/admin/orders/${orderId}/overview`);
+  });
+
   it('maps draft mutations to named endpoints with a stable idempotency key', async () => {
     let receivedUrl = '';
     let receivedInit: RequestInit | undefined;
