@@ -96,9 +96,9 @@ Production or staging resources were not touched.
 ## Git Range
 
 Phase 05 implementation runs from `57da41f` (`feat(commerce): add orders and order items`)
-through `a593fde` (`docs(implementation): complete P5-T012 resilience`), including the P5-T013
-checkpoint changes in the current working tree. The implementation and resilience commits were
-already synchronized to `origin/main` before this checkpoint commit.
+through `a593fde` (`docs(implementation): complete P5-T012 resilience`) and the P5-T013
+checkpoint commit `346a784`. The implementation and resilience commits were synchronized to
+`origin/main` before this checkpoint commit.
 
 ## Next Phase
 
