@@ -698,11 +698,11 @@ None. Use manual-channel fixtures and a Local fake provider; real commercial/pay
 
 ### Next
 
-P5-T008.
+P5-T009.
 
 ## P5-T008 — Implement chargeback and delayed-event exception handling
 
-Status: pending  
+Status: completed
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: domain-api  
@@ -760,10 +760,16 @@ Duplicate/ordered/out-of-order events, chargeback grants, late event, unauthoriz
 
 ### Acceptance Criteria
 
-- [ ] Late cancelled order is not auto-fulfilled.
-- [ ] Chargeback revokes correct item grants.
-- [ ] Exception is queryable/audited.
-- [ ] Tests pass.
+- [x] Late cancelled order is not auto-fulfilled.
+- [x] Chargeback revokes correct item grants.
+- [x] Exception is queryable/audited through the existing append-only Admin audit projection.
+- [x] Tests pass.
+
+### Verification
+
+- Added `chargeback_order` and `record_paid_after_cancelled_order` as service-role-only, SECURITY DEFINER domain functions with fixed search paths, item Grant/fulfillment revocation, ignored late-event handling, and append-only audit records.
+- Expanded `supabase/tests/0029_commerce_state_spec.sql` to 59 assertions covering chargeback state transitions, Grant revocation, late-payment non-fulfillment, unchanged cancelled order/payment state, and function privilege boundaries.
+- Static Commerce exception smoke check: PASS; focused state: 59/59; full database: 858/858; RLS: 29/29; root unit tests: 99/99; Admin integration: 34/34; contracts: 15/15; Admin Client: 16/16; type generation, typecheck, lint, format check, workspace build, boundary check, and secret scan: PASS.
 
 ### Failure Recovery
 

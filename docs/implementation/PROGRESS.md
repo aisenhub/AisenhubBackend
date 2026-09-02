@@ -1,15 +1,15 @@
 # AisenHub Platform Implementation Progress
 
-Last Updated: 2026-09-01
+Last Updated: 2026-09-02
 
 ## Overall
 
 Status: IN_PROGRESS
 
 Current Phase: P5 — Commerce + Admin D
-Current Task: P5-T008 — Implement chargeback and delayed-event exception handling
-Overall Progress: 74 / 107 tasks completed
-Last Successful Quality Gate: P5-T007 OrderItem refund transaction — PASS
+Current Task: P5-T009 — Implement signed webhook adapter with Local fake provider
+Overall Progress: 75 / 107 tasks completed
+Last Successful Quality Gate: P5-T008 chargeback and delayed-event exception handling — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P5-T007 OrderItem refund transaction — PASS
 
 Status: IN_PROGRESS
 Goal: Continue Commerce + Admin D implementation at the earliest incomplete task.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, and P5-T001 through P5-T007 completed. Remote repository synchronization is complete to `origin/main`.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, and P5-T001 through P5-T008 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -44,6 +44,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P5-T005 atomic paid-order fulfillment: PASS — multi-item grants, duplicate-event idempotency, cancelled-order rejection, and all-or-nothing rollback pass in the focused suite (26/26 fulfillment assertions); root unit 95/95, RLS 29/29, typecheck, lint, format, workspace build, boundaries, and secret scan passed. The shared state suite has 9 expected future refund/chargeback failures for P5-T007/P5-T008.
 - P5-T006 manual order verification: PASS — Finance/Owner + AAL2/MFA authorization, strict manual evidence validation, shared atomic fulfillment, payment-event minimization, idempotency, audit linkage, and unauthorized-role coverage; focused SQL 24/24, Admin integration 33/33, contracts 15/15, Admin Client 15/15, root unit 97/97, RLS 29/29, typecheck/lint/format/build/boundary/secret gates passed. Full DB retains only the 9 explicitly deferred P5-T007/P5-T008 assertions.
 - P5-T007 OrderItem refund transaction: PASS — partial compensation retains the item Grant, complete product return revokes only its sourced Grant, full-item refunds transition the whole Order/Payment only when all items qualify, and Admin retries are idempotent with one audit; Commerce state refund assertions 39/39, Admin integration 34/34, contracts 15/15, Admin Client 16/16, root unit 99/99, RLS 29/29, typecheck/lint/format/build/boundary/secret gates passed. Two remaining full-suite assertions are the explicit P5-T008 chargeback expectations.
+- P5-T008 chargeback and delayed-event handling: PASS — service-role-only atomic chargeback and late-payment exception functions, item Grant/fulfillment revocation, safe audit records, and 59-assertion state coverage; focused state 59/59, full database 858/858, RLS 29/29, static smoke, root unit 99/99, Admin integration 34/34, contracts 15/15, Admin Client 16/16, type generation, typecheck, lint, format, build, boundary, and secret gates passed.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
@@ -125,10 +126,11 @@ None.
 
 ## Next Tasks
 
-1. P5-T008 — Implement chargeback and delayed-event exception handling.
+1. P5-T009 — Implement signed webhook adapter with Local fake provider.
 
 ## Recent Commits
 
+- `2b1e4c6` — feat(commerce): add chargeback and exception handling
 - `6e3fca2` — feat(commerce): implement paid order fulfillment
 - `3624563` — feat(admin-api): add manual order verification
 - `0c8ceed` — feat(commerce): implement order item refunds
