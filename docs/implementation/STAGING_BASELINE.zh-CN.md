@@ -1,7 +1,7 @@
 # Staging 环境检查说明（中文）
 
 更新时间：2026-09-02  
-当前状态：HG-001 部分完成，等待 4 个敏感变量和前端重新部署
+当前状态：HG-001 部分完成，等待 Codex 环境变量和前端重新部署
 检查范围：只检查 Staging 能力，没有修改任何远程资源
 
 ## 先说结论
@@ -67,6 +67,8 @@ Admin：https://aisenhub-backend-admin.vercel.app
 - `STAGING_SUPABASE_SERVICE_ROLE_KEY`
 - `STAGING_REDEMPTION_PEPPER`
 - `STAGING_PAYMENT_WEBHOOK_SECRET`
+
+注意：上面 4 个 `STAGING_*` 是预检程序需要读取的“对应配置”，不是让你再次添加到 Supabase Secrets 页面。你刚才在 Supabase 页面填写的 4 个实际 Secret 名称已经确认存在。
 
 预检只检查“有没有配置”，不会显示配置内容。
 

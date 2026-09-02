@@ -26,6 +26,10 @@ Local default hosts (`localhost`/`127.0.0.1`). Their Vercel build variables
 must be configured and the deployments must be rebuilt before Staging smoke
 tests.
 
+The four custom Edge Function secret names are now present in the Staging
+project. The remaining gaps are the Codex-side `STAGING_*` aliases and the
+Vercel rebuild with Staging `VITE_*` variables.
+
 ## Discovery result
 
 The safe discovery command was:
