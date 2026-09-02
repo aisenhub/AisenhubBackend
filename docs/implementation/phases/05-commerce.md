@@ -890,7 +890,7 @@ P5-T010.
 
 ## P5-T010 — Implement Commerce Resource Queries and Order 360
 
-Status: pending  
+Status: completed  
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: api-aggregation  
@@ -950,10 +950,10 @@ Role projections, filters/pages, multi-item relations, deleted user, sensitive-f
 
 ### Acceptance Criteria
 
-- [ ] Order overview links each item to its Grant/refund.
-- [ ] Browser needs one overview request.
-- [ ] Role redaction is server-side.
-- [ ] Tests pass.
+- [x] Order overview links each item to its Grant/refund.
+- [x] Browser needs one overview request.
+- [x] Role redaction is server-side.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -973,7 +973,7 @@ None. Use manual-channel fixtures and a Local fake provider; real commercial/pay
 
 ### Commit
 
-`feat(admin-api): add commerce queries and order overview` — Task P5-T010.
+`feat(admin-api): add commerce queries and order overview` — Task P5-T010. Implementation commit: `69537dc`.
 
 ### Next
 
