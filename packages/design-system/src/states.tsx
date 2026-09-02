@@ -1,7 +1,8 @@
 import { Empty, Result, Spin, Typography } from 'antd';
-import { createElement } from 'react';
+import { createElement, type ReactNode } from 'react';
 
 export type StateMessageProps = {
+  action?: ReactNode;
   description?: string;
   title?: string;
 };
@@ -26,10 +27,12 @@ export function EmptyState({ description = 'No records to display.' }: StateMess
 }
 
 export function ErrorState({
+  action,
   title = 'Unable to load this information',
   description = 'Try again or contact support if the problem continues.',
 }: StateMessageProps) {
   return createElement(Result, {
+    extra: action,
     status: 'error',
     title,
     subTitle: description,

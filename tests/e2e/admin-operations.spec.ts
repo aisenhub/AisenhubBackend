@@ -122,4 +122,46 @@ test.describe('ADM-A read-only operations and RBAC', () => {
       )
       .toBeGreaterThan(1);
   });
+
+  test('A11Y keeps list controls and landmarks keyboard-discoverable', async ({ page }) => {
+    await signInToAdmin(page, roles[0]);
+    await page.goto(`${adminPageOrigin}/orders`);
+
+    await expect(page.getByRole('main')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Commerce' })).toBeVisible();
+    await expect(page.getByPlaceholder('Search this resource')).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Status :' })).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Saved views' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Apply filters' })).toBeVisible();
+
+    await page.getByPlaceholder('Search this resource').focus();
+    await expect(page.getByPlaceholder('Search this resource')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('combobox', { name: 'Status :' })).toBeFocused();
+  });
+
+  test('RESILIENCE retries a failed list without losing useful input', async ({ page }) => {
+    await signInToAdmin(page, roles[0]);
+    let failRequests = true;
+    await page.route('**/functions/v1/platform-admin/v1/admin/orders**', async (route) => {
+      if (failRequests) {
+        await route.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: { code: 'TEMPORARILY_UNAVAILABLE' } }),
+        });
+        return;
+      }
+      await route.continue();
+    });
+
+    await page.goto(`${adminPageOrigin}/orders`);
+    await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible();
+    const search = page.getByPlaceholder('Search this resource');
+    await search.fill('order');
+    failRequests = false;
+    await page.getByRole('button', { name: 'Retry' }).click();
+    await expect(page.getByRole('button', { name: 'Retry' })).toHaveCount(0);
+    await expect(search).toHaveValue('order');
+  });
 });

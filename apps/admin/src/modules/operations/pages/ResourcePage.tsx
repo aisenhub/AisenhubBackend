@@ -34,6 +34,7 @@ export function ResourcePage<TRecord extends BaseRecord>({
     syncWithLocation: true,
     pagination: { pageSize: 25 },
     sorters: { initial: [{ field: initialSort, order: 'desc' }] },
+    queryOptions: { retry: 1, retryDelay: 250 },
     onSearch: (values) => {
       const filters = [];
       if (values.search?.trim()) {
@@ -67,6 +68,7 @@ export function ResourcePage<TRecord extends BaseRecord>({
           tableProps={{ ...tableProps, columns }}
           isError={tableQuery.isError}
           error={tableQuery.error}
+          onRetry={() => void tableQuery.refetch()}
           emptyDescription={emptyDescription}
         />
       </Card>

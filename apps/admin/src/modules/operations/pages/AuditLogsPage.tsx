@@ -18,6 +18,7 @@ export function AuditLogsPage() {
     syncWithLocation: true,
     pagination: { pageSize: 25 },
     sorters: { initial: [{ field: 'createdAt', order: 'desc' }] },
+    queryOptions: { retry: 1, retryDelay: 250 },
     onSearch: ({ search }) =>
       search?.trim() ? [{ field: 'search', operator: 'contains', value: search.trim() }] : [],
   });
@@ -51,6 +52,7 @@ export function AuditLogsPage() {
         }}
         isError={tableQuery.isError}
         error={tableQuery.error}
+        onRetry={() => void tableQuery.refetch()}
         emptyDescription="No audit events match the current filters."
       />
       {items.length > 0 ? (

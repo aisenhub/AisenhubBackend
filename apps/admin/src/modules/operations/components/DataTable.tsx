@@ -1,4 +1,4 @@
-import { Table, Typography } from 'antd';
+import { Button, Table, Typography } from 'antd';
 import type { BaseRecord, HttpError } from '@refinedev/core';
 import type { TableProps } from 'antd';
 
@@ -9,6 +9,7 @@ type DataTableProps<TRecord extends BaseRecord> = {
   isError: boolean;
   error?: HttpError | null;
   emptyDescription: string;
+  onRetry?: () => void;
 };
 
 export function DataTable<TRecord extends BaseRecord>({
@@ -16,9 +17,15 @@ export function DataTable<TRecord extends BaseRecord>({
   isError,
   error,
   emptyDescription,
+  onRetry,
 }: DataTableProps<TRecord>) {
   if (isError) {
-    return <ErrorState description={error?.message ?? 'The Admin query could not be loaded.'} />;
+    return (
+      <ErrorState
+        description={error?.message ?? 'The Admin query could not be loaded.'}
+        action={onRetry ? <Button onClick={onRetry}>Retry</Button> : undefined}
+      />
+    );
   }
 
   return (

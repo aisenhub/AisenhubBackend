@@ -1,4 +1,16 @@
-import { Alert, Badge, Card, Col, Flex, Row, Skeleton, Statistic, Tag, Typography } from 'antd';
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  Col,
+  Flex,
+  Row,
+  Skeleton,
+  Statistic,
+  Tag,
+  Typography,
+} from 'antd';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -17,9 +29,13 @@ export function OverviewPage() {
   const [overviewError, setOverviewError] = useState<Error | null>(null);
   const [healthError, setHealthError] = useState<Error | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setOverviewError(null);
+    setHealthError(null);
     void Promise.allSettled([
       adminRuntime.dataProvider.getOverview(),
       adminRuntime.dataProvider.getSystemHealth(),
@@ -48,7 +64,7 @@ export function OverviewPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   return (
     <Flex vertical gap={16}>
@@ -62,7 +78,12 @@ export function OverviewPage() {
         </Typography.Paragraph>
       </div>
       {overviewError ? (
-        <Alert type="error" message="Overview unavailable" description={overviewError.message} />
+        <Alert
+          type="error"
+          message="Overview unavailable"
+          description={overviewError.message}
+          action={<Button onClick={() => setReloadToken((value) => value + 1)}>Retry</Button>}
+        />
       ) : null}
       <Row gutter={[16, 16]}>
         {loading && !overview ? (

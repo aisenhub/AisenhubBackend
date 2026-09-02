@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Descriptions, Flex, Spin, Typography } from 'antd';
+import { Button, Card, Descriptions, Flex, Spin, Typography } from 'antd';
 
 import {
   AdminSystemHealthResponseSchema,
@@ -13,9 +13,12 @@ export function SystemHealthPage() {
   const [health, setHealth] = useState<AdminSystemHealthResponse | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setError(null);
     void adminRuntime.dataProvider
       .getSystemHealth()
       .then((result) => {
@@ -30,7 +33,7 @@ export function SystemHealthPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   return (
     <Flex vertical gap={16}>
@@ -46,7 +49,10 @@ export function SystemHealthPage() {
         {loading ? (
           <Spin tip="Checking platform services…" />
         ) : error ? (
-          <ErrorState description={error.message} />
+          <ErrorState
+            description={error.message}
+            action={<Button onClick={() => setReloadToken((value) => value + 1)}>Retry</Button>}
+          />
         ) : health ? (
           <Descriptions bordered column={1}>
             <Descriptions.Item label="Overall status">
