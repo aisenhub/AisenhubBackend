@@ -27,7 +27,7 @@ Last Successful Quality Gate: P8-T002 Production readiness baseline — PASS; no
 
 Status: IN_PROGRESS
 Goal: Continue Operations Hardening implementation at the earliest incomplete task.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001 through P6-T010, P7-T001 through P7-T009, and P8-T001/P8-T002 completed. P8-T001 commercial freeze is deferred for the test-only scope. P8-T003 is ready at HG-003 for one consolidated Production infrastructure/configuration interaction. Remote repository synchronization is pending the current P8 documentation commits.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001 through P6-T010, P7-T001 through P7-T009, and P8-T001/P8-T002 completed. P8-T001 commercial freeze is deferred for the test-only scope. P8-T003 is ready at HG-003 for one consolidated Production infrastructure/configuration interaction. Remote repository synchronization is complete to `origin/main` at `a97f715`.
 
 ## Latest Verification
 
