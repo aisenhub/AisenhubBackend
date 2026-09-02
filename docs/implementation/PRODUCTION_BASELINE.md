@@ -26,6 +26,16 @@ Command:
 pnpm production:preflight --check-only --no-mutate
 ```
 
+Additional verification:
+
+```text
+pnpm production:preflight:test
+```
+
+Result: passed. The test confirms that configured secret sentinels are absent
+from preflight output and that a Supabase URL/project-ref mismatch is rejected
+as not ready.
+
 Observed results:
 
 | Area | Result |

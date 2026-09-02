@@ -86,6 +86,44 @@ function inspectVercelCli() {
   return result.status === 0 ? 'available' : 'not_available';
 }
 
+function inspectSupabaseIdentity(projectList) {
+  if (!present('PRODUCTION_SUPABASE_PROJECT_REF') || !present('PRODUCTION_SUPABASE_URL')) {
+    return {
+      url: 'not_configured',
+      projectVisibility: 'not_configured',
+      stagingIsolation: 'not_checked',
+    };
+  }
+
+  let urlMatchesRef = false;
+  try {
+    const hostname = new URL(process.env.PRODUCTION_SUPABASE_URL).hostname;
+    urlMatchesRef = hostname === `${process.env.PRODUCTION_SUPABASE_PROJECT_REF}.supabase.co`;
+  } catch {
+    urlMatchesRef = false;
+  }
+
+  const projectVisibility =
+    projectList.status !== 'available'
+      ? 'not_checked'
+      : projectList.projects.some(
+            (project) => project.ref === process.env.PRODUCTION_SUPABASE_PROJECT_REF,
+          )
+        ? 'visible'
+        : 'not_visible';
+  const stagingIsolation = present('STAGING_SUPABASE_PROJECT_REF')
+    ? process.env.STAGING_SUPABASE_PROJECT_REF !== process.env.PRODUCTION_SUPABASE_PROJECT_REF
+      ? 'isolated'
+      : 'collision'
+    : 'not_checked';
+
+  return {
+    url: urlMatchesRef ? 'matches_project_ref' : 'mismatch',
+    projectVisibility,
+    stagingIsolation,
+  };
+}
+
 async function resolveHost(host) {
   try {
     const addresses = await dns.lookup(host, { all: true });
@@ -98,6 +136,7 @@ async function resolveHost(host) {
 const projectList = runSupabaseProjectList();
 const productionRefConfigured = present('PRODUCTION_SUPABASE_PROJECT_REF');
 const productionUrlConfigured = present('PRODUCTION_SUPABASE_URL');
+const supabaseIdentity = inspectSupabaseIdentity(projectList);
 const projectCandidates = projectList.projects.filter(
   (project) =>
     project.name.toLowerCase().includes('production') || project.name === 'aisenhubProject',
@@ -124,6 +163,7 @@ const result = {
       candidateProjectCount: projectCandidates.length,
       candidates: projectCandidates.map(({ name, status, linked }) => ({ name, status, linked })),
     },
+    environmentIdentity: supabaseIdentity,
   },
   variables: Object.fromEntries(requiredProductionVariables.map((name) => [name, present(name)])),
   origins: {
@@ -142,6 +182,9 @@ const productionReady =
   result.supabase.cliAuth === 'available' &&
   productionRefConfigured &&
   productionUrlConfigured &&
+  supabaseIdentity.url === 'matches_project_ref' &&
+  supabaseIdentity.projectVisibility === 'visible' &&
+  supabaseIdentity.stagingIsolation !== 'collision' &&
   missingVariables.length === 0 &&
   Object.values(result.origins).every(
     (origin) => origin.configured && origin.provider !== 'invalid_origin',
