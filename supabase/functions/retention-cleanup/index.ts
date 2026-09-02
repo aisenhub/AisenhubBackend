@@ -1,4 +1,10 @@
-import { errorResponse, jsonResponse, requestId, serviceRpc } from '../_shared/platform-api.ts';
+import {
+  errorResponse,
+  jsonResponse,
+  requestIdFromRequest,
+  serviceRpc,
+} from '../_shared/platform-api.ts';
+import { withTelemetry } from '../_shared/telemetry.ts';
 
 type CleanupResult = {
   readonly dryRun: boolean;
@@ -84,7 +90,7 @@ function cutoff(seconds: number, now: number): string {
 }
 
 export async function handleRetentionCleanup(request: Request): Promise<Response> {
-  const id = requestId();
+  const id = requestIdFromRequest(request);
   if (request.method !== 'POST') {
     return errorResponse('METHOD_NOT_ALLOWED', 'Only POST is supported.', 405, id);
   }
@@ -114,5 +120,5 @@ export async function handleRetentionCleanup(request: Request): Promise<Response
 }
 
 if (typeof Deno !== 'undefined' && typeof Deno.serve === 'function') {
-  Deno.serve(handleRetentionCleanup);
+  Deno.serve((request) => withTelemetry(request, handleRetentionCleanup));
 }

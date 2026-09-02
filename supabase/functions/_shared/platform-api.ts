@@ -54,6 +54,13 @@ export function requestId(): string {
   return crypto.randomUUID();
 }
 
+export function requestIdFromRequest(request: Request): string {
+  const value = request.headers.get('x-request-id')?.trim() ?? '';
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+    ? value
+    : requestId();
+}
+
 export function jsonResponse(
   data: unknown,
   status: number,
@@ -1008,7 +1015,7 @@ async function routePlatformApiRoutes(
 }
 
 export async function routePlatformApi(request: Request): Promise<Response> {
-  const id = requestId();
+  const id = requestIdFromRequest(request);
   const resolved = await resolveOrigin(request, id);
   if (resolved instanceof Response) return resolved;
   if (request.method === 'OPTIONS') {

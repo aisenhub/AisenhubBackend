@@ -1,10 +1,11 @@
 import {
   errorResponse,
   jsonResponse,
-  requestId,
+  requestIdFromRequest,
   serviceRpc,
   ServiceRpcError,
 } from '../_shared/platform-api.ts';
+import { withTelemetry } from '../_shared/telemetry.ts';
 import {
   isProviderName,
   providerForName,
@@ -56,7 +57,7 @@ function processingError(id: string, error: unknown): Response {
 }
 
 export async function handleWebhook(request: Request): Promise<Response> {
-  const id = requestId();
+  const id = requestIdFromRequest(request);
   if (request.method !== 'POST') {
     return errorResponse('METHOD_NOT_ALLOWED', 'Only POST is supported.', 405, id);
   }
@@ -123,5 +124,5 @@ export async function handleWebhook(request: Request): Promise<Response> {
 }
 
 if (typeof Deno !== 'undefined' && typeof Deno.serve === 'function') {
-  Deno.serve(handleWebhook);
+  Deno.serve((request) => withTelemetry(request, handleWebhook));
 }

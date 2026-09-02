@@ -1,4 +1,10 @@
-import { errorResponse, jsonResponse, requestId, serviceRpc } from '../_shared/platform-api.ts';
+import {
+  errorResponse,
+  jsonResponse,
+  requestIdFromRequest,
+  serviceRpc,
+} from '../_shared/platform-api.ts';
+import { withTelemetry } from '../_shared/telemetry.ts';
 
 type DeletionClaim = {
   readonly deletion_request_id: string;
@@ -76,7 +82,7 @@ async function anonymizeAuthUser(userId: string): Promise<void> {
 }
 
 export async function handleDeletionWorker(request: Request): Promise<Response> {
-  const id = requestId();
+  const id = requestIdFromRequest(request);
   if (request.method !== 'POST') {
     return errorResponse('METHOD_NOT_ALLOWED', 'Only POST is supported.', 405, id);
   }
@@ -136,5 +142,5 @@ export async function handleDeletionWorker(request: Request): Promise<Response> 
 }
 
 if (typeof Deno !== 'undefined' && typeof Deno.serve === 'function') {
-  Deno.serve(handleDeletionWorker);
+  Deno.serve((request) => withTelemetry(request, handleDeletionWorker));
 }

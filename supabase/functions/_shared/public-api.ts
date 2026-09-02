@@ -4,7 +4,7 @@ import {
   errorResponse,
   jsonResponse,
   preflightResponse,
-  requestId,
+  requestIdFromRequest,
   resolveOrigin,
   rpc,
   withCors,
@@ -101,7 +101,7 @@ async function routePublic(request: Request, id: string): Promise<Response> {
 }
 
 export async function routePlatformPublic(request: Request): Promise<Response> {
-  const id = requestId();
+  const id = requestIdFromRequest(request);
   const resolved = await resolveOrigin(request, id);
   if (resolved instanceof Response) return resolved;
   if (request.method === 'OPTIONS') {

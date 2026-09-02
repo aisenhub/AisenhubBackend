@@ -11,7 +11,7 @@ import {
   jsonResponse,
   parseJsonObject,
   preflightResponse,
-  requestId,
+  requestIdFromRequest,
   resolveOrigin,
   rpc,
   serviceRpc,
@@ -1506,7 +1506,7 @@ export async function routePlatformAdmin(
   request: Request,
   health: (functionName: string) => Response = healthResponse,
 ): Promise<Response> {
-  const id = requestId();
+  const id = requestIdFromRequest(request);
   const resolved = await resolveOrigin(request, id);
   if (resolved instanceof Response) return resolved;
   if (request.method === 'OPTIONS') {

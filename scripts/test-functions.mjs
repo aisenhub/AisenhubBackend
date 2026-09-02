@@ -358,6 +358,41 @@ if (process.argv.includes('cleanup')) {
   console.log('Retention cleanup worker smoke check passed.');
 }
 
+if (process.argv.includes('telemetry')) {
+  const telemetrySource = fs.readFileSync(
+    path.join(functionsRoot, '_shared', 'telemetry.ts'),
+    'utf8',
+  );
+  for (const functionName of functionNames) {
+    const source = fs.readFileSync(path.join(functionsRoot, functionName, 'index.ts'), 'utf8');
+    if (!source.includes('withTelemetry')) {
+      throw new Error(`Function ${functionName} does not use the telemetry boundary.`);
+    }
+  }
+  for (const required of [
+    'requestId',
+    'resultCode',
+    'latencyMs',
+    'session_exchange_total',
+    'entitlement_check_total',
+    'redemption_total',
+    'payment_webhook_total',
+    'admin_operation_total',
+    'feedback_total',
+    'safeStructuredLog',
+  ]) {
+    if (!telemetrySource.includes(required)) {
+      throw new Error(`Telemetry is missing ${required}.`);
+    }
+  }
+  for (const forbidden of ['authorization', 'cookie', 'password', 'secret', 'token']) {
+    if (telemetrySource.includes(`console.log(${forbidden}`)) {
+      throw new Error(`Telemetry must not log ${forbidden}.`);
+    }
+  }
+  console.log('Request telemetry and safe structured logging smoke check passed.');
+}
+
 if (process.argv.includes('commerce-query')) {
   const source = fs.readFileSync(adminApiSource, 'utf8');
   const migration = fs.readFileSync(adminCommerceQueryMigration, 'utf8');
