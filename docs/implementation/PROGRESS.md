@@ -7,9 +7,9 @@ Last Updated: 2026-09-02
 Status: IN_PROGRESS
 
 Current Phase: P5 — Commerce + Admin D
-Current Task: P5-T012 — Run complete Commerce E2E and resilience scenarios
-Overall Progress: 78 / 107 tasks completed
-Last Successful Quality Gate: P5-T011 Admin Commerce operations and Order 360 UI — PASS
+Current Task: P5-T013 — Execute Commerce and Admin D quality gate
+Overall Progress: 79 / 107 tasks completed
+Last Successful Quality Gate: P5-T012 Commerce E2E and resilience scenarios — PASS
 
 ## Phase Progress
 
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P5-T011 Admin Commerce operations and Order 360 UI
 
 Status: IN_PROGRESS
 Goal: Continue Commerce + Admin D implementation at the earliest incomplete task.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, and P5-T001 through P5-T011 completed. Remote repository synchronization is complete to `origin/main`.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, and P5-T001 through P5-T012 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -48,6 +48,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P5-T009 signed payment webhook adapter: PASS — raw-body HMAC signature and timestamp-window verification, Local fake provider normalization, credential-free payload summary validation, service-role-only atomic event intake, duplicate/out-of-order handling, fulfillment and late-payment dispatch, safe retry errors, and no user JWT use; Webhook integration 5/5, database 880/880, RLS 29/29, root unit 104/104, Contract 15/15, Admin Client 16/16, type generation, typecheck, lint, format, build, boundaries, function smoke, and secret gates passed. Implementation commit `ebda616`.
 - P5-T010 Commerce Resource Queries and Order 360: PASS — role-filtered paginated Orders/Payments projections, Finance direct-user redaction, one-request Order 360 aggregation of purchase snapshots, per-item Grants/refunds, payment events, exceptions, and Audit Timeline; database 901/901, RLS 29/29, Commerce integration 42/42, root unit 108/108, Contract 15/15, Admin Client 17/17, type generation, typecheck, lint, format, build, boundaries, Commerce query smoke, and secret gates passed. Implementation commit `69537dc`.
 - P5-T011 Admin Commerce operations and Order 360 UI: PASS — server-driven Commerce list and deep-linked Order 360 with backend-projected payments/events/refunds/exceptions/audit, MoneyDisplay and exact timestamps, shared MFA/reason/confirmation dialogs for Verify/Refund commands, Support refund denial, responsive desktop/mobile grid, and request/audit trace; Admin tests 9/9, Commerce UI E2E 2/2, full E2E 16/16 on isolated local port, root unit 108/108, database 901/901, RLS 29/29, integration 42/42, typecheck, lint, format, build, boundaries, secret scan, and Impeccable detector passed. Implementation commit `1eae9f7`.
+- P5-T012 Commerce E2E and resilience scenarios: PASS — pgTAP cross-system flow covers multi-item fulfillment, duplicate webhook idempotency, out-of-order events, partial compensation, complete item return, chargeback Grant revocation, late-payment exception, exact refund/chargeback audit traces, and credential-free audits; database 938/938, resilience integration 2/2 (full integration 44/44), P5 Commerce UI E2E 2/2, root unit 110/110, typecheck, lint, format, build, boundaries, and secret scan passed. Implementation commit `887f91c`.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.

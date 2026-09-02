@@ -1076,7 +1076,7 @@ P5-T012.
 
 ## P5-T012 — Run complete Commerce E2E and resilience scenarios
 
-Status: pending  
+Status: completed
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: e2e-security  
@@ -1136,10 +1136,10 @@ Full flow plus retries/concurrency/rollback/forbidden roles.
 
 ### Acceptance Criteria
 
-- [ ] All flows pass headlessly.
-- [ ] No duplicate or partial fulfillment.
-- [ ] Refund/Grant trace is exact per item.
-- [ ] No secret leaks.
+- [x] All flows pass headlessly.
+- [x] No duplicate or partial fulfillment.
+- [x] Refund/Grant trace is exact per item.
+- [x] No secret leaks.
 
 ### Failure Recovery
 
@@ -1153,13 +1153,21 @@ Do not require real payment or manual verification.
 
 Automated Commerce proof.
 
+Delivered through `supabase/tests/0032_commerce_resilience_spec.sql` and
+`tests/integration/commerce-resilience.test.mjs`: the clean local database suite
+passes 938/938, the full integration suite passes 44/44, and the P5 Commerce UI
+E2E suite passes 2/2. The resilience flow verifies multi-item Grant creation,
+duplicate and out-of-order signed events, partial compensation, complete item
+returns, chargeback revocation, late-payment exception handling, exact audit
+traces, request IDs, role boundaries, and absence of credential material.
+
 ### Human Gate
 
 None. Use manual-channel fixtures and a Local fake provider; real commercial/payment decisions are deferred to HG-002.
 
 ### Commit
 
-`test(e2e): cover commerce fulfillment and refunds` — Task P5-T012.
+`test(e2e): cover commerce fulfillment and refunds` — Task P5-T012. Implementation commit: `887f91c`.
 
 ### Next
 
