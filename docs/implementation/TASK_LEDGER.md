@@ -92,7 +92,7 @@
 | P6-T006 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | f5cce39 | Accessible in-place list retry with preserved input, bounded query retry, independent overview/health recovery, lazy-loaded Admin routes, keyboard A11Y flow, RESILIENCE recovery flow, Admin operations E2E 9/9, and full quality gates passed. |
 | P6-T007 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | 8020a34 | Security/boundary audit, Admin asset and source scans, privileged SQL search_path/grant checks, DB 1014/1014, RLS 29/29, integration 58/58, security report, corrected E2E discovery orchestration, and complete Local verification passed. |
 | P6-T008 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | ecf8393 | Deterministic release-candidate orchestrator, full normal-user Account/Catalog/Entitlement/Redemption/Feedback/Deletion journey, Owner User 360/Audit proof, and Commerce resilience integration 2/2 passed headlessly. |
-| P6-T009 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | TBD | Added Local Operations, API/type generation, and Security Response runbooks; documented recovery/release/secret/evidence boundaries; added `pnpm docs:check`; Markdown/env validation, secret scan, and boundary checks passed. |
+| P6-T009 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | 5bc463f | Added Local Operations, API/type generation, and Security Response runbooks; documented recovery/release/secret/evidence boundaries; added `pnpm docs:check`; Markdown/env validation, secret scan, and boundary checks passed. |
 | P6-T010 | Operations Hardening | pending |  |  |  |  |
 | P7-T001 | Staging | pending |  |  |  |  |
 | P7-T002 | Staging | pending |  |  |  |  |

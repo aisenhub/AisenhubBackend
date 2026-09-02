@@ -913,7 +913,7 @@ None. Local hardening and optional visual review never block autonomous executio
 ### Commit
 
 `docs(platform): add implementation and operations runbooks` — Task P6-T009.
-Implementation commit: pending.
+Implementation commit: `5bc463f`.
 
 ### Next
 
