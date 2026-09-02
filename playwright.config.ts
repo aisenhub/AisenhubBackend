@@ -1,9 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-function localAnonKey(): string {
-  if (process.env.VITE_SUPABASE_ANON_KEY) return process.env.VITE_SUPABASE_ANON_KEY;
-
+function localSupabaseEnv(): Record<string, string> {
   const pathValue = `D:\\APP\\Base\\DockerDesktop\\resources\\bin;${process.env.Path ?? ''}`;
   const output = execFileSync(
     process.env.ComSpec ?? 'cmd.exe',
@@ -15,12 +15,36 @@ function localAnonKey(): string {
       stdio: ['ignore', 'pipe', 'ignore'],
     },
   );
-  const match = output.match(/^ANON_KEY="?([^"\r\n]+)"?$/m);
-  if (!match) throw new Error('Local Supabase anon key is unavailable for Account E2E.');
-  return match[1];
+  return Object.fromEntries(
+    output
+      .split(/\r?\n/)
+      .map((line) => line.match(/^([A-Z0-9_]+)="?([^"\r\n]+)"?$/))
+      .filter(Boolean)
+      .map(([, key, value]) => [key, value]),
+  );
 }
 
-const localSupabaseAnonKey = localAnonKey();
+const localEnv = localSupabaseEnv();
+const localSupabaseAnonKey =
+  process.env.VITE_SUPABASE_ANON_KEY ?? localEnv.ANON_KEY ?? localEnv.SUPABASE_ANON_KEY;
+if (!localSupabaseAnonKey)
+  throw new Error('Local Supabase anon key is unavailable for Account E2E.');
+
+const functionEnvFile = join(process.cwd(), 'supabase', '.temp', 'playwright-functions.env');
+mkdirSync(join(process.cwd(), 'supabase', '.temp'), { recursive: true });
+writeFileSync(
+  functionEnvFile,
+  [
+    `SUPABASE_URL=${localEnv.API_URL ?? 'http://127.0.0.1:54321'}`,
+    `SUPABASE_ANON_KEY=${localEnv.ANON_KEY ?? localSupabaseAnonKey}`,
+    `SUPABASE_SERVICE_ROLE_KEY=${localEnv.SERVICE_ROLE_KEY ?? ''}`,
+    'REDEMPTION_PEPPER=local-e2e-only-pepper',
+    'REDEMPTION_PEPPER_VERSION=1',
+    'PAYMENT_WEBHOOK_SECRET_LOCAL=local-webhook-secret-0123456789',
+    'PLATFORM_RUNTIME_ENVIRONMENT=local',
+  ].join('\n') + '\n',
+  'utf8',
+);
 const accountBaseUrl = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173';
 const accountPort = new URL(accountBaseUrl).port || '5173';
 const adminBaseUrl = process.env.PLAYWRIGHT_ADMIN_BASE_URL ?? 'http://localhost:5174';
@@ -59,7 +83,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'pnpm exec supabase functions serve platform-api platform-public --no-verify-jwt',
+      command: `pnpm exec supabase functions serve platform-api platform-public --no-verify-jwt --env-file "${functionEnvFile}"`,
       url: `http://127.0.0.1:54321/functions/v1/platform-api/v1/session?apikey=${localSupabaseAnonKey}`,
       timeout: 120_000,
       reuseExistingServer: true,

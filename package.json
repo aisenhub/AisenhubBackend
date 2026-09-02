@@ -34,6 +34,7 @@
     "test:integration": "vitest run tests/integration",
     "test:security": "node scripts/test-security-audit.mjs",
     "test:e2e": "playwright test",
+    "test:e2e:release": "node scripts/run-release-candidate.mjs",
     "test:harness:negative": "node scripts/test-harness-negative.mjs"
   },
   "devDependencies": {

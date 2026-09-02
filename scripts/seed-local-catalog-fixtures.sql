@@ -84,7 +84,9 @@ on conflict (id) do nothing;
 insert into platform.redemption_codes
   (id, batch_id, code_hash, code_hint, pepper_version, status)
 values
-  ('31000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', repeat('a', 64), 'AH-LOCAL-ACTIVE-****-0001', 1, 'issued'),
+  -- The first Local-only code is intentionally deterministic for the release-candidate journey.
+  -- Its HMAC uses the non-production E2E pepper configured by Playwright; plaintext is never stored.
+  ('31000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '2303ce21763596f0c89aa6909e09fc2c1315fbd0c567e6ac0beede0d0f5126a7', 'AH-LOCAL-ACTIVE-****-EEFF', 1, 'issued'),
   ('31000000-0000-4000-8000-000000000002', '30000000-0000-4000-8000-000000000001', repeat('b', 64), 'AH-LOCAL-ACTIVE-****-0002', 1, 'issued'),
   ('31000000-0000-4000-8000-000000000003', '30000000-0000-4000-8000-000000000002', repeat('c', 64), 'AH-LOCAL-PAUSED-****-0001', 1, 'issued'),
   ('31000000-0000-4000-8000-000000000004', '30000000-0000-4000-8000-000000000003', repeat('d', 64), 'AH-LOCAL-EXPIRED-****-0001', 1, 'issued')

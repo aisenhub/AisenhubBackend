@@ -244,10 +244,10 @@ export function App() {
               <p className="muted-text">No active entitlements.</p>
             ) : (
               <div className="item-list">
-                {entitlements.map((entitlement) => (
+                {entitlements.map((entitlement, index) => (
                   <div
                     className="item-row"
-                    key={`${entitlement.feature}-${entitlement.sourceProduct}`}
+                    key={`${entitlement.feature}-${entitlement.sourceProduct}-${index}`}
                   >
                     <span>{entitlement.feature}</span>
                     <span className="item-meta">
