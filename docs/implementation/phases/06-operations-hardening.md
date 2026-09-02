@@ -209,7 +209,7 @@ P6-T003.
 
 ## P6-T003 — Implement request context, metrics, and safe structured logging
 
-Status: pending  
+Status: completed
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: observability  
@@ -269,10 +269,10 @@ Request propagation, all error classes, redaction, metric labels bounded, logger
 
 ### Acceptance Criteria
 
-- [ ] Every API response has requestId.
-- [ ] No sensitive value logged.
-- [ ] Required metrics exist.
-- [ ] Tests pass.
+- [x] Every API response has requestId.
+- [x] No sensitive value logged.
+- [x] Required metrics exist.
+- [x] Tests pass.
 
 ### Failure Recovery
 
@@ -284,7 +284,17 @@ Do not add a heavy observability platform dependency.
 
 ### Output
 
-Safe platform telemetry.
+Safe platform telemetry delivered through the shared
+`supabase/functions/_shared/telemetry.ts` boundary. All six Edge Function
+entrypoints generate one trace ID, inject it into the internal request, ensure
+the response header/body carries it, normalize routes, classify stable result
+codes, and emit bounded JSON telemetry. Logger failures are swallowed, and no
+response bodies or credential-bearing values are logged. Metric names and
+nonproduction alert defaults are documented in `docs/implementation/TELEMETRY.md`.
+
+Verification: root tests 120/120, integration 54/54, function smoke 6/6,
+typecheck, lint, format, build, boundaries, secrets, and failure-propagation
+checks all passed.
 
 ### Human Gate
 
@@ -292,7 +302,7 @@ None. Local hardening and optional visual review never block autonomous executio
 
 ### Commit
 
-`feat(observability): add request context and metrics` — Task P6-T003.
+`feat(observability): add request context and metrics` — Task P6-T003. Implementation commit: `509e46c`.
 
 ### Next
 
