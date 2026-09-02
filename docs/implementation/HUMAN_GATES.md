@@ -10,7 +10,7 @@ A gate becomes `ready` only after the Agent has completed all autonomous prerequ
 
 ## HG-001 — Consolidated Staging Bootstrap
 
-Status: ready
+Status: resolved
 Stage: Staging Bootstrap  
 Category: H1/H2/H3/H4  
 Maximum interactions: 1

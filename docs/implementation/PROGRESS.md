@@ -7,8 +7,8 @@ Last Updated: 2026-09-02
 Status: IN_PROGRESS
 
 Current Phase: P7 — Staging
-Current Task: P7-T003 — Resolve consolidated HG-001 when Staging access is unavailable
-Overall Progress: 92 / 107 tasks completed
+Current Task: P7-T005 — Deploy Staging database and Edge Functions
+Overall Progress: 94 / 107 tasks completed
 Last Successful Quality Gate: P7-T002 immutable Staging deployment bundle — PASS
 
 ## Phase Progress
@@ -27,7 +27,7 @@ Last Successful Quality Gate: P7-T002 immutable Staging deployment bundle — PA
 
 Status: IN_PROGRESS
 Goal: Continue Operations Hardening implementation at the earliest incomplete task.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001 through P6-T010, and P7-T001 through P7-T002 completed. Remote repository synchronization is complete to `origin/main`.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, P5-T001 through P5-T013, P6-T001 through P6-T010, and P7-T001 through P7-T004 completed. P7-T005 backend deployment is in progress. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -62,6 +62,9 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P6-T010 Operations Hardening quality gate: PASS — clean Local `platform:verify` passed database 1014/1014, RLS 29/29, fixture verification, Function shell 6/6, root unit 127/127, Contract 15/15, integration 58/58, typecheck, lint, format, workspace build, security audit, secret scan, E2E discovery 21/21, boundaries, and failure-propagation checks; release-candidate E2E 1/1 and Commerce resilience 2/2 passed; `docs:check` passed 37 files; PHASE-06 checkpoint created with Architecture Deviations: None.
 - P7-T001 Staging capability baseline: PASS — initial discovery found missing authorization and Staging resources; after user setup, Supabase CLI authorization is available, healthy isolated project `workendstaging` (`egsokuicabbxspkdccqe`) is discoverable, both Vercel Account/Admin provider URLs return HTTP 200 with verified Staging application configuration, and all four custom Edge Function secret names are present. Custom DNS is not required; the no-secret preflight reports the remaining Codex-side aliases.
 - P7-T002 immutable Staging deployment bundle: PASS — fixed Git SHA, validated 41-migration order, built Account/Admin artifacts, hashed 14 Edge Function source files, rejected secret material in artifacts, generated the variable/DNS/CORS/recovery checklist, and reproduced identical manifest/checksum hashes twice. Local platform verification passed database 1014/1014, RLS 29/29, unit 127/127, integration 58/58, E2E discovery 21/21, all static/security/build gates, and offline Staging preflight. Report: `docs/implementation/reports/P7-T002-staging-bundle.md`.
+- P7-T003 consolidated Staging Human Gate: PASS — user supplied the authorized Staging project, Vercel provider URLs, Edge Function secrets, and protected Codex environment variables; HG-001 is resolved with one consolidated interaction and no secret value disclosed.
+- P7-T004 Staging environment configuration: PASS — all nine required variables are readable, both Staging key values match the selected project without printing values, Supabase CLI authorization is available, and Vercel provider URLs are selected without custom DNS.
+- P7-T005 Staging backend deployment: IN_PROGRESS — all 41 migrations and six Edge Functions are deployed to `workendstaging`; migration history matches local; Auth admin read is HTTP 200. Staging Auth has zero users and therefore no Admin membership; exact Vercel Origins still need controlled registration before authenticated browser smoke. Report: `docs/implementation/reports/P7-T005-staging-backend-deployment.md`.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
@@ -135,7 +138,7 @@ None.
 
 ## Pending Human Gates
 
-- HG-001 Staging Bootstrap — planned, not ready.
+- HG-001 Staging Bootstrap — resolved with one consolidated interaction; no secret value was disclosed.
 - HG-002 Commercial Configuration Freeze — planned, defer until real sale.
 - HG-003 Production Infrastructure and Secrets — planned.
 - HG-004 Production Migration and Deployment Approval — planned, mandatory.
