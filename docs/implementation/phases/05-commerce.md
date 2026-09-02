@@ -797,7 +797,7 @@ P5-T009.
 
 ## P5-T009 — Implement signed webhook adapter with Local fake provider
 
-Status: pending  
+Status: completed  
 Phase: P5 — Commerce + Admin D  
 Execution: AUTONOMOUS  
 Type: api-security-test-first  
@@ -859,10 +859,10 @@ Valid/forged/replay/expired signature, duplicate event, out-of-order events, mal
 
 ### Acceptance Criteria
 
-- [ ] Webhook uses no user JWT.
-- [ ] Duplicate event does not duplicate grants.
-- [ ] Fake provider fully tests Local.
-- [ ] No real provider account required.
+- [x] Webhook uses no user JWT.
+- [x] Duplicate event does not duplicate grants.
+- [x] Fake provider fully tests Local.
+- [x] No real provider account required.
 
 ### Failure Recovery
 
@@ -882,7 +882,7 @@ None. Use manual-channel fixtures and a Local fake provider; real commercial/pay
 
 ### Commit
 
-`feat(payment): add signed webhook adapter boundary` — Task P5-T009.
+`feat(payment): add signed webhook adapter boundary` — Task P5-T009. Implementation commit: `ebda616`.
 
 ### Next
 
