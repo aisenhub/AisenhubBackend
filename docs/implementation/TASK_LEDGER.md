@@ -89,7 +89,7 @@
 | P6-T003 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | 509e46c | Shared telemetry boundary across all six Edge Function entrypoints with one propagated request ID, request/response tracing, bounded route/result labels, safe structured logging, required operation metrics, logger-failure isolation, redaction tests, root tests 120/120, integration 54/54, and quality gates passed. |
 | P6-T004 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | 116a8b8 | Fixed role-filtered Admin operations aggregation, safe System Health/Overview surfaces, allowlisted drill-down cards, Feedback route, partial-failure UI behavior, database 1014/1014, root 124/124, integration 58/58, Admin E2E 6/6, and full quality gates passed. |
 | P6-T005 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | 6d84e59 | Resource-scoped structured saved filters, explicit Refine React Router URL-state adapter, deep-link/history coverage, Admin tests 12/12, FILTERS E2E 1/1, operations E2E 7/7, root 127/127, integration 58/58, contracts 15/15, Admin Client 17/17, and full quality gates passed. |
-| P6-T006 | Operations Hardening | pending |  |  |  |  |
+| P6-T006 | Operations Hardening | completed | 2026-09-02 | 2026-09-02 | f5cce39 | Accessible in-place list retry with preserved input, bounded query retry, independent overview/health recovery, lazy-loaded Admin routes, keyboard A11Y flow, RESILIENCE recovery flow, Admin operations E2E 9/9, and full quality gates passed. |
 | P6-T007 | Operations Hardening | pending |  |  |  |  |
 | P6-T008 | Operations Hardening | pending |  |  |  |  |
 | P6-T009 | Operations Hardening | pending |  |  |  |  |

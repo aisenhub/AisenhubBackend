@@ -513,7 +513,7 @@ P6-T006.
 
 ## P6-T006 — Harden accessibility, performance, and error recovery
 
-Status: pending  
+Status: completed
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: quality  
@@ -573,10 +573,10 @@ A11y rules, keyboard dangerous dialog, load/empty/error, large list latency budg
 
 ### Acceptance Criteria
 
-- [ ] No critical accessibility violations.
-- [ ] Lists remain server-driven.
-- [ ] Failures recover without losing useful input.
-- [ ] Build budgets pass.
+- [x] No critical accessibility violations.
+- [x] Lists remain server-driven.
+- [x] Failures recover without losing useful input.
+- [x] Build budgets pass.
 
 ### Failure Recovery
 
@@ -588,7 +588,20 @@ Do not optimize by weakening validation/security.
 
 ### Output
 
-Accessible resilient Admin.
+Accessible resilient Admin delivered through bounded React Query retry for
+server-driven lists, accessible in-place retry controls that preserve form
+values, independent Overview/System Health recovery actions, and lazy-loaded
+route modules. The shared ErrorState accepts an optional action while retaining
+its live-region semantics. A11Y keyboard checks cover the main landmark,
+headings, search/status/saved-view controls, and tab order; RESILIENCE covers a
+temporary list failure, recovery, and preserved search input. The production
+build now emits route-specific chunks; the existing Vite large-vendor-chunk
+notice remains non-blocking.
+
+Verification: Admin tests 12/12, Admin operations E2E 9/9 including A11Y 1/1
+and RESILIENCE 1/1, root tests 127/127, integration 58/58, contracts 15/15,
+Admin Client 17/17, typecheck, lint, format, workspace build, boundaries, and
+secret scan passed.
 
 ### Human Gate
 
@@ -596,7 +609,8 @@ None. Local hardening and optional visual review never block autonomous executio
 
 ### Commit
 
-`perf(admin): harden accessibility and resilience` — Task P6-T006.
+`perf(admin): harden accessibility and resilience` — Task P6-T006. Implementation
+commit: `f5cce39`.
 
 ### Next
 
