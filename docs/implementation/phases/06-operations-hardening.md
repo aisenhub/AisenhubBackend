@@ -921,7 +921,7 @@ P6-T010.
 
 ## P6-T010 — Execute Operations Hardening quality gate
 
-Status: pending  
+Status: completed
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: quality-gate  
@@ -984,11 +984,11 @@ Every applicable Definition-of-Done category.
 
 ### Acceptance Criteria
 
-- [ ] All Local DoD checks PASS.
-- [ ] Security findings are closed.
-- [ ] Architecture Deviations None or approved.
-- [ ] Human interactions used: 0.
-- [ ] HG-001 remains untriggered until P7 environment inspection.
+- [x] All Local DoD checks PASS.
+- [x] Security findings are closed.
+- [x] Architecture Deviations None or approved.
+- [x] Human interactions used: 0.
+- [x] HG-001 remains untriggered until P7 environment inspection.
 
 ### Failure Recovery
 
