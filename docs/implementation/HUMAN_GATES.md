@@ -58,7 +58,7 @@ before creating formal Production products or accepting real money.
 
 ## HG-003 — Production Infrastructure and Secrets Authorization
 
-Status: planned  
+Status: ready  
 Stage: Production readiness  
 Category: H1/H2/H3  
 Maximum interactions: 1
@@ -66,6 +66,14 @@ Maximum interactions: 1
 Trigger only after Staging quality/smoke gates pass. Batch all missing production account authorization, project/resource access, and named environment variables. The Agent must provide a no-secret checklist and verify configuration without echoing values.
 
 If the Agent already has the required scoped authorization and resources, this gate may be skipped, but HG-004 remains mandatory.
+
+Current outcome: ready after P8-T002 read-only inspection. Supabase CLI
+authorization is available and a separate healthy project candidate is
+visible, but no protected `PRODUCTION_*` variables or Production origins are
+configured. Production hosting CLI access and canonical DNS readiness are also
+unavailable. The complete no-secret missing-item bundle is recorded in
+`docs/implementation/PRODUCTION_BASELINE.md`. HG-004 remains a separate
+mandatory deployment approval.
 
 ## HG-004 — Production Migration and Deployment Approval
 
