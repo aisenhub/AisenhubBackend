@@ -1,12 +1,12 @@
 # Staging 环境检查说明（中文）
 
 更新时间：2026-09-02  
-当前状态：等待 HG-001 人工门禁  
+当前状态：HG-001 部分完成，等待剩余配置
 检查范围：只检查 Staging 能力，没有修改任何远程资源
 
 ## 先说结论
 
-Local、Docker、WSL 和项目代码目前都正常。现在不能继续部署的原因，是电脑上没有连接到“远程 Staging 环境”所需的账号、项目和配置。
+Local、Docker、WSL 和项目代码目前都正常。你已经完成 Supabase 登录并创建了独立 Staging 项目；现在只剩托管地址和环境变量配置。
 
 这不是 Docker 启动失败，也不是代码测试失败。
 
@@ -21,23 +21,30 @@ Local、Docker、WSL 和项目代码目前都正常。现在不能继续部署�
 
 ## 为什么显示这些问题
 
-### 1. Supabase CLI 未授权
+### 1. Supabase CLI 授权（已完成）
 
 Supabase CLI 是连接 Supabase 项目的工具。当前 Codex 环境中：
 
 - 没有可用的已保存 Supabase 登录状态；
 - 也没有 `SUPABASE_ACCESS_TOKEN` 环境变量。
 
-所以无法列出你有权访问的 Supabase 项目，也就无法确认哪个项目是 Staging。
+现在已经可以列出项目。已确认 Staging 项目如下：
+
+```text
+项目名称：workendstaging
+项目 Ref：egsokuicabbxspkdccqe
+项目地址：https://egsokuicabbxspkdccqe.supabase.co
+状态：ACTIVE_HEALTHY
+```
 
 现在的检查程序同时支持两种登录方式：
 
 - 执行 `supabase login` 后保存的登录状态；
 - 环境中的 `SUPABASE_ACCESS_TOKEN`。
 
-### 2. Staging 项目不可用
+### 2. Staging 项目（已完成）
 
-仓库中没有写入 Staging 项目的地址或项目编号，而且在未授权的情况下无法从 Supabase 查询项目列表。
+你已经创建了独立的 Staging 项目，项目编号和地址已经确认。它与 Local、Production 分开，符合环境隔离要求。
 
 Local 项目和 Staging 项目必须分开，不能把 Local 当成 Staging，也不能使用 Production 项目代替。
 

@@ -6,6 +6,15 @@ Date: 2026-09-02
 Status: HG-001 ready
 Environment inspected: Staging only; no remote resource was changed
 
+## Update after user setup
+
+The user authorized the Supabase CLI and created an isolated Staging project.
+The accessible project is `workendstaging`, Ref
+`egsokuicabbxspkdccqe`, URL
+`https://egsokuicabbxspkdccqe.supabase.co`, and status
+`ACTIVE_HEALTHY`. Hosting/DNS and named Staging variables are still not
+configured in the Codex environment.
+
 ## Discovery result
 
 The safe discovery command was:
@@ -24,8 +33,8 @@ values.
 
 | Capability | Result | Evidence |
 | --- | --- | --- |
-| Supabase CLI authentication | Missing | `projects list` requires `supabase login` or an access-token environment variable |
-| Staging Supabase project/ref | Missing | No usable Staging project was discoverable |
+| Supabase CLI authentication | Available | Saved CLI login now allows project discovery |
+| Staging Supabase project/ref | Available | `workendstaging` / `egsokuicabbxspkdccqe` is `ACTIVE_HEALTHY` |
 | Staging hosting provider | Unconfigured | No selected existing Vercel/Cloudflare/other deployment config in this repository |
 | Staging DNS/provider URL | Unconfigured | No existing Staging API/Account/Admin origins were available |
 | Named Staging variables | Missing | `pnpm staging:preflight --check-only` reports presence only; no values were present |
