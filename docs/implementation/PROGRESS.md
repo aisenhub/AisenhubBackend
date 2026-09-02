@@ -6,10 +6,10 @@ Last Updated: 2026-09-02
 
 Status: IN_PROGRESS
 
-Current Phase: P5 — Commerce + Admin D
-Current Task: P5-T013 — Execute Commerce and Admin D quality gate
-Overall Progress: 79 / 107 tasks completed
-Last Successful Quality Gate: P5-T012 Commerce E2E and resilience scenarios — PASS
+Current Phase: P6 — Operations Hardening
+Current Task: P6-T001 — Complete retryable account deletion and anonymization worker
+Overall Progress: 80 / 107 tasks completed
+Last Successful Quality Gate: P5-T013 Commerce and Admin D quality gate — PASS
 
 ## Phase Progress
 
@@ -18,7 +18,7 @@ Last Successful Quality Gate: P5-T012 Commerce E2E and resilience scenarios — 
 - [x] P2 — Catalog / Entitlement / Redemption
 - [x] P3 — Admin Foundation
 - [x] P4 — Admin Catalog / Customer + Product Integration
-- [ ] P5 — Commerce + Admin D
+- [x] P5 — Commerce + Admin D
 - [ ] P6 — Operations Hardening
 - [ ] P7 — Staging
 - [ ] P8 — Production Readiness
@@ -26,8 +26,8 @@ Last Successful Quality Gate: P5-T012 Commerce E2E and resilience scenarios — 
 ## Current Work
 
 Status: IN_PROGRESS
-Goal: Continue Commerce + Admin D implementation at the earliest incomplete task.
-Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, and P5-T001 through P5-T012 completed. Remote repository synchronization is complete to `origin/main`.
+Goal: Continue Operations Hardening implementation at the earliest incomplete task.
+Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through P2-T016, P3-T001 through P3-T011, P4-T001 through P4-T014, and P5-T001 through P5-T013 completed. Remote repository synchronization is complete to `origin/main`.
 
 ## Latest Verification
 
@@ -49,6 +49,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P5-T010 Commerce Resource Queries and Order 360: PASS — role-filtered paginated Orders/Payments projections, Finance direct-user redaction, one-request Order 360 aggregation of purchase snapshots, per-item Grants/refunds, payment events, exceptions, and Audit Timeline; database 901/901, RLS 29/29, Commerce integration 42/42, root unit 108/108, Contract 15/15, Admin Client 17/17, type generation, typecheck, lint, format, build, boundaries, Commerce query smoke, and secret gates passed. Implementation commit `69537dc`.
 - P5-T011 Admin Commerce operations and Order 360 UI: PASS — server-driven Commerce list and deep-linked Order 360 with backend-projected payments/events/refunds/exceptions/audit, MoneyDisplay and exact timestamps, shared MFA/reason/confirmation dialogs for Verify/Refund commands, Support refund denial, responsive desktop/mobile grid, and request/audit trace; Admin tests 9/9, Commerce UI E2E 2/2, full E2E 16/16 on isolated local port, root unit 108/108, database 901/901, RLS 29/29, integration 42/42, typecheck, lint, format, build, boundaries, secret scan, and Impeccable detector passed. Implementation commit `1eae9f7`.
 - P5-T012 Commerce E2E and resilience scenarios: PASS — pgTAP cross-system flow covers multi-item fulfillment, duplicate webhook idempotency, out-of-order events, partial compensation, complete item return, chargeback Grant revocation, late-payment exception, exact refund/chargeback audit traces, and credential-free audits; database 938/938, resilience integration 2/2 (full integration 44/44), P5 Commerce UI E2E 2/2, root unit 110/110, typecheck, lint, format, build, boundaries, and secret scan passed. Implementation commit `887f91c`.
+- P5-T013 Commerce and Admin D quality gate: PASS — clean Local `platform:verify` completed after rerunning E2E on isolated port 5183; database 938/938, RLS 29/29, fixture verification, function smoke 4/4, root unit 110/110, contracts 15/15, integration 44/44, Playwright 16/16, type generation stability, typecheck, lint, format, workspace build, boundaries, failure-propagation harness, and secret scan passed. Phase checkpoint created; Architecture Deviations: None.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.
