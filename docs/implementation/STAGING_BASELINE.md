@@ -21,14 +21,15 @@ The non-secret project/origin values are present in the Windows user
 environment; the already-running Codex process must be restarted before it
 can inherit those newly written values.
 
-The two Vercel pages return HTTP 200, but their current bundles still contain
-Local default hosts (`localhost`/`127.0.0.1`). Their Vercel build variables
-must be configured and the deployments must be rebuilt before Staging smoke
-tests.
+The two Vercel pages now return HTTP 200 and their application-specific
+configuration points to the Staging Supabase project. A broad third-party
+bundle scan can still find a generic `http://localhost` literal, but the
+Account/Admin runtime fallback values are not present in the deployed
+configuration.
 
-The four custom Edge Function secret names are now present in the Staging
-project. The remaining gaps are the Codex-side `STAGING_*` aliases and the
-Vercel rebuild with Staging `VITE_*` variables.
+The four custom Edge Function secret names and the Vercel `VITE_*` deployment
+configuration are now present. The remaining gaps are the Codex-side
+`STAGING_*` aliases.
 
 ## Discovery result
 
