@@ -32,6 +32,7 @@
     "test:redemption:concurrency": "node scripts/test-redemption-concurrency.mjs",
     "test:contract": "pnpm --filter @aisenhub/contracts test",
     "test:integration": "vitest run tests/integration",
+    "test:security": "node scripts/test-security-audit.mjs",
     "test:e2e": "playwright test",
     "test:harness:negative": "node scripts/test-harness-negative.mjs"
   },

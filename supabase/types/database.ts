@@ -85,6 +85,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_operations_overview: { Args: { p_actor_id: string }; Returns: Json }
       admin_order_overview: {
         Args: { p_actor_id: string; p_order_id: string }
         Returns: Json

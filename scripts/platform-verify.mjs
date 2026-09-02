@@ -109,7 +109,9 @@ try {
   runStep('Lint', ['lint']);
   runStep('Format check', ['format:check']);
   runStep('Workspace build', ['build']);
-  runStep('Playwright E2E discovery', ['test:e2e', '--', '--list']);
+  runStep('Security audit', ['test:security']);
+  runStep('Secret scan', ['secrets:check']);
+  runStep('Playwright E2E discovery', ['exec', 'playwright', 'test', '--list']);
   runStep('Boundary check', ['boundaries:check']);
   runStep('Failure-propagation harness', ['test:harness:negative']);
   console.log('\n[platform:verify] COMPLETE all Local checks passed.');

@@ -138,7 +138,13 @@ describe('retryable account deletion worker', () => {
       `/auth/v1/admin/users/${userId}`,
       '/rest/v1/rpc/fail_account_deletion_request',
     ]);
-    expect(JSON.stringify(body)).not.toContain('503');
+    expect(Object.keys(body.data.deletion).sort()).toEqual([
+      'attempt_count',
+      'deletion_request_id',
+      'last_error_code',
+      'next_attempt_at',
+      'status',
+    ]);
   });
 
   it('rejects browser callers before claiming a deletion request', async () => {
