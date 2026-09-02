@@ -15,6 +15,12 @@ The accessible project is `workendstaging`, Ref
 `ACTIVE_HEALTHY`. Hosting/DNS and named Staging variables are still not
 configured in the Codex environment.
 
+The user has since supplied healthy Vercel provider URLs for Account and
+Admin. Custom DNS is not required for the initial Staging smoke tests.
+The non-secret project/origin values are present in the Windows user
+environment; the already-running Codex process must be restarted before it
+can inherit those newly written values.
+
 ## Discovery result
 
 The safe discovery command was:
@@ -35,8 +41,8 @@ values.
 | --- | --- | --- |
 | Supabase CLI authentication | Available | Saved CLI login now allows project discovery |
 | Staging Supabase project/ref | Available | `workendstaging` / `egsokuicabbxspkdccqe` is `ACTIVE_HEALTHY` |
-| Staging hosting provider | Unconfigured | No selected existing Vercel/Cloudflare/other deployment config in this repository |
-| Staging DNS/provider URL | Unconfigured | No existing Staging API/Account/Admin origins were available |
+| Staging hosting provider | Vercel provider URLs available | Account and Admin URLs both return HTTP 200 |
+| Staging DNS/provider URL | Provider URLs | Custom DNS is not required for the initial smoke tests |
 | Named Staging variables | Missing | `pnpm staging:preflight --check-only` reports presence only; no values were present |
 
 Required names are defined in `scripts/staging-preflight.mjs`, including the

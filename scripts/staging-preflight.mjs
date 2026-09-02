@@ -34,10 +34,29 @@ function inspectSupabaseAuth() {
   return 'unavailable';
 }
 
+function inspectHostingProvider() {
+  const origins = ['STAGING_ACCOUNT_ORIGIN', 'STAGING_ADMIN_ORIGIN'];
+  if (!origins.every(present)) return 'unconfigured';
+  try {
+    const hosts = origins.map((name) => new URL(process.env[name]).hostname);
+    if (hosts.every((host) => host.endsWith('.vercel.app'))) return 'vercel';
+    return 'configured';
+  } catch {
+    return 'invalid_origin';
+  }
+}
+
+function inspectStagingDns(hostingProvider) {
+  if (hostingProvider === 'vercel') return 'provider_urls';
+  if (hostingProvider === 'configured') return 'configured';
+  return 'unconfigured';
+}
+
+const hostingProvider = inspectHostingProvider();
 const checks = {
   supabaseCliAuth: inspectSupabaseAuth(),
-  hostingProvider: 'unconfigured',
-  stagingDns: 'unconfigured',
+  hostingProvider,
+  stagingDns: inspectStagingDns(hostingProvider),
   variables: Object.fromEntries(requiredStagingVariables.map((name) => [name, present(name)])),
 };
 

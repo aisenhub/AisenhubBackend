@@ -1,12 +1,12 @@
 # Staging 环境检查说明（中文）
 
 更新时间：2026-09-02  
-当前状态：HG-001 部分完成，等待剩余配置
+当前状态：HG-001 部分完成，等待 4 个敏感变量
 检查范围：只检查 Staging 能力，没有修改任何远程资源
 
 ## 先说结论
 
-Local、Docker、WSL 和项目代码目前都正常。你已经完成 Supabase 登录并创建了独立 Staging 项目；现在只剩托管地址和环境变量配置。
+Local、Docker、WSL 和项目代码目前都正常。你已经完成 Supabase 登录、创建 Staging 项目，并部署了两个 Vercel 前端；现在只剩 4 个敏感变量配置。
 
 这不是 Docker 启动失败，也不是代码测试失败。
 
@@ -48,15 +48,25 @@ Supabase CLI 是连接 Supabase 项目的工具。当前 Codex 环境中：
 
 Local 项目和 Staging 项目必须分开，不能把 Local 当成 Staging，也不能使用 Production 项目代替。
 
-### 3. 托管和 DNS 未配置
+### 3. 托管和 DNS（已完成）
 
-仓库中没有现成的 Vercel、Cloudflare 或其他托管平台配置，也没有可用的 Staging 网站地址。
+两个 Vercel 地址都能正常返回 HTTP 200：
 
-自定义域名不是必须的。测试阶段可以先使用托管平台自动提供的临时地址；只有需要正式域名时才配置 DNS。
+```text
+Account：https://aisenhub-backend-account-olive.vercel.app
+Admin：https://aisenhub-backend-admin.vercel.app
+```
 
-### 4. `STAGING_*` 配置不存在
+初次 Staging 测试不要求自定义 DNS，直接使用这两个 Vercel 地址即可。
 
-这些配置按安全规则不能提交到 Git，所以仓库里不会有真实值。当前 Codex 进程也没有读取到它们，因此预检显示为“不存在”。
+### 4. 仍需配置的环境变量
+
+这些配置按安全规则不能提交到 Git，所以仓库里不会有真实值。当前还缺少：
+
+- `STAGING_SUPABASE_ANON_KEY`
+- `STAGING_SUPABASE_SERVICE_ROLE_KEY`
+- `STAGING_REDEMPTION_PEPPER`
+- `STAGING_PAYMENT_WEBHOOK_SECRET`
 
 预检只检查“有没有配置”，不会显示配置内容。
 
@@ -98,7 +108,7 @@ STAGING_PAYMENT_WEBHOOK_SECRET
 
 这两个值必须是 Staging 专用值，不能复用 Production，也不能放进聊天、代码或提交记录。
 
-### 第四步：准备网站地址
+### 第四步：准备网站地址（已完成）
 
 配置以下三个地址：
 
@@ -108,7 +118,15 @@ STAGING_ACCOUNT_ORIGIN
 STAGING_ADMIN_ORIGIN
 ```
 
-可以使用托管平台生成的临时地址，不一定要先购买或配置自定义域名。托管平台和 DNS 的账号授权也必须由你在本机或平台后台完成。
+当前已准备并写入 Windows 用户级环境变量：
+
+```text
+STAGING_API_ORIGIN=https://egsokuicabbxspkdccqe.supabase.co
+STAGING_ACCOUNT_ORIGIN=https://aisenhub-backend-account-olive.vercel.app
+STAGING_ADMIN_ORIGIN=https://aisenhub-backend-admin.vercel.app
+```
+
+两个 Vercel 地址均已确认返回 HTTP 200，初次 Staging 测试不需要自定义 DNS。已经运行的 Codex 不会自动刷新环境变量；设置完剩余 4 个敏感变量后，请重启 Codex。
 
 ## 我会如何确认配置成功
 
