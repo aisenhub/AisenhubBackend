@@ -44,6 +44,12 @@ const commerceRefundMigration = path.join(
   'migrations',
   '20260901200000_commerce_refunds.sql',
 );
+const commerceChargebackMigration = path.join(
+  repositoryRoot,
+  'supabase',
+  'migrations',
+  '20260902200000_commerce_chargebacks.sql',
+);
 
 for (const functionName of functionNames) {
   const entrypoint = path.join(functionsRoot, functionName, 'index.ts');
@@ -183,6 +189,37 @@ if (process.argv.includes('refund')) {
     throw new Error('OrderItem refund must lock and target an order item directly.');
   }
   console.log('OrderItem refund smoke check passed.');
+}
+
+if (process.argv.includes('chargeback')) {
+  const migration = fs.readFileSync(commerceChargebackMigration, 'utf8');
+  for (const required of [
+    'chargeback_order',
+    'record_paid_after_cancelled_order',
+    "'commerce.chargeback_order'",
+    "'commerce.payment_exception'",
+    "'ignored'",
+    'revoke_entitlement',
+    "fulfillment_status = 'revoked'",
+  ]) {
+    if (!migration.includes(required)) {
+      throw new Error(`Commerce exception handling is missing ${required}.`);
+    }
+  }
+  for (const required of [
+    'revoke all on function public.chargeback_order',
+    'revoke all on function public.record_paid_after_cancelled_order',
+    'grant execute on function public.chargeback_order(uuid, text) to service_role',
+    'grant execute on function public.record_paid_after_cancelled_order(uuid, text) to service_role',
+  ]) {
+    if (!migration.includes(required)) {
+      throw new Error(`Commerce exception function boundary is missing ${required}.`);
+    }
+  }
+  if (migration.includes('payload') && migration.includes('payload_summary')) {
+    throw new Error('Commerce exception handling must not persist raw payment payloads.');
+  }
+  console.log('Commerce chargeback and late-payment exception smoke check passed.');
 }
 
 console.log(`Function shell smoke check passed for ${functionNames.length} functions.`);

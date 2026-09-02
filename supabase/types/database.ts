@@ -195,6 +195,10 @@ export type Database = {
           status: string
         }[]
       }
+      chargeback_order: {
+        Args: { p_order_id: string; p_reason: string }
+        Returns: Json
+      }
       check_access: {
         Args: { p_app_slug: string; p_feature_code: string; p_user_id: string }
         Returns: {
@@ -353,6 +357,10 @@ export type Database = {
           published_at: string
           status: string
         }[]
+      }
+      record_paid_after_cancelled_order: {
+        Args: { p_payment_event_id: string; p_reason: string }
+        Returns: Json
       }
       redeem_code: {
         Args: {
