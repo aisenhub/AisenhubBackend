@@ -101,7 +101,7 @@
 | P7-T005 | Staging | completed | 2026-09-02 | 2026-09-02 | d52ff0d | All 41 migrations and six Edge Functions deployed to `workendstaging`; remote migration history matches local, Auth admin read returns HTTP 200, exact Account/Admin Vercel Origins are registered, anonymous `/v1/session` API smoke returns HTTP 200, and the designated Staging account completes login, Platform Session exchange, and Admin Session verification with role `admin`. Report `docs/implementation/reports/P7-T005-staging-backend-deployment.md`. |
 | P7-T006 | Staging | completed | 2026-09-02 | 2026-09-02 | 18eb3e9 | Account and Admin Vercel provider URLs return HTTP 200, deployed frontend configuration points to Staging, and the reproducible release bundle rebuilt successfully from the pinned Git SHA. |
 | P7-T007 | Staging | completed | 2026-09-02 | 2026-09-02 | 18eb3e9 | Exact Account/Admin Origin allowlists, credentialed preflight, anonymous session, public API, rejected Origin, Platform Session exchange, and Admin Session role checks pass. Report `docs/implementation/reports/P7-T007-staging-browser-security.md`. |
-| P7-T008 | Staging | pending |  |  |  |  |
+| P7-T008 | Staging | completed | 2026-09-02 | 2026-09-02 | pending-commit | Remote smoke, temporary-fixture Auth/Platform Session/Admin role matrix, normal-user denial, requestId-to-Audit correlation, artifact checksum verification, and non-destructive recovery drill pass. Report `docs/implementation/reports/P7-T008-staging-smoke-recovery.md`. |
 | P7-T009 | Staging | pending |  |  |  |  |
 | P8-T001 | Production Readiness | pending |  |  |  |  |
 | P8-T002 | Production Readiness | pending |  |  |  |  |

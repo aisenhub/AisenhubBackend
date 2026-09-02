@@ -1,4 +1,5 @@
 import {
+  apiPath,
   errorResponse,
   jsonResponse,
   requestIdFromRequest,
@@ -27,7 +28,7 @@ type WebhookResult = {
 };
 
 function providerName(request: Request): string | null {
-  const match = new URL(request.url).pathname.match(webhookPath);
+  const match = apiPath(request).match(webhookPath);
   return match?.[1] ?? null;
 }
 
