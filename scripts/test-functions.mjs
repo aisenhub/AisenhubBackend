@@ -3,7 +3,13 @@ import path from 'node:path';
 
 const repositoryRoot = path.resolve(import.meta.dirname, '..');
 const functionsRoot = path.join(repositoryRoot, 'supabase', 'functions');
-const functionNames = ['platform-api', 'platform-public', 'platform-admin', 'payment-webhook'];
+const functionNames = [
+  'platform-api',
+  'platform-public',
+  'platform-admin',
+  'payment-webhook',
+  'account-deletion-worker',
+];
 const codeGenerationSource = path.join(functionsRoot, '_shared', 'redemption-code.ts');
 const adminPermissionsSource = path.join(functionsRoot, '_shared', 'admin-permissions.ts');
 const adminPermissionsMatrix = path.join(
@@ -63,6 +69,13 @@ const adminCommerceQueryMigration = path.join(
   'migrations',
   '20260902220000_admin_commerce_queries.sql',
 );
+const accountDeletionWorkerSource = path.join(functionsRoot, 'account-deletion-worker', 'index.ts');
+const accountDeletionWorkerMigration = path.join(
+  repositoryRoot,
+  'supabase',
+  'migrations',
+  '20260902230000_account_deletion_worker.sql',
+);
 
 for (const functionName of functionNames) {
   const entrypoint = path.join(functionsRoot, functionName, 'index.ts');
@@ -79,7 +92,10 @@ for (const functionName of functionNames) {
       ? !source.includes('../_shared/public-api.ts')
       : functionName === 'payment-webhook'
         ? !source.includes('../_shared/platform-api.ts')
-        : !source.includes('../_shared/health.ts')
+        : functionName === 'account-deletion-worker'
+          ? !source.includes('handleDeletionWorker') ||
+            !source.includes('complete_account_deletion_request')
+          : !source.includes('../_shared/health.ts')
   ) {
     throw new Error(`Function ${functionName} does not use the shared health handler.`);
   }
@@ -281,6 +297,37 @@ if (process.argv.includes('webhook')) {
     throw new Error('Webhook adapter must not use user JWTs or log secret material.');
   }
   console.log('Signed payment webhook adapter smoke check passed.');
+}
+
+if (process.argv.includes('deletion-worker')) {
+  const source = fs.readFileSync(accountDeletionWorkerSource, 'utf8');
+  const migration = fs.readFileSync(accountDeletionWorkerMigration, 'utf8');
+  for (const required of [
+    'handleDeletionWorker',
+    'claim_account_deletion_request',
+    'complete_account_deletion_request',
+    'fail_account_deletion_request',
+    '/auth/v1/admin/users/',
+    'ban_duration',
+  ]) {
+    if (!source.includes(required) && !migration.includes(required)) {
+      throw new Error(`Account deletion worker is missing ${required}.`);
+    }
+  }
+  for (const required of [
+    'alter column user_id drop not null',
+    "status = 'deleted'",
+    'action, target_type, target_id',
+    'Account deletion and de-identification completed',
+  ]) {
+    if (!migration.includes(required)) {
+      throw new Error(`Account deletion de-identification is missing ${required}.`);
+    }
+  }
+  if (source.includes('console.log') || source.includes('console.error')) {
+    throw new Error('Account deletion worker must not log Auth or deletion details.');
+  }
+  console.log('Account deletion worker smoke check passed.');
 }
 
 if (process.argv.includes('commerce-query')) {

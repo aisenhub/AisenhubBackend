@@ -238,6 +238,14 @@ export type Database = {
           user_id: string
         }[]
       }
+      complete_account_deletion_request: {
+        Args: {
+          p_deletion_request_id: string
+          p_request_id?: string
+          p_worker_id: string
+        }
+        Returns: Json
+      }
       create_feedback: {
         Args: {
           p_app_slug: string
