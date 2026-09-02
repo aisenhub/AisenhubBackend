@@ -23,6 +23,8 @@ function localAnonKey(): string {
 const localSupabaseAnonKey = localAnonKey();
 const accountBaseUrl = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173';
 const accountPort = new URL(accountBaseUrl).port || '5173';
+const adminBaseUrl = process.env.PLAYWRIGHT_ADMIN_BASE_URL ?? 'http://localhost:5174';
+const adminPort = new URL(adminBaseUrl).port || '5174';
 
 const webServerEnv = {
   ...process.env,
@@ -37,6 +39,8 @@ const webServerEnv = {
 };
 const adminWebServerEnv = {
   ...webServerEnv,
+  // The local database fixture registers the canonical Admin origin on 5174.
+  // Keep the backend Origin stable when the browser uses an alternate port to avoid collisions.
   E2E_PROXY_ORIGIN: 'http://localhost:5174',
   VITE_PLATFORM_ADMIN_API_ORIGIN: '/functions/v1/platform-admin',
   VITE_PLATFORM_API_ORIGIN: '/functions/v1/platform-api',
@@ -69,8 +73,8 @@ export default defineConfig({
       env: webServerEnv,
     },
     {
-      command: 'pnpm --dir apps/admin dev --host 0.0.0.0 --port 5174',
-      url: 'http://localhost:5174',
+      command: `pnpm --dir apps/admin dev --host 0.0.0.0 --port ${adminPort}`,
+      url: adminBaseUrl,
       timeout: 120_000,
       reuseExistingServer: !process.env.CI,
       env: adminWebServerEnv,

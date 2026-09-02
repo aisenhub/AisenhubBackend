@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const adminPageOrigin = 'http://localhost:5174';
+const adminPageOrigin = process.env.PLAYWRIGHT_ADMIN_BASE_URL ?? 'http://localhost:5174';
 const orderId = 'a1000000-0000-4000-8000-000000000001';
 const itemId = 'a2000000-0000-4000-8000-000000000001';
 const paymentId = 'a3000000-0000-4000-8000-000000000001';

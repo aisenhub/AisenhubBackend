@@ -10,6 +10,7 @@ import { ApplicationsPage } from '../modules/operations/pages/ApplicationsPage';
 import { AuditLogsPage } from '../modules/operations/pages/AuditLogsPage';
 import { SystemHealthPage } from '../modules/operations/pages/SystemHealthPage';
 import { UsersPage } from '../modules/operations/pages/UsersPage';
+import { FeedbackPage } from '../modules/operations/pages/FeedbackPage';
 import { RedemptionBatchesPage } from '../modules/redemption/pages/RedemptionBatchesPage';
 import { RedemptionCodesPage } from '../modules/redemption/pages/RedemptionCodesPage';
 import { RedemptionsPage } from '../modules/redemption/pages/RedemptionsPage';
@@ -93,6 +94,7 @@ function ProtectedContent() {
             }
           />
           <Route path="users" element={<UsersPage />} />
+          <Route path="feedback" element={<FeedbackPage />} />
           <Route
             path="orders"
             element={

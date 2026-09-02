@@ -1502,6 +1502,36 @@ async function adminSystemHealthRead(request: Request, id: string): Promise<Resp
   }
 }
 
+async function adminOverviewRead(request: Request, id: string): Promise<Response> {
+  if (request.method !== 'GET') {
+    return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+  }
+  if (!sessionCookie(request)) {
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  }
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const rows = await serviceRpc<unknown>('admin_operations_overview', {
+      p_actor_id: session.user_id,
+    });
+    if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The Admin overview returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    }
+    return errorResponse('INTERNAL_ERROR', 'The Admin overview could not be read.', 502, id);
+  }
+}
+
 export async function routePlatformAdmin(
   request: Request,
   health: (functionName: string) => Response = healthResponse,
@@ -1528,6 +1558,9 @@ export async function routePlatformAdmin(
   }
   if (path === '/v1/admin/system-health') {
     return withCors(await adminSystemHealthRead(request, id), resolved);
+  }
+  if (path === '/v1/admin/overview') {
+    return withCors(await adminOverviewRead(request, id), resolved);
   }
   const productOverviewMatch = path.match(/^\/v1\/admin\/products\/([^/]+)\/overview$/);
   if (productOverviewMatch) {

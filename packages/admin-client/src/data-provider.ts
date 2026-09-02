@@ -30,6 +30,7 @@ import {
   AdminFeedbackSummarySchema,
   AdminQueryListQuerySchema,
   AdminSystemHealthResponseSchema,
+  AdminOverviewResponseSchema,
   AdminUserListResponseSchema,
   AdminUserSummarySchema,
   AdminUserOverviewSchema,
@@ -69,6 +70,7 @@ import {
   type AdminPriceSummary,
   type AdminProductOverview,
   type AdminSystemHealthResponse,
+  type AdminOverviewResponse,
   type AdminUserSummary,
   type AdminUserOverview,
   type AdminProductSummary,
@@ -353,6 +355,7 @@ export interface AisenHubAdminDataProvider {
     id: string,
   ): Promise<AdminResponse<AdminResourceItem[R]>>;
   getSystemHealth(): Promise<AdminResponse<AdminSystemHealthResponse>>;
+  getOverview(): Promise<AdminResponse<AdminOverviewResponse>>;
   getProductOverview(id: string): Promise<AdminResponse<AdminProductOverview>>;
   getUserOverview(id: string): Promise<AdminResponse<AdminUserOverview>>;
   getOrderOverview(id: string): Promise<AdminResponse<AdminOrderOverview>>;
@@ -442,6 +445,10 @@ export function createAdminDataProvider(client: AdminClient): AisenHubAdminDataP
 
     async getSystemHealth(): Promise<AdminResponse<AdminSystemHealthResponse>> {
       return client.request('/v1/admin/system-health', AdminSystemHealthResponseSchema);
+    },
+
+    async getOverview(): Promise<AdminResponse<AdminOverviewResponse>> {
+      return client.request('/v1/admin/overview', AdminOverviewResponseSchema);
     },
 
     async getProductOverview(id: string): Promise<AdminResponse<AdminProductOverview>> {

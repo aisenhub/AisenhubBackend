@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const accountPageOrigin = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173';
-const adminPageOrigin = 'http://localhost:5174';
+const adminPageOrigin = process.env.PLAYWRIGHT_ADMIN_BASE_URL ?? 'http://localhost:5174';
 const roles = [
   { name: 'owner', email: 'owner.local@aisenhub.test', password: 'LocalOnly-Owner-2026!' },
   { name: 'admin', email: 'admin.local@aisenhub.test', password: 'LocalOnly-Admin-2026!' },
@@ -74,5 +74,21 @@ test.describe('ADM-A read-only operations and RBAC', () => {
     await expect(page.getByRole('menuitem', { name: 'Platform (coming soon)' })).toBeDisabled();
     const response = await adminApi(page, '/functions/v1/platform-admin/v1/admin/applications');
     expect(response.status).toBe(403);
+  });
+
+  test('shows actionable overview cards with fixed drill-down links', async ({ page }) => {
+    await signInToAdmin(page, roles[0]);
+
+    await expect(page.locator('h2', { hasText: 'Overview' })).toBeVisible();
+    await expect(page.getByText('Pending orders', { exact: true })).toBeVisible();
+    await expect(page.getByText('Paid orders awaiting fulfillment', { exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Open list' }).first()).toHaveAttribute(
+      'href',
+      '/orders?status=pending',
+    );
+    await expect(page.getByRole('link', { name: 'Details' })).toHaveAttribute(
+      'href',
+      '/system-health',
+    );
   });
 });

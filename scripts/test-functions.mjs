@@ -70,6 +70,12 @@ const adminCommerceQueryMigration = path.join(
   'migrations',
   '20260902220000_admin_commerce_queries.sql',
 );
+const adminOperationsOverviewMigration = path.join(
+  repositoryRoot,
+  'supabase',
+  'migrations',
+  '20260903020000_admin_operations_overview.sql',
+);
 const accountDeletionWorkerSource = path.join(functionsRoot, 'account-deletion-worker', 'index.ts');
 const accountDeletionWorkerMigration = path.join(
   repositoryRoot,
@@ -391,6 +397,26 @@ if (process.argv.includes('telemetry')) {
     }
   }
   console.log('Request telemetry and safe structured logging smoke check passed.');
+}
+
+if (process.argv.includes('admin-overview')) {
+  const source = fs.readFileSync(adminApiSource, 'utf8');
+  const migration = fs.readFileSync(adminOperationsOverviewMigration, 'utf8');
+  for (const required of [
+    '/v1/admin/overview',
+    'admin_operations_overview',
+    'fixed, role-filtered operational counts',
+    "'/orders?status=pending'",
+    "'/users?status=deletion_pending'",
+  ]) {
+    if (!source.includes(required) && !migration.includes(required)) {
+      throw new Error(`Admin operations overview is missing ${required}.`);
+    }
+  }
+  if (migration.includes('p_table') || migration.includes('execute format')) {
+    throw new Error('Admin operations overview must not accept arbitrary SQL or table names.');
+  }
+  console.log('Admin operations overview smoke check passed.');
 }
 
 if (process.argv.includes('commerce-query')) {

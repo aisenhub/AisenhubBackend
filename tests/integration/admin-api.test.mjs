@@ -74,6 +74,46 @@ async function mockedFetch(url, init) {
       { headers: { 'content-type': 'application/json' } },
     );
   }
+  if (pathname.endsWith('/admin_operations_overview')) {
+    return new Response(
+      JSON.stringify([
+        {
+          generatedAt: '2026-09-02T00:00:00.000Z',
+          cards: [
+            {
+              key: 'pending-orders',
+              label: 'Pending orders',
+              count: 2,
+              severity: 'attention',
+              href: '/orders?status=pending',
+            },
+            {
+              key: 'paid-orders',
+              label: 'Paid orders awaiting fulfillment',
+              count: 1,
+              severity: 'attention',
+              href: '/orders?status=paid',
+            },
+            {
+              key: 'deletion-queue',
+              label: 'Accounts awaiting deletion',
+              count: 0,
+              severity: 'neutral',
+              href: '/users?status=deletion_pending',
+            },
+            {
+              key: 'open-feedback',
+              label: 'Open feedback',
+              count: 3,
+              severity: 'attention',
+              href: '/feedback?status=open',
+            },
+          ],
+        },
+      ]),
+      { headers: { 'content-type': 'application/json' } },
+    );
+  }
   if (pathname.endsWith('/admin_query_customer_resource')) {
     return new Response(
       JSON.stringify([
@@ -518,6 +558,27 @@ describe('platform Admin API', () => {
     expect(health.status).toBe(200);
     expect(healthBody.data.status).toBe('healthy');
     expect(healthBody.data.checks).toHaveLength(3);
+  });
+
+  it('serves a safe, fixed-shape operations overview with drill-down paths', async () => {
+    const overview = await routePlatformAdmin(
+      new Request('http://api.local/v1/admin/overview', {
+        headers: {
+          Origin: adminOrigin,
+          'X-AisenHub-App': 'admin',
+          Cookie: '__Host-aisenhub_session=valid-admin-session',
+        },
+      }),
+    );
+    const body = await overview.json();
+    expect(overview.status).toBe(200);
+    expect(body.data.cards).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: 'pending-orders', href: '/orders?status=pending' }),
+        expect.objectContaining({ key: 'open-feedback', href: '/feedback?status=open' }),
+      ]),
+    );
+    expect(JSON.stringify(body)).not.toMatch(/sql|table|secret|token|password/i);
   });
 
   it('serves Customer deletion queries and one-request User 360 aggregates', async () => {

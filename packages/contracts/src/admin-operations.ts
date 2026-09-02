@@ -140,3 +140,34 @@ export const AdminSystemHealthResponseSchema = z
   })
   .strict();
 export type AdminSystemHealthResponse = z.infer<typeof AdminSystemHealthResponseSchema>;
+
+export const AdminOverviewCardSchema = z
+  .object({
+    key: z.enum([
+      'pending-orders',
+      'paid-orders',
+      'chargeback-orders',
+      'deletion-queue',
+      'open-feedback',
+    ]),
+    label: z.string().min(1).max(100),
+    count: z.number().int().nonnegative(),
+    severity: z.enum(['neutral', 'attention', 'critical']),
+    href: z.enum([
+      '/orders?status=pending',
+      '/orders?status=paid',
+      '/orders?status=chargeback',
+      '/users?status=deletion_pending',
+      '/feedback?status=open',
+    ]),
+  })
+  .strict();
+export type AdminOverviewCard = z.infer<typeof AdminOverviewCardSchema>;
+
+export const AdminOverviewResponseSchema = z
+  .object({
+    generatedAt: IsoDateTimeSchema,
+    cards: z.array(AdminOverviewCardSchema).min(1),
+  })
+  .strict();
+export type AdminOverviewResponse = z.infer<typeof AdminOverviewResponseSchema>;

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const accountPageOrigin = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173';
-const adminPageOrigin = 'http://localhost:5174';
+const adminPageOrigin = process.env.PLAYWRIGHT_ADMIN_BASE_URL ?? 'http://localhost:5174';
 const aisenLensOrigin = 'http://localhost:5175';
 const productId = '23000000-0000-4000-8000-000000000001';
 const productVersionId = '24000000-0000-4000-8000-000000000001';
