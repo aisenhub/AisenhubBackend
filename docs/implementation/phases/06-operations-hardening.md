@@ -618,7 +618,7 @@ P6-T007.
 
 ## P6-T007 — Run full security and architecture-boundary audit
 
-Status: pending  
+Status: completed
 Phase: P6 — Operations Hardening  
 Execution: AUTONOMOUS  
 Type: security-audit  
@@ -682,10 +682,10 @@ Negative matrix across anon/user/Admin roles and direct DB/API attempts.
 
 ### Acceptance Criteria
 
-- [ ] No critical/high finding remains.
-- [ ] Admin bundle contains no secret/Supabase Data access.
-- [ ] All privileged functions are constrained/tested.
-- [ ] Report links evidence.
+- [x] No critical/high finding remains.
+- [x] Admin bundle contains no secret/Supabase Data access.
+- [x] All privileged functions are constrained/tested.
+- [x] Report links evidence.
 
 ### Failure Recovery
 
@@ -697,7 +697,20 @@ Do not waive findings without approved documented reason.
 
 ### Output
 
-Local security audit evidence.
+Local security audit evidence is recorded in
+`docs/implementation/reports/P6-T007-security-audit.md`. The repeatable
+`pnpm test:security` audit scans Admin source and built assets for direct data
+access, secrets, forbidden dependencies, and the configured bundle threshold;
+it also checks fixed `search_path` and explicit service-role grants for
+privileged SQL migrations. `platform:verify` now includes this audit and the
+secret scan, and its Playwright discovery step invokes the listing mode
+correctly rather than executing the suite. No architecture deviation or
+production resource was introduced.
+
+Verification: database 1014/1014, RLS 29/29, root tests 127/127,
+integration 58/58, contract 15/15, E2E discovery 20/20 listed, security audit,
+secret scan, typecheck, lint, format, workspace build, boundaries, and failure
+harness passed.
 
 ### Human Gate
 
@@ -705,7 +718,8 @@ None. Local hardening and optional visual review never block autonomous executio
 
 ### Commit
 
-`test(security): complete platform boundary audit` — Task P6-T007.
+`test(security): complete platform boundary audit` — Task P6-T007. Implementation
+commit: `8020a34`.
 
 ### Next
 
