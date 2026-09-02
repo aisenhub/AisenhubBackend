@@ -7,9 +7,9 @@ Last Updated: 2026-09-02
 Status: IN_PROGRESS
 
 Current Phase: P7 — Staging
-Current Task: P7-T001 — Inspect Staging authorization and environment readiness
-Overall Progress: 90 / 107 tasks completed
-Last Successful Quality Gate: P6-T010 Operations Hardening quality gate — PASS
+Current Task: P7-T002 — Build immutable Staging deployment bundle and preflight
+Overall Progress: 91 / 107 tasks completed
+Last Successful Quality Gate: P7-T001 Staging capability baseline — PASS
 
 ## Phase Progress
 
@@ -60,6 +60,7 @@ Dependencies: P0-T001 through P0-T012, P1-T001 through P1-T014, P2-T001 through 
 - P6-T008 release-candidate E2E journey: PASS — deterministic Local reset and five-fixture verification, normal-user sign-in/session, public Catalog, server Entitlements, valid Redemption, Feedback, reauthenticated Account Deletion, Owner User 360/Audit trace, and Commerce resilience integration 2/2 passed headlessly on isolated ports. Report: `docs/implementation/reports/P6-T008-release-candidate.md`.
 - P6-T009 implementation documentation and runbooks: PASS — added Local Operations, API/type generation, and Security Response runbooks; documented recovery, release ordering, secret boundaries, safe evidence export, and release-candidate commands; added `pnpm docs:check` for Markdown links/fences and Local-safe env examples. Documentation 37 files, secret scan 296 tracked files, and boundaries 7 manifests passed.
 - P6-T010 Operations Hardening quality gate: PASS — clean Local `platform:verify` passed database 1014/1014, RLS 29/29, fixture verification, Function shell 6/6, root unit 127/127, Contract 15/15, integration 58/58, typecheck, lint, format, workspace build, security audit, secret scan, E2E discovery 21/21, boundaries, and failure-propagation checks; release-candidate E2E 1/1 and Commerce resilience 2/2 passed; `docs:check` passed 37 files; PHASE-06 checkpoint created with Architecture Deviations: None.
+- P7-T001 Staging capability baseline: PASS — Supabase CLI project discovery safely confirmed missing authorization, no existing Staging project/provider/DNS configuration was available, the no-secret preflight reports capability booleans, `STAGING_BASELINE.md` records the consolidated missing-items bundle, and HG-001 is ready exactly once. Independent offline bundle preparation continues.
 - P0-T001 environment baseline: PASS — exact versions and repository state recorded in `ENVIRONMENT_BASELINE.md`; Docker and Supabase CLI have executable local remediation paths.
 - P0-T002 root tooling: PASS — frozen install, format check, lint, typecheck, unit test, and build all exit 0.
 - P0-T003 workspace skeleton: PASS — all approved apps/packages typecheck and build; boundary checker and forbidden-import negative test pass; Admin rules copied byte-for-byte.

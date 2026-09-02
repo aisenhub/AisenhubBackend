@@ -4,7 +4,7 @@ Goal: deploy and verify the Local release candidate in isolated Staging. Human I
 
 ## P7-T001 — Inspect existing Staging authorization and resources
 
-Status: pending  
+Status: completed
 Phase: P7 — Staging  
 Execution: AUTONOMOUS  
 Type: discovery  
@@ -65,10 +65,10 @@ Preflight must redact values and distinguish missing auth/resource/config.
 
 ### Acceptance Criteria
 
-- [ ] Baseline lists usable and missing capabilities.
-- [ ] No secret value is printed/stored.
-- [ ] HG-001 is marked skipped or ready exactly once.
-- [ ] Independent work continues.
+- [x] Baseline lists usable and missing capabilities.
+- [x] No secret value is printed/stored.
+- [x] HG-001 is marked skipped or ready exactly once.
+- [x] Independent work continues.
 
 ### Failure Recovery
 
@@ -80,7 +80,11 @@ Do not ask one credential at a time or create Production resources.
 
 ### Output
 
-Staging capability baseline.
+Staging capability baseline is recorded in
+`docs/implementation/STAGING_BASELINE.md`; `pnpm staging:preflight
+--check-only` reports missing Supabase authorization, unconfigured hosting/DNS,
+and all missing named Staging variables without printing values. HG-001 is ready
+for one consolidated interaction, while P7-T002 continues offline.
 
 ### Human Gate
 
@@ -89,6 +93,7 @@ No immediate gate; prepare HG-001 only if checks prove it necessary.
 ### Commit
 
 `docs(staging): record environment capability baseline` — Task P7-T001.
+Implementation commit: pending.
 
 ### Next
 
