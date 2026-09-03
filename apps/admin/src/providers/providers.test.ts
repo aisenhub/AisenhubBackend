@@ -90,7 +90,7 @@ describe('Admin Refine providers', () => {
     });
 
     await expect(authProvider.login?.({})).resolves.toMatchObject({ success: true });
-    expect(redirects[0]).toContain('https://auth.example.test/auth/v1/authorize?');
+    expect(redirects[0]).toContain('https://auth.example.test/auth/v1/oauth/authorize?');
     expect(new URL(redirects[0]).searchParams.get('client_id')).toBe('admin-client');
 
     const deniedClient = createAdminClient({

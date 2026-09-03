@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 
 import { createPlatformClient, PlatformClientError } from '@aisenhub/platform-client';
 import type {
@@ -8,7 +8,7 @@ import type {
   PublicProductsResponse,
 } from '@aisenhub/contracts';
 
-import { AccountAuthClient, AccountAuthError } from './auth';
+import { AccountAuthClient, AccountAuthError, type OAuthAuthorizationDetails } from './auth';
 import './styles.css';
 
 type ViewState = 'loading' | 'signed_out' | 'signing_in' | 'authenticated' | 'error';
@@ -20,6 +20,13 @@ const platformApiUrl =
 const platformPublicApiUrl =
   import.meta.env.VITE_PLATFORM_PUBLIC_API_URL ??
   'http://127.0.0.1:54321/functions/v1/platform-public';
+
+const accountAuthOptions = {
+  supabaseUrl,
+  supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  clientId: import.meta.env.VITE_ACCOUNT_OAUTH_CLIENT_ID ?? 'account-local-web',
+  redirectUri: `${window.location.origin}/`,
+};
 
 function readableError(error: unknown): string {
   if (error instanceof AccountAuthError) return error.message;
@@ -38,6 +45,11 @@ function createIdempotencyKey() {
 }
 
 export function App() {
+  if (window.location.pathname === '/oauth/consent') return <OAuthConsentPage />;
+  return <AccountHome />;
+}
+
+function AccountHome() {
   const [viewState, setViewState] = useState<ViewState>('loading');
   const [message, setMessage] = useState<string | null>(null);
   const [session, setSession] = useState<AuthenticatedSession | null>(null);
@@ -51,9 +63,7 @@ export function App() {
   const auth = useMemo(
     () =>
       new AccountAuthClient({
-        supabaseUrl,
-        clientId: import.meta.env.VITE_ACCOUNT_OAUTH_CLIENT_ID ?? 'account-local-web',
-        redirectUri: `${window.location.origin}/`,
+        ...accountAuthOptions,
       }),
     [],
   );
@@ -93,7 +103,14 @@ export function App() {
         })
       : Promise.resolve();
     authorization
-      .then(() => (auth.accessToken ? client.getProfile() : null))
+      .then(() => {
+        const returnTo = consumeAuthorizationReturnTo();
+        if (auth.accessToken && returnTo) {
+          window.location.assign(returnTo);
+          return null;
+        }
+        return auth.accessToken ? client.getProfile() : null;
+      })
       .then(async (response) => {
         if (!active) return;
         if (!response) {
@@ -365,6 +382,183 @@ export function App() {
           </button>
         </form>
       </section>
+    </main>
+  );
+}
+
+function consumeAuthorizationReturnTo(): string | null {
+  const value = sessionStorage.getItem('aisenhub.account.auth_return_to');
+  sessionStorage.removeItem('aisenhub.account.auth_return_to');
+  if (!value) return null;
+  try {
+    const url = new URL(value, window.location.origin);
+    if (url.origin !== window.location.origin || url.pathname !== '/oauth/consent') return null;
+    if (!url.searchParams.get('authorization_id')) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+type ConsentState = 'loading' | 'signed_out' | 'ready' | 'submitting' | 'error' | 'complete';
+
+function OAuthConsentPage() {
+  const [state, setState] = useState<ConsentState>('loading');
+  const [details, setDetails] = useState<OAuthAuthorizationDetails | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const authorizationId = new URLSearchParams(window.location.search).get('authorization_id');
+  const auth = useMemo(() => new AccountAuthClient(accountAuthOptions), []);
+
+  useEffect(() => {
+    if (!authorizationId) {
+      setMessage('This authorization request is missing or invalid.');
+      setState('error');
+      return;
+    }
+    if (!auth.accessToken) {
+      setState('signed_out');
+      return;
+    }
+    auth
+      .getAuthorizationDetails(authorizationId)
+      .then((authorization) => {
+        setDetails(authorization);
+        setState('ready');
+      })
+      .catch((error: unknown) => {
+        setMessage(
+          error instanceof AccountAuthError
+            ? error.message
+            : 'Unable to load the authorization request.',
+        );
+        setState('error');
+      });
+  }, [auth, authorizationId]);
+
+  async function decide(action: 'approve' | 'deny') {
+    if (!authorizationId) return;
+    setState('submitting');
+    setMessage(null);
+    try {
+      const redirectUrl =
+        action === 'approve'
+          ? await auth.approveAuthorization(authorizationId)
+          : await auth.denyAuthorization(authorizationId);
+      window.location.assign(redirectUrl);
+      setState('complete');
+    } catch (error: unknown) {
+      setMessage(
+        error instanceof AccountAuthError
+          ? error.message
+          : 'Unable to submit your authorization decision.',
+      );
+      setState('error');
+    }
+  }
+
+  if (state === 'loading') {
+    return (
+      <ConsentLayout>
+        <p className="status-text">Loading authorization…</p>
+      </ConsentLayout>
+    );
+  }
+  if (state === 'signed_out') {
+    return (
+      <ConsentLayout>
+        <p className="eyebrow">AisenHub Authorization</p>
+        <h1>Sign in to continue.</h1>
+        <p className="supporting-text">
+          Sign in to review the application access request. The request remains attached to this
+          flow.
+        </p>
+        <button
+          className="primary-button"
+          type="button"
+          onClick={() => {
+            sessionStorage.setItem(
+              'aisenhub.account.auth_return_to',
+              `${window.location.pathname}${window.location.search}`,
+            );
+            window.location.assign('/');
+          }}
+        >
+          Continue to sign in
+        </button>
+      </ConsentLayout>
+    );
+  }
+  if (state === 'error' || state === 'complete' || !details) {
+    return (
+      <ConsentLayout>
+        <p
+          className={state === 'error' ? 'error-text' : 'status-text'}
+          role={state === 'error' ? 'alert' : undefined}
+        >
+          {message ?? 'Authorization complete. You may return to the application.'}
+        </p>
+      </ConsentLayout>
+    );
+  }
+  return (
+    <ConsentLayout>
+      <p className="eyebrow">AisenHub Authorization</p>
+      <h1>Authorize {details.client.name}</h1>
+      <p className="supporting-text">
+        This application is requesting access to your AisenHub identity.
+      </p>
+      <div className="account-section">
+        <div className="item-row">
+          <span>Account</span>
+          <span className="item-meta">{details.user.email ?? 'Signed-in user'}</span>
+        </div>
+        <div className="item-row">
+          <span>Redirect URI</span>
+          <span className="item-meta">{details.redirectUri}</span>
+        </div>
+      </div>
+      <div className="account-section">
+        <h2>Requested permissions</h2>
+        <ul>
+          {details.scope
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((scope) => (
+              <li key={scope}>{scope}</li>
+            ))}
+        </ul>
+      </div>
+      {message && (
+        <p className="error-text" role="alert">
+          {message}
+        </p>
+      )}
+      <div className="inline-form">
+        <button
+          className="primary-button"
+          type="button"
+          onClick={() => void decide('approve')}
+          disabled={state === 'submitting'}
+        >
+          Approve
+        </button>
+        <button
+          className="secondary-button"
+          type="button"
+          onClick={() => void decide('deny')}
+          disabled={state === 'submitting'}
+        >
+          Deny
+        </button>
+      </div>
+    </ConsentLayout>
+  );
+}
+
+function ConsentLayout({ children }: { readonly children: ReactNode }) {
+  return (
+    <main className="account-shell">
+      <section className="account-card">{children}</section>
     </main>
   );
 }

@@ -37,8 +37,8 @@ export class AdminAuthClient {
       removeItem: (key) => globalThis.sessionStorage?.removeItem(key),
     };
     this.oauthClient = createOAuthClient({
-      authorizationEndpoint: `${supabaseUrl}/auth/v1/authorize`,
-      tokenEndpoint: `${supabaseUrl}/auth/v1/token`,
+      authorizationEndpoint: `${supabaseUrl}/auth/v1/oauth/authorize`,
+      tokenEndpoint: `${supabaseUrl}/auth/v1/oauth/token`,
       clientId: options.clientId,
       redirectUri: options.redirectUri,
       storage: options.storage,
