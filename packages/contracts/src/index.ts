@@ -143,6 +143,7 @@ export type {
 export {
   ApplicationMembershipCommandActionSchema,
   ApplicationMembershipCommandRequestSchema,
+  ApplicationMembershipCommandResponseSchema,
   ApplicationMembershipPolicySchema,
   ApplicationMembershipStatusSchema,
   ApplicationMembershipSummarySchema,
@@ -159,6 +160,7 @@ export {
 export type {
   ApplicationMembershipCommandAction,
   ApplicationMembershipCommandRequest,
+  ApplicationMembershipCommandResponse,
   ApplicationMembershipPolicy,
   ApplicationMembershipStatus,
   ApplicationMembershipSummary,

@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 
 import { createPlatformClient, PlatformClientError } from '@aisenhub/platform-client';
-import type { EntitlementsResponse, MeResponse, PublicProductsResponse } from '@aisenhub/contracts';
+import type {
+  EntitlementsResponse,
+  MeResponse,
+  MyApplicationsResponse,
+  PublicProductsResponse,
+} from '@aisenhub/contracts';
 
 import { AccountAuthClient, AccountAuthError } from './auth';
 import './styles.css';
@@ -38,6 +43,7 @@ export function App() {
   const [session, setSession] = useState<AuthenticatedSession | null>(null);
   const [products, setProducts] = useState<PublicProductsResponse['products']>([]);
   const [entitlements, setEntitlements] = useState<EntitlementsResponse['entitlements']>([]);
+  const [applications, setApplications] = useState<MyApplicationsResponse['applications']>([]);
   const [redemptionCode, setRedemptionCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [deletionConfirmed, setDeletionConfirmed] = useState(false);
@@ -62,12 +68,14 @@ export function App() {
   );
 
   async function loadAccountData() {
-    const [catalog, currentEntitlements] = await Promise.all([
+    const [catalog, currentEntitlements, currentApplications] = await Promise.all([
       client.getPublicProducts(),
       client.getEntitlements(),
+      client.getApplications(),
     ]);
     setProducts(catalog.data.products);
     setEntitlements(currentEntitlements.data.entitlements);
+    setApplications(currentApplications.data.applications);
   }
 
   useEffect(() => {
@@ -132,6 +140,21 @@ export function App() {
     }
   }
 
+  async function handleLeaveApplication(membershipId: string) {
+    setMessage(null);
+    try {
+      await client.leaveApplication(
+        membershipId,
+        'User left the application from Account Center',
+        createIdempotencyKey(),
+      );
+      setApplications((current) => current.filter((item) => item.id !== membershipId));
+      setMessage('You left the application. Your global AisenHub identity remains active.');
+    } catch (error: unknown) {
+      setMessage(readableError(error));
+    }
+  }
+
   async function handleDeletion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!deletionConfirmed) return;
@@ -161,6 +184,7 @@ export function App() {
     setSession(null);
     setProducts([]);
     setEntitlements([]);
+    setApplications([]);
     setViewState('signed_out');
   }
 
@@ -198,6 +222,32 @@ export function App() {
               {message}
             </p>
           )}
+
+          <div className="account-section">
+            <h2>My applications</h2>
+            {applications.length === 0 ? (
+              <p className="muted-text">No application memberships are active.</p>
+            ) : (
+              <div className="item-list">
+                {applications.map((membership) => (
+                  <div className="item-row" key={membership.id}>
+                    <span>
+                      {membership.application.name}
+                      <span className="item-meta"> · {membership.status}</span>
+                    </span>
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      onClick={() => void handleLeaveApplication(membership.id)}
+                      disabled={membership.status === 'left' || membership.status === 'deleted'}
+                    >
+                      Leave
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="account-section">
             <h2>Products</h2>

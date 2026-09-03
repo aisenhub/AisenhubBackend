@@ -88,6 +88,25 @@ export type ApplicationMembershipCommandRequest = z.infer<
   typeof ApplicationMembershipCommandRequestSchema
 >;
 
+export const ApplicationMembershipCommandResponseSchema = z
+  .object({
+    id: z.string().uuid(),
+    applicationId: z.string().uuid(),
+    userId: UserIdSchema,
+    status: ApplicationMembershipStatusSchema,
+    createdSource: z.string().min(1).max(100),
+    joinedAt: IsoDateTimeSchema,
+    activatedAt: IsoDateTimeSchema.nullable(),
+    suspendedAt: IsoDateTimeSchema.nullable(),
+    leftAt: IsoDateTimeSchema.nullable(),
+    deletedAt: IsoDateTimeSchema.nullable(),
+    auditLogId: z.string().uuid(),
+  })
+  .strict();
+export type ApplicationMembershipCommandResponse = z.infer<
+  typeof ApplicationMembershipCommandResponseSchema
+>;
+
 export const OAuthClientTypeSchema = z.enum(['public', 'confidential']);
 export type OAuthClientType = z.infer<typeof OAuthClientTypeSchema>;
 

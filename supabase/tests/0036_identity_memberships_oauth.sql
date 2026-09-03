@@ -1,6 +1,6 @@
 begin;
 
-select plan(31);
+select plan(35);
 
 select has_table('platform', 'application_memberships', 'application membership table exists');
 select has_table('platform', 'application_oauth_clients', 'OAuth client binding table exists');
@@ -107,6 +107,15 @@ select lives_ok($$ select public.application_membership_command(
   'oauth', 'join App B', 'membership-create-2', 'membership-create-hash-2',
   '96000000-0000-4000-8000-000000000303'); $$, 'automatic membership policy creates membership');
 select is((select status from platform.application_memberships where application_id = '96000000-0000-4000-8000-000000000102' and user_id = '96000000-0000-4000-8000-000000000001'), 'active', 'first authorization policy activates membership');
+
+select lives_ok($$ select public.application_membership_command(
+  '96000000-0000-4000-8000-000000000001', 'leave', null, null,
+  (select id from platform.application_memberships where application_id = '96000000-0000-4000-8000-000000000102' and user_id = '96000000-0000-4000-8000-000000000001'),
+  'self_service', 'leave App B', 'membership-leave-1', 'membership-leave-hash-1',
+  '96000000-0000-4000-8000-000000000305'); $$, 'member can leave one application');
+select is((select status from platform.application_memberships where application_id = '96000000-0000-4000-8000-000000000102' and user_id = '96000000-0000-4000-8000-000000000001'), 'left', 'leaving changes only the selected membership');
+select is((select status from platform.application_memberships where application_id = '96000000-0000-4000-8000-000000000101' and user_id = '96000000-0000-4000-8000-000000000001'), 'active', 'leaving one application preserves another membership');
+select is((select status from platform.profiles where id = '96000000-0000-4000-8000-000000000001'), 'active', 'leaving an application preserves Global Identity');
 
 select throws_ok($$ select public.application_membership_command(
   '96000000-0000-4000-8000-000000000002', 'suspend', null, null,

@@ -3,6 +3,7 @@ import {
   AccountDeletionRequestSchema,
   ApiSuccessEnvelopeSchema,
   ApplicationContextResponseSchema,
+  ApplicationMembershipCommandResponseSchema,
   EntitlementsResponseSchema,
   FeedbackRequestSchema,
   FeedbackResponseSchema,
@@ -16,6 +17,7 @@ import {
   type AccessResponse,
   type ApiErrorEnvelope,
   type ApplicationContextResponse,
+  type ApplicationMembershipCommandResponse,
   type ContractSchema,
   type EntitlementsResponse,
   type FeedbackRequest,
@@ -74,6 +76,11 @@ export interface PlatformClient {
   getProfile(): Promise<PlatformResponse<MeResponse>>;
   getApplicationContext(): Promise<PlatformResponse<ApplicationContextResponse>>;
   getApplications(): Promise<PlatformResponse<MyApplicationsResponse>>;
+  leaveApplication(
+    membershipId: string,
+    reason: string,
+    idempotencyKey: string,
+  ): Promise<PlatformResponse<ApplicationMembershipCommandResponse>>;
   getPublicProducts(): Promise<PlatformResponse<PublicProductsResponse>>;
   getEntitlements(): Promise<PlatformResponse<EntitlementsResponse>>;
   checkAccess(featureCode: string): Promise<PlatformResponse<AccessResponse>>;
@@ -104,6 +111,29 @@ export function createPlatformClient(options: PlatformClientOptions): PlatformCl
         '/v1/account/applications',
         MyApplicationsResponseSchema,
         {},
+        true,
+      );
+    },
+    leaveApplication(membershipId, reason, idempotencyKey) {
+      const normalizedIdempotencyKey = idempotencyKey.trim();
+      if (!normalizedIdempotencyKey || normalizedIdempotencyKey.length > 255) {
+        throw new Error('A valid Idempotency-Key is required.');
+      }
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(membershipId)) {
+        throw new Error('A valid membership ID is required.');
+      }
+      return requestAtBase(
+        baseUrl,
+        `/v1/account/applications/${encodeURIComponent(membershipId)}/leave`,
+        ApplicationMembershipCommandResponseSchema,
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'idempotency-key': normalizedIdempotencyKey,
+          },
+          body: JSON.stringify({ reason: reason.trim() }),
+        },
         true,
       );
     },

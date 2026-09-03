@@ -433,6 +433,54 @@ async function accountApplicationsRead(userId: string, id: string): Promise<Resp
   }
 }
 
+async function applicationMembershipLeave(
+  request: Request,
+  userId: string,
+  membershipId: string,
+  expectedMembershipId: string,
+  id: string,
+): Promise<Response> {
+  if (membershipId !== expectedMembershipId) {
+    return errorResponse('APP_ACCESS_DENIED', 'The membership does not belong to this application.', 403, id);
+  }
+  const body = await parseJsonObject(request);
+  const reason = typeof body?.reason === 'string' ? body.reason.trim() : '';
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  if (
+    reason === '' ||
+    reason.length > 1000 ||
+    idempotencyKey === '' ||
+    idempotencyKey.length > 255
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'A reason and Idempotency-Key are required.', 400, id);
+  }
+  try {
+    const rows = await serviceRpc<Record<string, unknown>>('application_membership_command', {
+      p_actor_id: userId,
+      p_action: 'leave',
+      p_membership_id: membershipId,
+      p_reason: reason,
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: await sha256Hex(JSON.stringify({ membershipId, reason })),
+      p_request_id: id,
+    });
+    const result = rows.length === 1 ? rows[0] : null;
+    if (!result) return errorResponse('INTERNAL_ERROR', 'The membership command returned no result.', 502, id);
+    return jsonResponse(result, 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+      return errorResponse('APP_ACCESS_DENIED', 'The membership command is not allowed.', 403, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
+      return errorResponse('INVALID_STATE_TRANSITION', 'The membership cannot be left in its current state.', 409, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
+      return errorResponse('IDEMPOTENCY_KEY_REUSED', 'The request key was already used.', 409, id);
+    }
+    return errorResponse('INTERNAL_ERROR', 'The membership command could not be completed.', 502, id);
+  }
+}
+
 async function applicationEntitlementsRead(userId: string, id: string): Promise<Response> {
   try {
     const rows = await serviceRpc<{
@@ -762,6 +810,19 @@ async function routeApplicationApiRoutes(request: Request, id: string): Promise<
       return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
     }
     return accountApplicationsRead(context.userId, id);
+  }
+  const leaveMembershipMatch = path.match(/^\/v1\/account\/applications\/([^/]+)\/leave$/);
+  if (leaveMembershipMatch) {
+    if (request.method !== 'POST') {
+      return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
+    }
+    return applicationMembershipLeave(
+      request,
+      context.userId,
+      decodeURIComponent(leaveMembershipMatch[1]),
+      context.membershipId,
+      id,
+    );
   }
   if (path === '/v1/account/deletion-requests') {
     if (request.method === 'POST') {

@@ -97,6 +97,22 @@ async function mockedFetch(url, init) {
     lastServiceCall = { pathname, body };
     return response([{ allowed: true, feature: body.p_feature_code, value: { max: 10 }, source_product: 'AISENLENS_PRO', expires_at: null, decision_id: '00000000-0000-4000-8000-000000000020' }]);
   }
+  if (pathname.endsWith('/application_membership_command')) {
+    lastServiceCall = { pathname, body };
+    return response({
+      id: body.p_membership_id,
+      applicationId: accountAppId,
+      userId,
+      status: 'left',
+      createdSource: 'oauth',
+      joinedAt: '2026-09-01T00:00:00.000Z',
+      activatedAt: '2026-09-01T00:00:00.000Z',
+      suspendedAt: null,
+      leftAt: '2026-09-03T00:00:00.000Z',
+      deletedAt: null,
+      auditLogId: '00000000-0000-4000-8000-000000000099',
+    });
+  }
   if (pathname.endsWith('/admin_query_resource')) {
     lastServiceCall = { pathname, body };
     return response([{ items: [{ id: '00000000-0000-4000-8000-000000000030', slug: 'admin', status: 'active' }], page: { hasMore: false, nextCursor: null } }]);
@@ -161,6 +177,23 @@ describe('Bearer application API', () => {
     expect(lastServiceCall.body.p_app_slug).toBe('account');
     const legacy = await routePlatformApi(new Request(`${apiOrigin}/v1/session`));
     expect(legacy.status).toBe(404);
+  });
+
+  it('leaves only the current application membership through a named command', async () => {
+    const { routePlatformApi } = await import('../../supabase/functions/_shared/platform-api.ts');
+    const token = await tokenFor('account-local-web');
+    const responseValue = await routePlatformApi(new Request(`${apiOrigin}/v1/account/applications/00000000-0000-4000-8000-000000000002/leave`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Idempotency-Key': 'leave-application-001',
+      },
+      body: JSON.stringify({ reason: 'No longer using this application' }),
+    }));
+    expect(responseValue.status).toBe(200);
+    expect(lastServiceCall.body.p_action).toBe('leave');
+    expect(lastServiceCall.body.p_actor_id).toBe(userId);
   });
 });
 
