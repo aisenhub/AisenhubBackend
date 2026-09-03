@@ -43,7 +43,13 @@ function apiUrl(settings, functionName, path = '') {
 }
 
 async function request(url, options = {}) {
-  const response = await fetch(url, options);
+  let response;
+  try {
+    response = await fetch(url, options);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'unknown network error';
+    throw new Error(`Request failed for ${url}: ${detail}`, { cause: error });
+  }
   const text = await response.text();
   let body = null;
   if (text !== '') {
@@ -57,7 +63,33 @@ async function request(url, options = {}) {
 }
 
 async function requestPage(url) {
-  const response = await fetch(url);
+  let response;
+  try {
+    response = await fetch(url);
+  } catch {
+    try {
+      const curl = process.platform === 'win32' ? 'curl.exe' : 'curl';
+      const nullDevice = process.platform === 'win32' ? 'NUL' : '/dev/null';
+      const status = execFileSync(
+        curl,
+        [
+          '--silent',
+          '--show-error',
+          '--location',
+          '--output',
+          nullDevice,
+          '--write-out',
+          '%{http_code}',
+          url,
+        ],
+        { cwd: repositoryRoot, encoding: 'utf8', env: process.env },
+      ).trim();
+      response = { status: Number(status) };
+    } catch (fallbackError) {
+      const detail = fallbackError instanceof Error ? fallbackError.message : 'network error';
+      throw new Error(`Page request failed for ${url}: ${detail}`, { cause: fallbackError });
+    }
+  }
   return { response, text: '', body: null };
 }
 

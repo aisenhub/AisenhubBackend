@@ -59,6 +59,7 @@ export function apiPath(request: Request): string {
     const separator = functionPath.indexOf('/');
     return separator >= 0 ? functionPath.slice(separator) || '/' : '/';
   }
+  if (/^\/(?:platform-api|platform-public|platform-admin)\/?$/.test(pathname)) return '/';
   const marker = pathname.lastIndexOf('/v1/');
   return marker >= 0 ? pathname.slice(marker) : pathname;
 }
