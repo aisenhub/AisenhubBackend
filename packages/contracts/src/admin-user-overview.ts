@@ -102,6 +102,7 @@ export type AdminUserSessionSummary = z.infer<typeof AdminUserSessionSummarySche
 export const AdminUserOverviewAuditEventSchema = z
   .object({
     id: UuidSchema,
+    applicationId: UuidSchema.nullable().default(null),
     actorType: z.enum(['admin', 'system', 'user', 'webhook']),
     actorId: UserIdSchema.nullable(),
     action: z.string().min(1),

@@ -8,6 +8,7 @@ const JsonObjectSchema = z.record(z.string(), z.unknown());
 
 export const AdminQueryListQuerySchema = z
   .object({
+    applicationId: z.string().uuid().optional(),
     cursor: z.string().min(1).max(512).optional(),
     limit: z.coerce.number().int().min(1).max(100).default(25),
     search: z.string().min(1).max(200).optional(),
@@ -109,6 +110,7 @@ export type AdminFeedbackListResponse = z.infer<typeof AdminFeedbackListResponse
 export const AdminAuditLogSummarySchema = z
   .object({
     id: UuidSchema,
+    applicationId: UuidSchema.nullable().default(null),
     actorType: z.enum(['admin', 'system', 'user', 'webhook']),
     actorId: UserIdSchema.nullable(),
     action: z.string().min(1),

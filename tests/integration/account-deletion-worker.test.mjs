@@ -47,7 +47,7 @@ vi.stubGlobal(
             status: 'completed',
             completedAt: '2026-09-02T12:00:00.000Z',
             revokedGrantCount: 2,
-            deletedSessionCount: 1,
+            cleanedMembershipCount: 2,
             anonymizedFeedbackCount: 1,
             detachedOrderCount: 1,
             disabledAdminCount: 0,

@@ -115,6 +115,7 @@ async function activeAdminSession(request: Request): Promise<AdminSessionRow | n
 }
 
 type AdminQueryOptions = {
+  readonly applicationId: string | null;
   readonly cursor: string | null;
   readonly limit: number;
   readonly search: string | null;
@@ -129,6 +130,7 @@ function parseAdminQuery(request: Request, id: string): AdminQueryOptions | Resp
   const limit = rawLimit === null ? 25 : Number(rawLimit);
   const direction = params.get('direction') ?? 'desc';
   const cursor = params.get('cursor');
+  const applicationId = params.get('applicationId');
   const search = params.get('search');
   const status = params.get('status');
   const sort = params.get('sort') ?? 'createdAt';
@@ -142,6 +144,14 @@ function parseAdminQuery(request: Request, id: string): AdminQueryOptions | Resp
   if (cursor !== null && (cursor === '' || cursor.length > 512)) {
     return errorResponse('VALIDATION_ERROR', 'The cursor is invalid.', 400, id);
   }
+  if (
+    applicationId !== null &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      applicationId,
+    )
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'The Application ID is invalid.', 400, id);
+  }
   if (search !== null && (search === '' || search.length > 200)) {
     return errorResponse('VALIDATION_ERROR', 'The search value is invalid.', 400, id);
   }
@@ -152,7 +162,7 @@ function parseAdminQuery(request: Request, id: string): AdminQueryOptions | Resp
     return errorResponse('VALIDATION_ERROR', 'The sort field is invalid.', 400, id);
   }
 
-  return { cursor, limit, search, status, sort, direction };
+  return { applicationId, cursor, limit, search, status, sort, direction };
 }
 
 async function adminQueryRead(request: Request, resource: string, id: string): Promise<Response> {
@@ -180,7 +190,7 @@ async function adminQueryRead(request: Request, resource: string, id: string): P
       'redemption-codes',
     ]);
     const customerResources = new Set(['account-deletion-requests']);
-    const rows = await serviceRpc<unknown>(
+    const queryFunction =
       resource === 'orders' || resource === 'payments'
         ? 'admin_query_commerce_resource'
         : resource === 'products'
@@ -189,18 +199,21 @@ async function adminQueryRead(request: Request, resource: string, id: string): P
             ? 'admin_query_catalog_resource'
             : customerResources.has(resource)
               ? 'admin_query_customer_resource'
-              : 'admin_query_resource',
-      {
-        p_actor_id: session.user_id,
-        p_resource: resource,
-        p_cursor: parsed.cursor,
-        p_limit: parsed.limit,
-        p_search: parsed.search,
-        p_status: parsed.status,
-        p_sort: parsed.sort,
-        p_direction: parsed.direction,
-      },
-    );
+              : 'admin_query_resource';
+    const queryParams = {
+      p_actor_id: session.user_id,
+      p_resource: resource,
+      p_cursor: parsed.cursor,
+      p_limit: parsed.limit,
+      p_search: parsed.search,
+      p_status: parsed.status,
+      p_sort: parsed.sort,
+      p_direction: parsed.direction,
+      ...(queryFunction === 'admin_query_resource'
+        ? { p_application_id: parsed.applicationId }
+        : {}),
+    };
+    const rows = await serviceRpc<unknown>(queryFunction, queryParams);
     if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
       return errorResponse(
         'INTERNAL_ERROR',

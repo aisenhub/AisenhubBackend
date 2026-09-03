@@ -135,6 +135,7 @@ export type AdminResourceItem = {
 };
 
 export type AdminResourceQuery = {
+  applicationId?: string;
   cursor?: string;
   limit?: number;
   search?: string;

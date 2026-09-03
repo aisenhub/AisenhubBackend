@@ -214,6 +214,7 @@ export type Database = {
       admin_query_resource: {
         Args: {
           p_actor_id: string
+          p_application_id?: string
           p_cursor?: string
           p_direction?: string
           p_limit?: number
@@ -341,6 +342,21 @@ export type Database = {
           p_worker_id: string
         }
         Returns: Json
+      }
+      create_application_feedback: {
+        Args: {
+          p_application_id: string
+          p_content: string
+          p_kind: string
+          p_membership_id: string
+          p_title: string
+          p_user_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          status: string
+        }[]
       }
       create_feedback: {
         Args: {

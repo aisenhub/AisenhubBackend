@@ -5,25 +5,25 @@ select plan(15);
 select has_function(
   'public',
   'admin_query_resource',
-  array['uuid', 'text', 'text', 'integer', 'text', 'text', 'text', 'text'],
+  array['uuid', 'text', 'text', 'integer', 'text', 'text', 'text', 'text', 'uuid'],
   'Admin resource query projection exists'
 );
 select ok(
-  (select prosecdef from pg_proc where oid = 'public.admin_query_resource(uuid,text,text,integer,text,text,text,text)'::regprocedure),
+  (select prosecdef from pg_proc where oid = 'public.admin_query_resource(uuid,text,text,integer,text,text,text,text,uuid)'::regprocedure),
   'Admin resource query projection is SECURITY DEFINER'
 );
 select ok(
   (select proconfig @> array['search_path=pg_catalog, platform']::text[]
    from pg_proc
-   where oid = 'public.admin_query_resource(uuid,text,text,integer,text,text,text,text)'::regprocedure),
+   where oid = 'public.admin_query_resource(uuid,text,text,integer,text,text,text,text,uuid)'::regprocedure),
   'Admin resource query projection fixes its search_path'
 );
 select ok(
-  has_function_privilege('service_role', 'public.admin_query_resource(uuid,text,text,integer,text,text,text,text)', 'EXECUTE'),
+  has_function_privilege('service_role', 'public.admin_query_resource(uuid,text,text,integer,text,text,text,text,uuid)', 'EXECUTE'),
   'service_role can invoke the Admin query projection'
 );
 select ok(
-  not has_function_privilege('anon', 'public.admin_query_resource(uuid,text,text,integer,text,text,text,text)', 'EXECUTE'),
+  not has_function_privilege('anon', 'public.admin_query_resource(uuid,text,text,integer,text,text,text,text,uuid)', 'EXECUTE'),
   'anon cannot invoke the Admin query projection'
 );
 

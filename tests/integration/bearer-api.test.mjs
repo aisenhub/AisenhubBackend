@@ -149,6 +149,16 @@ async function mockedFetch(url, init) {
       },
     ]);
   }
+  if (pathname.endsWith('/create_application_feedback')) {
+    lastServiceCall = { pathname, body };
+    return response([
+      {
+        id: '00000000-0000-4000-8000-000000000042',
+        status: 'open',
+        created_at: '2026-09-03T00:00:00.000Z',
+      },
+    ]);
+  }
   if (pathname.endsWith('/application_membership_command')) {
     lastServiceCall = { pathname, body };
     return response({
@@ -360,6 +370,27 @@ describe('Bearer application API', () => {
     expect(lastServiceCall.body).not.toHaveProperty('p_app_slug');
   });
 
+  it('attributes feedback to the resolved application membership', async () => {
+    const { routePlatformApi } = await import('../../supabase/functions/_shared/platform-api.ts');
+    const token = await tokenFor('account-local-web');
+    const feedbackResponse = await routePlatformApi(
+      new Request(`${apiOrigin}/v1/app/feedback`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'bug',
+          title: 'Scoped feedback',
+          content: 'Scoped feedback content',
+        }),
+      }),
+    );
+    expect(feedbackResponse.status).toBe(201);
+    expect(lastServiceCall.pathname).toContain('create_application_feedback');
+    expect(lastServiceCall.body.p_application_id).toBe(accountAppId);
+    expect(lastServiceCall.body.p_membership_id).toBe('00000000-0000-4000-8000-000000000002');
+    expect(lastServiceCall.body).not.toHaveProperty('p_app_slug');
+  });
+
   it('leaves only the current application membership through a named command', async () => {
     const { routePlatformApi } = await import('../../supabase/functions/_shared/platform-api.ts');
     const token = await tokenFor('account-local-web');
@@ -405,6 +436,13 @@ describe('Bearer Admin API', () => {
     );
     expect(query.status).toBe(200);
     expect(lastServiceCall.body.p_actor_id).toBe(userId);
+    const scopedAuditQuery = await routePlatformAdmin(
+      new Request(`${apiOrigin}/v1/admin/audit-logs?applicationId=${accountAppId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    );
+    expect(scopedAuditQuery.status).toBe(200);
+    expect(lastServiceCall.body.p_application_id).toBe(accountAppId);
   });
 
   it('lists application operations and sends named audited commands through the Admin client boundary', async () => {

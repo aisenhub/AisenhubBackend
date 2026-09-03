@@ -608,7 +608,8 @@ async function applicationRedemptionCreate(
 async function applicationFeedbackCreate(
   request: Request,
   userId: string,
-  appSlug: string,
+  applicationId: string,
+  membershipId: string,
   id: string,
 ): Promise<Response> {
   const body = await parseJsonObject(request);
@@ -630,9 +631,10 @@ async function applicationFeedbackCreate(
       readonly id: string;
       readonly status: 'open' | 'in_progress' | 'resolved' | 'closed';
       readonly created_at: string;
-    }>('create_feedback', {
-      p_app_slug: appSlug,
+    }>('create_application_feedback', {
+      p_application_id: applicationId,
       p_user_id: userId,
+      p_membership_id: membershipId,
       p_kind: kind,
       p_title: title,
       p_content: content,
@@ -890,7 +892,13 @@ async function routeApplicationApiRoutes(request: Request, id: string): Promise<
     if (request.method !== 'POST') {
       return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
     }
-    return applicationFeedbackCreate(request, context.userId, context.applicationSlug, id);
+    return applicationFeedbackCreate(
+      request,
+      context.userId,
+      context.applicationId,
+      context.membershipId,
+      id,
+    );
   }
   return errorResponse('VALIDATION_ERROR', 'The requested route was not found.', 404, id);
 }

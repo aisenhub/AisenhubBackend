@@ -151,6 +151,7 @@ export type AdminOrderException = z.infer<typeof AdminOrderExceptionSchema>;
 export const AdminOrderAuditEventSchema = z
   .object({
     id: UuidSchema,
+    applicationId: UuidSchema.nullable().default(null),
     actorType: z.enum(['admin', 'system', 'user', 'webhook']),
     actorId: UserIdSchema.nullable(),
     action: z.string().min(1),

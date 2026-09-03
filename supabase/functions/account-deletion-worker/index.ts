@@ -19,7 +19,7 @@ type DeletionResult = {
   readonly status: 'completed';
   readonly completedAt: string;
   readonly revokedGrantCount: number;
-  readonly deletedSessionCount: number;
+  readonly cleanedMembershipCount: number;
   readonly anonymizedFeedbackCount: number;
   readonly detachedOrderCount: number;
   readonly disabledAdminCount: number;
