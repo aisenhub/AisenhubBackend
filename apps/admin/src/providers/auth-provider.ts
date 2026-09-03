@@ -50,10 +50,7 @@ export function createAdminAuthProvider(options: AdminAuthProviderOptions): Auth
       } catch (error) {
         const clientError = isAdminClientError(error) ? error : null;
         const requiresLogin =
-          clientError?.status === 401 ||
-          clientError?.code === 'AUTHENTICATION_REQUIRED' ||
-          clientError?.code === 'SESSION_EXPIRED' ||
-          clientError?.code === 'SESSION_REVOKED';
+          clientError?.status === 401 || clientError?.code === 'AUTHENTICATION_REQUIRED';
         if (requiresLogin) {
           options.sessionStore.clear();
           return {

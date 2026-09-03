@@ -69,7 +69,6 @@ export const AdminDisabledUserCommandResponseSchema = z
   .object({
     userId: UserIdSchema,
     status: z.literal('disabled'),
-    revokedSessionCount: z.number().int().nonnegative(),
     auditLogId: UuidSchema,
   })
   .strict();

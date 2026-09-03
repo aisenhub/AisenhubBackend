@@ -323,7 +323,7 @@ describe('Bearer application API', () => {
     expect((await mismatched.json()).error.code).toBe('ORIGIN_NOT_ALLOWED');
   });
 
-  it('uses the verified application for access decisions and removes legacy routes', async () => {
+  it('uses the verified application for access decisions and rejects unknown routes', async () => {
     const { routePlatformApi } = await import('../../supabase/functions/_shared/platform-api.ts');
     const token = await tokenFor('account-local-web');
     const access = await routePlatformApi(
@@ -333,8 +333,8 @@ describe('Bearer application API', () => {
     );
     expect(access.status).toBe(200);
     expect(lastServiceCall.body.p_application_id).toBe(accountAppId);
-    const legacy = await routePlatformApi(new Request(`${apiOrigin}/v1/session`));
-    expect(legacy.status).toBe(404);
+    const unknownRoute = await routePlatformApi(new Request(`${apiOrigin}/v1/unknown-route`));
+    expect(unknownRoute.status).toBe(404);
   });
 
   it('scopes entitlement projections to the resolved application id', async () => {
@@ -415,7 +415,7 @@ describe('Bearer application API', () => {
 });
 
 describe('Bearer Admin API', () => {
-  it('reads Admin identity and queries without a Platform Session or CSRF token', async () => {
+  it('reads Admin identity and queries with an OAuth bearer token', async () => {
     const { routePlatformAdmin } = await import('../../supabase/functions/_shared/admin-api.ts');
     const token = await tokenFor('admin-local-web', 'aal2');
     const session = await routePlatformAdmin(

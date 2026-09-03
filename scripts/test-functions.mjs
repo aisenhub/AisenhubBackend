@@ -379,7 +379,7 @@ if (process.argv.includes('telemetry')) {
     'requestId',
     'resultCode',
     'latencyMs',
-    'session_exchange_total',
+    'platform_request_total',
     'entitlement_check_total',
     'redemption_total',
     'payment_webhook_total',

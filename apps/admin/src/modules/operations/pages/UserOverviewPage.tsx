@@ -154,10 +154,6 @@ export function UserOverviewPage() {
           <Descriptions.Item label="Created">
             <DateTimeDisplay value={overview.profile.createdAt} />
           </Descriptions.Item>
-          <Descriptions.Item label="Sessions">
-            {overview.sessionSummary.activeCount} active / {overview.sessionSummary.totalCount}{' '}
-            total
-          </Descriptions.Item>
         </Descriptions>
       </Card>
 
@@ -176,7 +172,7 @@ export function UserOverviewPage() {
                   label: overview.profile.displayName ?? userId,
                   currentState: 'active',
                   targetState: 'disabled',
-                  impactSummary: 'Disable the account and revoke every active Platform Session.',
+                  impactSummary: 'Disable the account and revoke its active entitlements.',
                 })
               }
             >

@@ -5,25 +5,25 @@ select plan(25);
 select has_function(
   'public',
   'run_retention_cleanup',
-  array['timestamp with time zone', 'timestamp with time zone', 'timestamp with time zone', 'integer', 'boolean'],
+  array['timestamp with time zone', 'timestamp with time zone', 'integer', 'boolean'],
   'retention cleanup function exists'
 );
 select is(
-  (select prosecdef from pg_proc where oid = 'public.run_retention_cleanup(timestamptz,timestamptz,timestamptz,integer,boolean)'::regprocedure),
+  (select prosecdef from pg_proc where oid = 'public.run_retention_cleanup(timestamptz,timestamptz,integer,boolean)'::regprocedure),
   true,
   'retention cleanup is SECURITY DEFINER'
 );
 select is(
-  (select proconfig from pg_proc where oid = 'public.run_retention_cleanup(timestamptz,timestamptz,timestamptz,integer,boolean)'::regprocedure),
+  (select proconfig from pg_proc where oid = 'public.run_retention_cleanup(timestamptz,timestamptz,integer,boolean)'::regprocedure),
   array['search_path=pg_catalog, platform']::text[],
   'retention cleanup pins search_path'
 );
 select ok(
-  has_function_privilege('service_role', 'public.run_retention_cleanup(timestamptz,timestamptz,timestamptz,integer,boolean)', 'EXECUTE'),
+  has_function_privilege('service_role', 'public.run_retention_cleanup(timestamptz,timestamptz,integer,boolean)', 'EXECUTE'),
   'service_role can run retention cleanup'
 );
 select ok(
-  not has_function_privilege('anon', 'public.run_retention_cleanup(timestamptz,timestamptz,timestamptz,integer,boolean)', 'EXECUTE'),
+  not has_function_privilege('anon', 'public.run_retention_cleanup(timestamptz,timestamptz,integer,boolean)', 'EXECUTE'),
   'anon cannot run retention cleanup'
 );
 
@@ -102,7 +102,7 @@ select lives_ok(
 set local role service_role;
 select is(
   public.run_retention_cleanup(
-    now() - interval '1 hour', now() - interval '1 hour', now() - interval '1 hour', 10, true
+    now() - interval '1 hour', now() - interval '1 hour', 10, true
   ) ->> 'dryRun',
   'true',
   'dry-run reports without mutating data'
@@ -114,10 +114,10 @@ select is((select response_body ->> 'email' from platform.idempotency_records wh
 set local role service_role;
 select is(
   public.run_retention_cleanup(
-    now() - interval '1 hour', now() - interval '1 hour', now() - interval '1 hour', 10, false
-  ) ->> 'sessionCount',
-  '0',
-  'cleanup reports no retired platform sessions'
+    now() - interval '1 hour', now() - interval '1 hour', 10, false
+  ) ->> 'redemptionIpHashCount',
+  '1',
+  'cleanup reports the bounded redemption scrub count'
 );
 set local role postgres;
 select is((select ip_hash from platform.redemptions where id = '9e0c0000-0000-4000-8000-000000000001'), null, 'expired redemption IP hash is cleared');
@@ -134,8 +134,8 @@ select is((select response_body ->> 'email' from platform.idempotency_records wh
 set local role service_role;
 select is(
   public.run_retention_cleanup(
-    now() - interval '1 hour', now() - interval '1 hour', now() - interval '1 hour', 10, false
-  ) ->> 'sessionCount',
+    now() - interval '1 hour', now() - interval '1 hour', 10, false
+  ) ->> 'redemptionIpHashCount',
   '0',
   'repeated cleanup is idempotent'
 );
@@ -143,12 +143,12 @@ set local role postgres;
 select is((select ip_hash from platform.audit_logs where id = '9e0d0000-0000-4000-8000-000000000001'), null, 'repeated cleanup does not restore scrubbed audit context');
 select is((select count(*)::integer from platform.audit_logs where id = '9e0d0000-0000-4000-8000-000000000001'), 1, 'cleanup does not delete audit facts');
 select throws_ok(
-  $$select public.run_retention_cleanup(now(), now(), now(), 0, false)$$,
+  $$select public.run_retention_cleanup(now(), now(), 0, false)$$,
   '22023', null,
   'cleanup rejects an unbounded batch size'
 );
 select throws_ok(
-  $$select public.run_retention_cleanup(null, now(), now(), 10, false)$$,
+  $$select public.run_retention_cleanup(null, now(), 10, false)$$,
   '22023', null,
   'cleanup requires explicit cutoffs'
 );

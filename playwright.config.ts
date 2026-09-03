@@ -84,7 +84,7 @@ export default defineConfig({
   webServer: [
     {
       command: `pnpm exec supabase functions serve platform-api platform-public --no-verify-jwt --env-file "${functionEnvFile}"`,
-      url: `http://127.0.0.1:54321/functions/v1/platform-api/v1/session?apikey=${localSupabaseAnonKey}`,
+      url: `http://127.0.0.1:54321/functions/v1/platform-api/?apikey=${localSupabaseAnonKey}`,
       timeout: 120_000,
       reuseExistingServer: true,
       env: webServerEnv,

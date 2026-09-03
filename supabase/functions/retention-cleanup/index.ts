@@ -4,7 +4,6 @@ import { withTelemetry } from '../_shared/telemetry.ts';
 
 type CleanupResult = {
   readonly dryRun: boolean;
-  readonly sessionCount: number;
   readonly redemptionIpHashCount: number;
   readonly auditIpHashCount: number;
   readonly idempotencyResponseCount: number;
@@ -13,7 +12,6 @@ type CleanupResult = {
 };
 
 type CleanupConfig = {
-  readonly sessionGraceSeconds: number;
   readonly securityContextRetentionSeconds: number;
   readonly idempotencyResponseRetentionSeconds: number;
   readonly batchSize: number;
@@ -21,7 +19,6 @@ type CleanupConfig = {
 };
 
 const runtimeEnvironment = 'PLATFORM_RUNTIME_ENVIRONMENT';
-const sessionGrace = 'PLATFORM_CLEANUP_SESSION_GRACE_SECONDS';
 const securityRetention = 'PLATFORM_CLEANUP_SECURITY_CONTEXT_RETENTION_SECONDS';
 const idempotencyRetention = 'PLATFORM_CLEANUP_IDEMPOTENCY_RESPONSE_RETENTION_SECONDS';
 const batchSize = 'PLATFORM_CLEANUP_BATCH_SIZE';
@@ -73,7 +70,6 @@ function cleanupConfig(): CleanupConfig {
     throw new Error('CLEANUP_CONFIG_INVALID');
   }
   return {
-    sessionGraceSeconds: numericConfig(sessionGrace, 86_400, required),
     securityContextRetentionSeconds: numericConfig(securityRetention, 2_592_000, required),
     idempotencyResponseRetentionSeconds: numericConfig(idempotencyRetention, 0, required),
     batchSize: configuredBatchSize,
@@ -98,7 +94,6 @@ export async function handleRetentionCleanup(request: Request): Promise<Response
     const config = cleanupConfig();
     const now = Date.now();
     const rows = await serviceRpc<CleanupResult>('run_retention_cleanup', {
-      p_session_expired_before: cutoff(config.sessionGraceSeconds, now),
       p_security_context_before: cutoff(config.securityContextRetentionSeconds, now),
       p_idempotency_response_before: cutoff(config.idempotencyResponseRetentionSeconds, now),
       p_batch_size: config.batchSize,

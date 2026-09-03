@@ -644,7 +644,6 @@ export type Database = {
           p_dry_run?: boolean
           p_idempotency_response_before: string
           p_security_context_before: string
-          p_session_expired_before: string
         }
         Returns: Json
       }

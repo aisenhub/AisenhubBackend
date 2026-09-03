@@ -22,49 +22,6 @@ export const ProfileIdentitySchema = z
   .strict();
 export type ProfileIdentity = z.infer<typeof ProfileIdentitySchema>;
 
-export const SessionExchangeRequestSchema = z.object({}).strict();
-export type SessionExchangeRequest = z.infer<typeof SessionExchangeRequestSchema>;
-
-export const SessionExchangeResponseSchema = z
-  .object({
-    authenticated: z.literal(true),
-    identity: ProfileIdentitySchema,
-    expiresAt: IsoDateTimeSchema,
-    csrfToken: z.string().min(1).max(512),
-  })
-  .strict();
-export type SessionExchangeResponse = z.infer<typeof SessionExchangeResponseSchema>;
-
-export const AuthenticatedSessionSchema = z
-  .object({
-    authenticated: z.literal(true),
-    identity: ProfileIdentitySchema,
-    expiresAt: IsoDateTimeSchema,
-    csrfToken: z.string().min(1).max(512).optional(),
-  })
-  .strict();
-
-export const AnonymousSessionSchema = z
-  .object({
-    authenticated: z.literal(false),
-    identity: z.null(),
-    expiresAt: z.null(),
-  })
-  .strict();
-
-export const SessionResponseSchema = z.discriminatedUnion('authenticated', [
-  AuthenticatedSessionSchema,
-  AnonymousSessionSchema,
-]);
-export type SessionResponse = z.infer<typeof SessionResponseSchema>;
-
-export const SessionDeleteResponseSchema = z
-  .object({
-    revoked: z.literal(true),
-  })
-  .strict();
-export type SessionDeleteResponse = z.infer<typeof SessionDeleteResponseSchema>;
-
 export const MeResponseSchema = z
   .object({
     profile: ProfileIdentitySchema,

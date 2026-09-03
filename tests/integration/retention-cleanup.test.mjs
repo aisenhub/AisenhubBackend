@@ -5,7 +5,6 @@ const calls = [];
 let rpcStatus = 200;
 let cleanupResult = {
   dryRun: false,
-  sessionCount: 1,
   redemptionIpHashCount: 2,
   auditIpHashCount: 2,
   idempotencyResponseCount: 1,
@@ -14,7 +13,6 @@ let cleanupResult = {
 };
 const config = {
   PLATFORM_RUNTIME_ENVIRONMENT: 'local',
-  PLATFORM_CLEANUP_SESSION_GRACE_SECONDS: '86400',
   PLATFORM_CLEANUP_SECURITY_CONTEXT_RETENTION_SECONDS: '2592000',
   PLATFORM_CLEANUP_IDEMPOTENCY_RESPONSE_RETENTION_SECONDS: '0',
   PLATFORM_CLEANUP_BATCH_SIZE: '100',
@@ -61,7 +59,6 @@ afterEach(() => {
   rpcStatus = 200;
   cleanupResult = {
     dryRun: false,
-    sessionCount: 1,
     redemptionIpHashCount: 2,
     auditIpHashCount: 2,
     idempotencyResponseCount: 1,
@@ -70,7 +67,6 @@ afterEach(() => {
   };
   Object.assign(config, {
     PLATFORM_RUNTIME_ENVIRONMENT: 'local',
-    PLATFORM_CLEANUP_SESSION_GRACE_SECONDS: '86400',
     PLATFORM_CLEANUP_SECURITY_CONTEXT_RETENTION_SECONDS: '2592000',
     PLATFORM_CLEANUP_IDEMPOTENCY_RESPONSE_RETENTION_SECONDS: '0',
     PLATFORM_CLEANUP_BATCH_SIZE: '100',
@@ -86,7 +82,6 @@ describe('retention cleanup worker', () => {
     expect(response.status).toBe(200);
     expect(body.data.cleanup).toMatchObject({
       dryRun: false,
-      sessionCount: 1,
       idempotencyDeletedCount: 1,
     });
     expect(calls).toHaveLength(1);
@@ -95,7 +90,7 @@ describe('retention cleanup worker', () => {
       p_batch_size: 100,
       p_dry_run: false,
     });
-    expect(new Date(calls[0].body.p_session_expired_before).toString()).not.toBe('Invalid Date');
+    expect(new Date(calls[0].body.p_security_context_before).toString()).not.toBe('Invalid Date');
   });
 
   it('supports a configured dry run without changing the RPC boundary', async () => {
@@ -120,7 +115,6 @@ describe('retention cleanup worker', () => {
 
     Object.assign(config, {
       PLATFORM_CLEANUP_BATCH_SIZE: '100',
-      PLATFORM_CLEANUP_SESSION_GRACE_SECONDS: '86400',
       PLATFORM_CLEANUP_SECURITY_CONTEXT_RETENTION_SECONDS: '2592000',
       PLATFORM_CLEANUP_IDEMPOTENCY_RESPONSE_RETENTION_SECONDS: '0',
       PLATFORM_CLEANUP_DRY_RUN: 'false',

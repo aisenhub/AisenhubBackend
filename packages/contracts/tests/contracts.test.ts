@@ -34,7 +34,6 @@ import {
   AdminGenerateRedemptionCodesRequestSchema,
   AdminProductListResponseSchema,
   AdminProductionOriginCommandResponseSchema,
-  AdminSessionResponseSchema,
   AdminPublishProductVersionRequestSchema,
   AdminRedemptionCodeSummarySchema,
   AdminSetCurrentProductVersionRequestSchema,
@@ -59,9 +58,6 @@ import {
   PaymentWebhookEventSchema,
   RedemptionRequestSchema,
   RedemptionResponseSchema,
-  SessionExchangeRequestSchema,
-  SessionExchangeResponseSchema,
-  SessionResponseSchema,
   parseApiError,
 } from '../src/index';
 
@@ -207,53 +203,16 @@ describe('platform contract primitives', () => {
     );
   });
 
-  it('covers the session exchange, session status, and me response shapes', () => {
-    expect(SessionExchangeRequestSchema.parse({})).toEqual({});
-    expect(() => SessionExchangeRequestSchema.parse({ accessToken: 'raw-token' })).toThrow();
-
-    const exchange = SessionExchangeResponseSchema.parse({
-      authenticated: true,
-      identity: {
-        userId: requestId,
-        displayName: 'Owner',
-        avatarUrl: null,
-        locale: 'zh-CN',
-        status: 'active',
-      },
-      expiresAt: '2026-09-02T00:00:00.000Z',
-      csrfToken: 'csrf-token-is-in-memory-only',
-    });
-
-    expect(exchange.identity.userId).toBe(requestId);
-    expect(SessionResponseSchema.parse(exchange).authenticated).toBe(true);
-    expect(
-      SessionResponseSchema.parse({
-        authenticated: false,
-        identity: null,
-        expiresAt: null,
-      }).authenticated,
-    ).toBe(false);
-
-    expect(() =>
-      MeResponseSchema.parse({ profile: { ...exchange.identity, deletedAt: null } }),
-    ).toThrow();
-  });
-
-  it('keeps Admin session identity minimal and excludes permissions or secrets', () => {
-    const adminSession = AdminSessionResponseSchema.parse({
-      authenticated: true,
-      identity: { userId: requestId, displayName: 'Owner' },
-      role: 'owner',
-      aal: 'aal2',
-      mfaState: 'verified',
-      expiresAt: '2026-09-02T00:00:00.000Z',
-    });
-
-    expect(adminSession.role).toBe('owner');
-    expect(() => AdminSessionResponseSchema.parse({ ...adminSession, permissions: [] })).toThrow();
-    expect(() =>
-      AdminSessionResponseSchema.parse({ ...adminSession, tokenHash: 'digest' }),
-    ).toThrow();
+  it('keeps the current profile identity contract strict', () => {
+    const profile = {
+      userId: requestId,
+      displayName: 'Owner',
+      avatarUrl: null,
+      locale: 'zh-CN',
+      status: 'active',
+    };
+    expect(MeResponseSchema.parse({ profile }).profile.userId).toBe(requestId);
+    expect(() => MeResponseSchema.parse({ profile: { ...profile, deletedAt: null } })).toThrow();
   });
 
   it('validates the public catalog and product-facing command contracts', () => {

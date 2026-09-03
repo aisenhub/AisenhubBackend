@@ -356,7 +356,6 @@ describe('admin client transport', () => {
               entitlements: [],
               redemptions: [],
               feedback: [],
-              sessionSummary: { activeCount: 0, totalCount: 0, lastSeenAt: null },
               deletionRequests: [],
               auditTimeline: [],
             }
@@ -763,7 +762,6 @@ describe('admin client transport', () => {
             : {
                 userId,
                 status: 'disabled',
-                revokedSessionCount: 2,
                 auditLogId: '00000000-0000-4000-8000-000000000038',
               };
         return new Response(JSON.stringify({ data, requestId }), {
@@ -783,7 +781,7 @@ describe('admin client transport', () => {
       reason: 'restore entitlement',
       confirmation: true,
     });
-    const disabled = await commands.disableUser(userId, {
+    await commands.disableUser(userId, {
       reason: 'disable account',
       confirmation: true,
     });
@@ -793,7 +791,6 @@ describe('admin client transport', () => {
       resource: 'entitlements',
       id: '00000000-0000-4000-8000-000000000035',
     });
-    expect(disabled.data.revokedSessionCount).toBe(2);
     expect(paths).toEqual([
       `/v1/admin/users/${userId}/entitlements/grant`,
       `/v1/admin/entitlements/${grantId}/restore`,

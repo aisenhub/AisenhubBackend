@@ -19,7 +19,6 @@ export const ErrorCodes = {
   CHARGEBACK_NOT_ALLOWED: 'CHARGEBACK_NOT_ALLOWED',
   COMMERCE_STATE_CONFLICT: 'COMMERCE_STATE_CONFLICT',
   AUTHENTICATION_REQUIRED: 'AUTHENTICATION_REQUIRED',
-  CSRF_INVALID: 'CSRF_INVALID',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   INVALID_STATE_TRANSITION: 'INVALID_STATE_TRANSITION',
   IDEMPOTENCY_KEY_REUSED: 'IDEMPOTENCY_KEY_REUSED',
@@ -41,8 +40,6 @@ export const ErrorCodes = {
   REAUTHENTICATION_REQUIRED: 'REAUTHENTICATION_REQUIRED',
   REFUND_EXCEEDS_ITEM_TOTAL: 'REFUND_EXCEEDS_ITEM_TOTAL',
   RESOURCE_VERSION_CONFLICT: 'RESOURCE_VERSION_CONFLICT',
-  SESSION_EXPIRED: 'SESSION_EXPIRED',
-  SESSION_REVOKED: 'SESSION_REVOKED',
   VALIDATION_ERROR: 'VALIDATION_ERROR',
 } as const;
 
@@ -110,17 +107,11 @@ export {
   AdminMfaStateSchema,
   AdminSessionResponseSchema,
   ApplicationContextResponseSchema,
-  AnonymousSessionSchema,
   ApplicationIdentitySchema,
-  AuthenticatedSessionSchema,
   IsoDateTimeSchema,
   MeResponseSchema,
   ProfileIdentitySchema,
   ProfileStatusSchema,
-  SessionDeleteResponseSchema,
-  SessionExchangeRequestSchema,
-  SessionExchangeResponseSchema,
-  SessionResponseSchema,
   UserIdSchema,
 } from './identity';
 
@@ -133,10 +124,6 @@ export type {
   MeResponse,
   ProfileIdentity,
   ProfileStatus,
-  SessionDeleteResponse,
-  SessionExchangeRequest,
-  SessionExchangeResponse,
-  SessionResponse,
   UserId,
 } from './identity';
 
@@ -278,7 +265,6 @@ export {
   AdminUserOverviewProfileSchema,
   AdminUserOverviewRedemptionSchema,
   AdminUserOverviewSchema,
-  AdminUserSessionSummarySchema,
 } from './admin-user-overview';
 
 export type {
@@ -290,7 +276,6 @@ export type {
   AdminUserOverviewFeedback,
   AdminUserOverviewProfile,
   AdminUserOverviewRedemption,
-  AdminUserSessionSummary,
 } from './admin-user-overview';
 
 export {

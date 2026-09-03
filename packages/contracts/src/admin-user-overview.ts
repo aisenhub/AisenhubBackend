@@ -90,15 +90,6 @@ export const AdminUserOverviewFeedbackSchema = z
   .strict();
 export type AdminUserOverviewFeedback = z.infer<typeof AdminUserOverviewFeedbackSchema>;
 
-export const AdminUserSessionSummarySchema = z
-  .object({
-    activeCount: z.number().int().nonnegative(),
-    totalCount: z.number().int().nonnegative(),
-    lastSeenAt: IsoDateTimeSchema.nullable(),
-  })
-  .strict();
-export type AdminUserSessionSummary = z.infer<typeof AdminUserSessionSummarySchema>;
-
 export const AdminUserOverviewAuditEventSchema = z
   .object({
     id: UuidSchema,
@@ -124,7 +115,6 @@ export const AdminUserOverviewSchema = z
     entitlements: z.array(AdminUserOverviewEntitlementSchema),
     redemptions: z.array(AdminUserOverviewRedemptionSchema),
     feedback: z.array(AdminUserOverviewFeedbackSchema),
-    sessionSummary: AdminUserSessionSummarySchema,
     deletionRequests: z.array(AdminAccountDeletionRequestSummarySchema),
     auditTimeline: z.array(AdminUserOverviewAuditEventSchema),
   })
