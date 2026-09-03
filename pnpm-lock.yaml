@@ -75,6 +75,9 @@ importers:
       '@aisenhub/admin-client':
         specifier: workspace:*
         version: link:../../packages/admin-client
+      '@aisenhub/auth-client':
+        specifier: workspace:*
+        version: link:../../packages/auth-client
       '@aisenhub/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts

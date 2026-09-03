@@ -12,6 +12,7 @@
     "test:a11y": "pnpm --dir ../.. exec playwright test tests/e2e/admin-operations.spec.ts --grep A11Y --workers=1"
   },
   "dependencies": {
+    "@aisenhub/auth-client": "workspace:*",
     "@aisenhub/admin-client": "workspace:*",
     "@aisenhub/contracts": "workspace:*",
     "@aisenhub/design-system": "workspace:*",

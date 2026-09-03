@@ -8,12 +8,21 @@ import { createAdminAccessControlProvider } from './access-control-provider';
 import { createAdminAuthProvider } from './auth-provider';
 import { createRefineDataProvider } from './refine-data-provider';
 import { createAdminSessionStore } from './session-store';
+import { AdminAuthClient } from '../auth';
 
 const apiOrigin = import.meta.env.VITE_PLATFORM_ADMIN_API_ORIGIN ?? '/functions/v1/platform-admin';
-const accountOrigin = import.meta.env.VITE_ACCOUNT_ORIGIN ?? 'http://localhost:5173';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? 'http://127.0.0.1:54321';
+const adminOAuthClientId = import.meta.env.VITE_ADMIN_OAUTH_CLIENT_ID ?? 'admin-local-web';
+const redirectUri =
+  typeof window === 'undefined' ? 'http://localhost:5174/' : `${window.location.origin}/`;
 
 const sessionStore = createAdminSessionStore();
-const accessToken = () => globalThis.sessionStorage?.getItem('aisenhub.access_token');
+const auth = new AdminAuthClient({
+  supabaseUrl,
+  clientId: adminOAuthClientId,
+  redirectUri,
+});
+const accessToken = () => auth.accessToken;
 const adminClient = createAdminClient({
   baseUrl: apiOrigin,
   accessToken,
@@ -21,6 +30,7 @@ const adminClient = createAdminClient({
 const adminDataProvider = createAdminDataProvider(adminClient);
 
 export const adminRuntime = {
+  auth,
   session: sessionStore,
   client: adminClient,
   dataProvider: adminDataProvider,
@@ -28,7 +38,7 @@ export const adminRuntime = {
   commands: createBusinessCommandClient(adminClient),
   authProvider: createAdminAuthProvider({
     client: adminClient,
-    accountOrigin,
+    authClient: auth,
     sessionStore,
   }),
   accessControlProvider: createAdminAccessControlProvider({

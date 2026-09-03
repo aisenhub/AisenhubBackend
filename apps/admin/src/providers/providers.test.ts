@@ -5,6 +5,7 @@ import { createAdminClient } from '@aisenhub/admin-client';
 import { createAdminAccessControlProvider } from './access-control-provider';
 import { createAdminAuthProvider } from './auth-provider';
 import { createAdminSessionStore } from './session-store';
+import { AdminAuthClient } from '../auth';
 
 const requestId = '00000000-0000-4000-8000-000000000020';
 const userId = '00000000-0000-4000-8000-000000000021';
@@ -36,6 +37,20 @@ function createSessionClient(mfaState: 'required' | 'verified' = 'verified') {
   return { client, requests };
 }
 
+function createAuthClient() {
+  const values = new Map<string, string>();
+  return new AdminAuthClient({
+    supabaseUrl: 'https://auth.example.test',
+    clientId: 'admin-client',
+    redirectUri: 'https://admin.example.test/',
+    storage: {
+      getItem: (key) => values.get(key) ?? null,
+      setItem: (key, value) => void values.set(key, value),
+      removeItem: (key) => void values.delete(key),
+    },
+  });
+}
+
 describe('Admin Refine providers', () => {
   it('checks the backend Admin context and keeps identity only in memory', async () => {
     const store = createAdminSessionStore();
@@ -43,7 +58,7 @@ describe('Admin Refine providers', () => {
     const redirects: string[] = [];
     const authProvider = createAdminAuthProvider({
       client,
-      accountOrigin: 'https://account.example.test',
+      authClient: createAuthClient(),
       sessionStore: store,
       redirect: (url) => redirects.push(url),
     });
@@ -63,19 +78,20 @@ describe('Admin Refine providers', () => {
     expect(redirects).toEqual([]);
   });
 
-  it('redirects login to Account and handles Admin 403 without storing credentials', async () => {
+  it('starts Admin OAuth and handles Admin 403 without storing credentials', async () => {
     const store = createAdminSessionStore();
     const redirects: string[] = [];
     const { client } = createSessionClient();
     const authProvider = createAdminAuthProvider({
       client,
-      accountOrigin: 'https://account.example.test',
+      authClient: createAuthClient(),
       sessionStore: store,
       redirect: (url) => redirects.push(url),
     });
 
     await expect(authProvider.login?.({})).resolves.toMatchObject({ success: true });
-    expect(redirects[0]).toContain('https://account.example.test/?redirectTo=');
+    expect(redirects[0]).toContain('https://auth.example.test/auth/v1/authorize?');
+    expect(new URL(redirects[0]).searchParams.get('client_id')).toBe('admin-client');
 
     const deniedClient = createAdminClient({
       baseUrl: 'https://api.example.test',
@@ -89,7 +105,7 @@ describe('Admin Refine providers', () => {
     });
     const deniedAuth = createAdminAuthProvider({
       client: deniedClient,
-      accountOrigin: 'https://account.example.test',
+      authClient: createAuthClient(),
       sessionStore: store,
       redirect: (url) => redirects.push(url),
     });
@@ -105,7 +121,7 @@ describe('Admin Refine providers', () => {
     const { client } = createSessionClient('required');
     const authProvider = createAdminAuthProvider({
       client,
-      accountOrigin: 'https://account.example.test',
+      authClient: createAuthClient(),
       sessionStore: store,
       redirect: () => undefined,
     });
