@@ -40,6 +40,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_application_membership_command: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_application_id?: string
+          p_idempotency_key?: string
+          p_membership_id?: string
+          p_reason?: string
+          p_request_hash?: string
+          p_request_id?: string
+          p_user_id?: string
+        }
+        Returns: Json
+      }
       admin_catalog_command: {
         Args: {
           p_action: string
@@ -117,6 +131,24 @@ export type Database = {
           status: string
           updated_at: string
         }[]
+      }
+      admin_oauth_client_command: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_application_id: string
+          p_client_id?: string
+          p_client_type?: string
+          p_environment?: string
+          p_external_client_id?: string
+          p_idempotency_key?: string
+          p_name?: string
+          p_provider?: string
+          p_reason?: string
+          p_request_hash?: string
+          p_request_id?: string
+        }
+        Returns: Json
       }
       admin_operations_overview: { Args: { p_actor_id: string }; Returns: Json }
       admin_order_overview: {

@@ -1550,6 +1550,319 @@ async function adminOverviewRead(request: Request, id: string): Promise<Response
   }
 }
 
+type AdminApplicationMembershipApiRow = {
+  readonly id: string;
+  readonly application_id: string;
+  readonly application_slug: string;
+  readonly application_name: string;
+  readonly user_id: string;
+  readonly membership_status: string;
+  readonly created_source: string;
+  readonly joined_at: string;
+  readonly activated_at: string | null;
+  readonly suspended_at: string | null;
+  readonly suspended_reason: string | null;
+  readonly left_at: string | null;
+  readonly deleted_at: string | null;
+};
+
+type AdminOAuthClientApiRow = {
+  readonly id: string;
+  readonly application_id: string;
+  readonly provider: string;
+  readonly external_client_id: string;
+  readonly client_type: string;
+  readonly environment: string;
+  readonly name: string;
+  readonly status: string;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUuid(value: unknown): value is string {
+  return typeof value === 'string' && uuidPattern.test(value);
+}
+
+function hasOnlyKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
+  const allowed = new Set(keys);
+  return Object.keys(value).every((key) => allowed.has(key));
+}
+
+function mapAdminApplicationMembership(row: AdminApplicationMembershipApiRow) {
+  return {
+    id: row.id,
+    applicationId: row.application_id,
+    applicationSlug: row.application_slug,
+    applicationName: row.application_name,
+    userId: row.user_id,
+    status: row.membership_status,
+    createdSource: row.created_source,
+    joinedAt: row.joined_at,
+    activatedAt: row.activated_at,
+    suspendedAt: row.suspended_at,
+    suspendedReason: row.suspended_reason,
+    leftAt: row.left_at,
+    deletedAt: row.deleted_at,
+  };
+}
+
+function mapAdminOAuthClient(row: AdminOAuthClientApiRow) {
+  return {
+    id: row.id,
+    applicationId: row.application_id,
+    provider: row.provider,
+    externalClientId: row.external_client_id,
+    clientType: row.client_type,
+    environment: row.environment,
+    name: row.name,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function adminApplicationActionResponse(error: unknown, id: string, subject: string): Response {
+  if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
+    return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+  }
+  if (error instanceof ServiceRpcError && error.databaseCode === '40001') {
+    return errorResponse(
+      'RESOURCE_VERSION_CONFLICT',
+      `The ${subject} command is already in progress.`,
+      409,
+      id,
+    );
+  }
+  if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
+    return errorResponse(
+      'IDEMPOTENCY_KEY_REUSED',
+      'The request key was already used for another request.',
+      409,
+      id,
+    );
+  }
+  if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+    return errorResponse('ADMIN_RESOURCE_NOT_FOUND', `The ${subject} was not found.`, 404, id);
+  }
+  if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
+    return errorResponse(
+      'INVALID_STATE_TRANSITION',
+      `The ${subject} state transition is invalid.`,
+      409,
+      id,
+    );
+  }
+  if (
+    error instanceof ServiceRpcError &&
+    ['22023', '22P02', '23503', '23505'].includes(error.databaseCode ?? '')
+  ) {
+    return errorResponse('VALIDATION_ERROR', `The ${subject} command is invalid.`, 400, id);
+  }
+  return errorResponse('INTERNAL_ERROR', `The ${subject} command could not be completed.`, 502, id);
+}
+
+async function adminApplicationMembershipsRead(
+  request: Request,
+  applicationId: string,
+  id: string,
+): Promise<Response> {
+  if (request.method !== 'GET') {
+    return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+  }
+  if (!isUuid(applicationId))
+    return errorResponse('VALIDATION_ERROR', 'The Application id is invalid.', 400, id);
+  if (!bearerToken(request))
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const decision = authorizeAdminAction(
+      { role: session.role, status: 'active', aal: session.aal, mfaState: session.mfa_state },
+      'application_memberships.read',
+    );
+    if (!decision.allowed)
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const rows = await serviceRpc<AdminApplicationMembershipApiRow>(
+      'admin_list_application_memberships',
+      {
+        p_actor_id: session.user_id,
+        p_application_id: applicationId,
+      },
+    );
+    return jsonResponse({ items: rows.map(mapAdminApplicationMembership) }, 200, id);
+  } catch (error) {
+    return adminApplicationActionResponse(error, id, 'Application membership');
+  }
+}
+
+async function adminOAuthClientsRead(
+  request: Request,
+  applicationId: string,
+  id: string,
+): Promise<Response> {
+  if (request.method !== 'GET') {
+    return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+  }
+  if (!isUuid(applicationId))
+    return errorResponse('VALIDATION_ERROR', 'The Application id is invalid.', 400, id);
+  if (!bearerToken(request))
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const decision = authorizeAdminAction(
+      { role: session.role, status: 'active', aal: session.aal, mfaState: session.mfa_state },
+      'oauth_clients.read',
+    );
+    if (!decision.allowed)
+      return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const rows = await serviceRpc<AdminOAuthClientApiRow>('admin_list_application_oauth_clients', {
+      p_actor_id: session.user_id,
+      p_application_id: applicationId,
+    });
+    return jsonResponse({ items: rows.map(mapAdminOAuthClient) }, 200, id);
+  } catch (error) {
+    return adminApplicationActionResponse(error, id, 'OAuth client list');
+  }
+}
+
+async function adminApplicationOperationCommand(
+  request: Request,
+  kind: 'membership' | 'oauth',
+  action: 'create' | 'suspend' | 'restore' | 'delete' | 'disable',
+  applicationId: string,
+  targetId: string | null,
+  id: string,
+): Promise<Response> {
+  if (request.method !== 'POST')
+    return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
+  if (!isUuid(applicationId) || (targetId !== null && !isUuid(targetId))) {
+    return errorResponse(
+      'VALIDATION_ERROR',
+      'The Application operation target is invalid.',
+      400,
+      id,
+    );
+  }
+  const body = await parseJsonObject(request);
+  if (!body) return errorResponse('VALIDATION_ERROR', 'A JSON object body is required.', 400, id);
+  const expectedKeys =
+    kind === 'membership' && action === 'create'
+      ? ['userId', 'createdSource', 'reason', 'confirmation']
+      : kind === 'oauth' && action === 'create'
+        ? [
+            'provider',
+            'externalClientId',
+            'clientType',
+            'environment',
+            'name',
+            'reason',
+            'confirmation',
+          ]
+        : ['reason', 'confirmation'];
+  if (
+    !hasOnlyKeys(body, expectedKeys) ||
+    body.confirmation !== true ||
+    typeof body.reason !== 'string'
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'The command body is invalid.', 400, id);
+  }
+  const reason = body.reason.trim();
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  if (!reason || reason.length > 1000 || !idempotencyKey || idempotencyKey.length > 255) {
+    return errorResponse('VALIDATION_ERROR', 'A reason and Idempotency-Key are required.', 400, id);
+  }
+  if (kind === 'membership' && action === 'create' && !isUuid(body.userId)) {
+    return errorResponse('VALIDATION_ERROR', 'The member User id is invalid.', 400, id);
+  }
+  if (
+    kind === 'oauth' &&
+    action === 'create' &&
+    (typeof body.provider !== 'string' ||
+      !body.provider.trim() ||
+      body.provider.length > 100 ||
+      typeof body.externalClientId !== 'string' ||
+      !body.externalClientId.trim() ||
+      body.externalClientId.length > 255 ||
+      !['public', 'confidential'].includes(String(body.clientType)) ||
+      !['development', 'staging', 'production'].includes(String(body.environment)) ||
+      typeof body.name !== 'string' ||
+      !body.name.trim() ||
+      body.name.length > 200)
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'The OAuth client fields are invalid.', 400, id);
+  }
+  try {
+    const session = await activeAdminSession(request);
+    if (!session) return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
+    const permission =
+      kind === 'membership' ? 'application_memberships.manage' : 'oauth_clients.manage';
+    const decision = authorizeAdminAction(
+      { role: session.role, status: 'active', aal: session.aal, mfaState: session.mfa_state },
+      permission,
+    );
+    if (!decision.allowed) {
+      return errorResponse(
+        decision.reason === 'mfa_required' ? 'MFA_REQUIRED' : 'ADMIN_ACCESS_DENIED',
+        decision.reason === 'mfa_required'
+          ? 'MFA is required for this Admin command.'
+          : 'Admin access is denied.',
+        403,
+        id,
+      );
+    }
+    const payload = { ...body, reason };
+    const requestHash = await sha256Hex(
+      JSON.stringify({ kind, action, applicationId, targetId, payload }),
+    );
+    const rows =
+      kind === 'membership'
+        ? await serviceRpc<unknown>('admin_application_membership_command', {
+            p_actor_id: session.user_id,
+            p_action: action,
+            p_application_id: applicationId,
+            p_user_id: action === 'create' ? body.userId : null,
+            p_membership_id: targetId,
+            p_reason: reason,
+            p_idempotency_key: idempotencyKey,
+            p_request_hash: requestHash,
+            p_request_id: id,
+          })
+        : await serviceRpc<unknown>('admin_oauth_client_command', {
+            p_actor_id: session.user_id,
+            p_action: action,
+            p_application_id: applicationId,
+            p_client_id: targetId,
+            p_provider: action === 'create' ? body.provider : null,
+            p_external_client_id: action === 'create' ? body.externalClientId : null,
+            p_client_type: action === 'create' ? body.clientType : null,
+            p_environment: action === 'create' ? body.environment : null,
+            p_name: action === 'create' ? body.name : null,
+            p_reason: reason,
+            p_idempotency_key: idempotencyKey,
+            p_request_hash: requestHash,
+            p_request_id: id,
+          });
+    if (rows.length !== 1 || !rows[0] || typeof rows[0] !== 'object') {
+      return errorResponse(
+        'INTERNAL_ERROR',
+        'The Admin command returned an invalid result.',
+        502,
+        id,
+      );
+    }
+    return jsonResponse(rows[0], action === 'create' ? 201 : 200, id);
+  } catch (error) {
+    return adminApplicationActionResponse(
+      error,
+      id,
+      kind === 'membership' ? 'Application membership' : 'OAuth client',
+    );
+  }
+}
+
 export async function routePlatformAdmin(
   request: Request,
   health: (functionName: string) => Response = healthResponse,
@@ -1579,6 +1892,86 @@ export async function routePlatformAdmin(
   }
   if (path === '/v1/admin/overview') {
     return withCors(await adminOverviewRead(request, id), resolved);
+  }
+  const applicationMembershipsMatch = path.match(
+    /^\/v1\/admin\/applications\/([^/]+)\/memberships$/,
+  );
+  if (applicationMembershipsMatch) {
+    if (request.method === 'GET') {
+      return withCors(
+        await adminApplicationMembershipsRead(request, applicationMembershipsMatch[1], id),
+        resolved,
+      );
+    }
+    if (request.method === 'POST') {
+      return withCors(
+        await adminApplicationOperationCommand(
+          request,
+          'membership',
+          'create',
+          applicationMembershipsMatch[1],
+          null,
+          id,
+        ),
+        resolved,
+      );
+    }
+  }
+  const applicationOAuthClientsMatch = path.match(
+    /^\/v1\/admin\/applications\/([^/]+)\/oauth-clients$/,
+  );
+  if (applicationOAuthClientsMatch) {
+    if (request.method === 'GET') {
+      return withCors(
+        await adminOAuthClientsRead(request, applicationOAuthClientsMatch[1], id),
+        resolved,
+      );
+    }
+    if (request.method === 'POST') {
+      return withCors(
+        await adminApplicationOperationCommand(
+          request,
+          'oauth',
+          'create',
+          applicationOAuthClientsMatch[1],
+          null,
+          id,
+        ),
+        resolved,
+      );
+    }
+  }
+  const membershipCommandMatch = path.match(
+    /^\/v1\/admin\/applications\/([^/]+)\/memberships\/([^/]+)\/(suspend|restore|delete)$/,
+  );
+  if (membershipCommandMatch) {
+    return withCors(
+      await adminApplicationOperationCommand(
+        request,
+        'membership',
+        membershipCommandMatch[3] as 'suspend' | 'restore' | 'delete',
+        membershipCommandMatch[1],
+        membershipCommandMatch[2],
+        id,
+      ),
+      resolved,
+    );
+  }
+  const oauthCommandMatch = path.match(
+    /^\/v1\/admin\/applications\/([^/]+)\/oauth-clients\/([^/]+)\/(disable|restore)$/,
+  );
+  if (oauthCommandMatch) {
+    return withCors(
+      await adminApplicationOperationCommand(
+        request,
+        'oauth',
+        oauthCommandMatch[3] as 'disable' | 'restore',
+        oauthCommandMatch[1],
+        oauthCommandMatch[2],
+        id,
+      ),
+      resolved,
+    );
   }
   const productOverviewMatch = path.match(/^\/v1\/admin\/products\/([^/]+)\/overview$/);
   if (productOverviewMatch) {

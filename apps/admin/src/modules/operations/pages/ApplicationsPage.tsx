@@ -1,5 +1,6 @@
 import { EntityStatus, DateTimeDisplay } from '@aisenhub/design-system';
 import type { AdminApplicationSummary } from '@aisenhub/contracts';
+import { Link } from 'react-router-dom';
 
 import { ResourcePage } from './ResourcePage';
 
@@ -13,7 +14,15 @@ export function ApplicationsPage() {
       initialSort="updatedAt"
       statusOptions={['draft', 'active', 'suspended', 'retired']}
       columns={[
-        { dataIndex: 'name', key: 'name', sorter: true, title: 'Name' },
+        {
+          dataIndex: 'name',
+          key: 'name',
+          sorter: true,
+          title: 'Name',
+          render: (name: string, record: AdminApplicationSummary) => (
+            <Link to={`/applications/${record.id}`}>{name}</Link>
+          ),
+        },
         { dataIndex: 'slug', key: 'slug', sorter: true, title: 'Slug' },
         { dataIndex: 'category', key: 'category', title: 'Category' },
         { dataIndex: 'originCount', key: 'originCount', title: 'Active origins' },

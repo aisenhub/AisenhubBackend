@@ -157,6 +157,26 @@ export {
   OAuthClientTypeSchema,
 } from './application-membership';
 
+export {
+  AdminApplicationMembershipListResponseSchema,
+  AdminApplicationMembershipSummarySchema,
+  AdminApplicationMembershipLifecycleRequestSchema,
+  AdminCreateApplicationMembershipRequestSchema,
+  AdminCreateOAuthClientRequestSchema,
+  AdminOAuthClientLifecycleRequestSchema,
+  AdminOAuthClientCommandResponseSchema,
+} from './admin-application-operations';
+
+export type {
+  AdminApplicationMembershipListResponse,
+  AdminApplicationMembershipSummary,
+  AdminApplicationMembershipLifecycleRequest,
+  AdminCreateApplicationMembershipRequest,
+  AdminCreateOAuthClientRequest,
+  AdminOAuthClientLifecycleRequest,
+  AdminOAuthClientCommandResponse,
+} from './admin-application-operations';
+
 export type {
   ApplicationMembershipCommandAction,
   ApplicationMembershipCommandRequest,

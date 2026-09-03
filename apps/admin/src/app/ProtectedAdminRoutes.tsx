@@ -15,6 +15,13 @@ const ApplicationsPage = lazy(() =>
     default: page,
   })),
 );
+const ApplicationOverviewPage = lazy(() =>
+  import('../modules/operations/pages/ApplicationOverviewPage').then(
+    ({ ApplicationOverviewPage: page }) => ({
+      default: page,
+    }),
+  ),
+);
 const AuditLogsPage = lazy(() =>
   import('../modules/operations/pages/AuditLogsPage').then(({ AuditLogsPage: page }) => ({
     default: page,
@@ -176,6 +183,18 @@ function ProtectedContent() {
                   fallback={<PermissionDeniedState />}
                 >
                   <ApplicationsPage />
+                </CanAccess>
+              }
+            />
+            <Route
+              path="applications/:applicationId"
+              element={
+                <CanAccess
+                  resource="applications"
+                  action="show"
+                  fallback={<PermissionDeniedState />}
+                >
+                  <ApplicationOverviewPage />
                 </CanAccess>
               }
             />

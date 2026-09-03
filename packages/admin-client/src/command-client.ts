@@ -1,4 +1,10 @@
 import {
+  AdminApplicationMembershipLifecycleRequestSchema,
+  AdminCreateApplicationMembershipRequestSchema,
+  AdminCreateOAuthClientRequestSchema,
+  AdminOAuthClientLifecycleRequestSchema,
+  AdminOAuthClientCommandResponseSchema,
+  ApplicationMembershipCommandResponseSchema,
   AdminDisableUserRequestSchema,
   AdminDisabledUserCommandResponseSchema,
   AdminGrantEntitlementRequestSchema,
@@ -28,6 +34,12 @@ import {
   AdminVerifyOrderRequestSchema,
   AdminVerifyOrderResponseSchema,
   type AdminCloseRedemptionBatchRequest,
+  type AdminApplicationMembershipLifecycleRequest,
+  type AdminCreateApplicationMembershipRequest,
+  type AdminCreateOAuthClientRequest,
+  type AdminOAuthClientLifecycleRequest,
+  type AdminOAuthClientCommandResponse,
+  type ApplicationMembershipCommandResponse,
   type AdminDisableUserRequest,
   type AdminDisabledUserCommandResponse,
   type AdminGrantEntitlementRequest,
@@ -78,6 +90,46 @@ export type AdminCommandResult<T> = AdminResponse<T> & {
 };
 
 export interface AisenHubBusinessCommandClient {
+  createApplicationMembership(
+    applicationId: string,
+    input: AdminCreateApplicationMembershipRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<ApplicationMembershipCommandResponse>>;
+  suspendApplicationMembership(
+    applicationId: string,
+    membershipId: string,
+    input: AdminApplicationMembershipLifecycleRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<ApplicationMembershipCommandResponse>>;
+  restoreApplicationMembership(
+    applicationId: string,
+    membershipId: string,
+    input: AdminApplicationMembershipLifecycleRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<ApplicationMembershipCommandResponse>>;
+  deleteApplicationMembership(
+    applicationId: string,
+    membershipId: string,
+    input: AdminApplicationMembershipLifecycleRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<ApplicationMembershipCommandResponse>>;
+  createOAuthClient(
+    applicationId: string,
+    input: AdminCreateOAuthClientRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminOAuthClientCommandResponse>>;
+  disableOAuthClient(
+    applicationId: string,
+    clientId: string,
+    input: AdminOAuthClientLifecycleRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminOAuthClientCommandResponse>>;
+  restoreOAuthClient(
+    applicationId: string,
+    clientId: string,
+    input: AdminOAuthClientLifecycleRequest,
+    options?: AdminCommandOptions,
+  ): Promise<AdminCommandResult<AdminOAuthClientCommandResponse>>;
   createRedemptionBatch(
     input: AdminCreateRedemptionBatchRequest,
     options?: AdminCommandOptions,
@@ -214,6 +266,91 @@ async function runCommand<TInput, TOutput>(
 
 export function createBusinessCommandClient(client: AdminClient): AisenHubBusinessCommandClient {
   return {
+    createApplicationMembership(applicationId, input, options) {
+      const id = encodeCommandId(applicationId);
+      return runCommand(
+        client,
+        `/v1/admin/applications/${id}/memberships`,
+        input,
+        AdminCreateApplicationMembershipRequestSchema,
+        ApplicationMembershipCommandResponseSchema,
+        { resource: 'applications', id: applicationId },
+        ['applications'],
+        options,
+      );
+    },
+    suspendApplicationMembership(applicationId, membershipId, input, options) {
+      return runCommand(
+        client,
+        `/v1/admin/applications/${encodeCommandId(applicationId)}/memberships/${encodeCommandId(membershipId)}/suspend`,
+        input,
+        AdminApplicationMembershipLifecycleRequestSchema,
+        ApplicationMembershipCommandResponseSchema,
+        { resource: 'applications', id: applicationId },
+        ['applications'],
+        options,
+      );
+    },
+    restoreApplicationMembership(applicationId, membershipId, input, options) {
+      return runCommand(
+        client,
+        `/v1/admin/applications/${encodeCommandId(applicationId)}/memberships/${encodeCommandId(membershipId)}/restore`,
+        input,
+        AdminApplicationMembershipLifecycleRequestSchema,
+        ApplicationMembershipCommandResponseSchema,
+        { resource: 'applications', id: applicationId },
+        ['applications'],
+        options,
+      );
+    },
+    deleteApplicationMembership(applicationId, membershipId, input, options) {
+      return runCommand(
+        client,
+        `/v1/admin/applications/${encodeCommandId(applicationId)}/memberships/${encodeCommandId(membershipId)}/delete`,
+        input,
+        AdminApplicationMembershipLifecycleRequestSchema,
+        ApplicationMembershipCommandResponseSchema,
+        { resource: 'applications', id: applicationId },
+        ['applications'],
+        options,
+      );
+    },
+    createOAuthClient(applicationId, input, options) {
+      return runCommand(
+        client,
+        `/v1/admin/applications/${encodeCommandId(applicationId)}/oauth-clients`,
+        input,
+        AdminCreateOAuthClientRequestSchema,
+        AdminOAuthClientCommandResponseSchema,
+        { resource: 'applications', id: applicationId },
+        ['applications'],
+        options,
+      );
+    },
+    disableOAuthClient(applicationId, clientId, input, options) {
+      return runCommand(
+        client,
+        `/v1/admin/applications/${encodeCommandId(applicationId)}/oauth-clients/${encodeCommandId(clientId)}/disable`,
+        input,
+        AdminOAuthClientLifecycleRequestSchema,
+        AdminOAuthClientCommandResponseSchema,
+        { resource: 'applications', id: applicationId },
+        ['applications'],
+        options,
+      );
+    },
+    restoreOAuthClient(applicationId, clientId, input, options) {
+      return runCommand(
+        client,
+        `/v1/admin/applications/${encodeCommandId(applicationId)}/oauth-clients/${encodeCommandId(clientId)}/restore`,
+        input,
+        AdminOAuthClientLifecycleRequestSchema,
+        AdminOAuthClientCommandResponseSchema,
+        { resource: 'applications', id: applicationId },
+        ['applications'],
+        options,
+      );
+    },
     createRedemptionBatch(input, options) {
       return runCommand(
         client,

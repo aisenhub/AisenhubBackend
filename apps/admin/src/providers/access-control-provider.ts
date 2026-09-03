@@ -9,6 +9,7 @@ import {
 const resourceActions: Readonly<Record<string, PermissionAction>> = {
   'applications:list': 'applications.read',
   'applications:show': 'applications.read',
+  'applications:memberships': 'application_memberships.read',
   'products:list': 'products.read',
   'products:show': 'products.read',
   'products:create': 'products.create',

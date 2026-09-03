@@ -20,6 +20,8 @@ import {
   AdminProductVersionSummarySchema,
   AdminApplicationListResponseSchema,
   AdminApplicationSummarySchema,
+  AdminApplicationMembershipListResponseSchema,
+  OAuthClientBindingListResponseSchema,
   AdminAuditLogListResponseSchema,
   AdminAuditLogSummarySchema,
   AdminAccountDeletionRequestListResponseSchema,
@@ -55,6 +57,8 @@ import {
   type AdminOrderOverview,
   type PaymentSummary,
   type AdminApplicationSummary,
+  type AdminApplicationMembershipListResponse,
+  type OAuthClientBindingListResponse,
   type AdminCreateApplicationRequest,
   type AdminCreateFeatureRequest,
   type AdminCreateOriginRequest,
@@ -359,6 +363,12 @@ export interface AisenHubAdminDataProvider {
   getProductOverview(id: string): Promise<AdminResponse<AdminProductOverview>>;
   getUserOverview(id: string): Promise<AdminResponse<AdminUserOverview>>;
   getOrderOverview(id: string): Promise<AdminResponse<AdminOrderOverview>>;
+  getApplicationMemberships(
+    applicationId: string,
+  ): Promise<AdminResponse<AdminApplicationMembershipListResponse>>;
+  getApplicationOAuthClients(
+    applicationId: string,
+  ): Promise<AdminResponse<OAuthClientBindingListResponse>>;
   createApplication(
     input: AdminCreateApplicationRequest,
     options?: AdminDraftMutationOptions,
@@ -469,6 +479,24 @@ export function createAdminDataProvider(client: AdminClient): AisenHubAdminDataP
       return client.request(
         `/v1/admin/orders/${encodeResourceId(id)}/overview`,
         AdminOrderOverviewSchema,
+      );
+    },
+
+    async getApplicationMemberships(
+      applicationId: string,
+    ): Promise<AdminResponse<AdminApplicationMembershipListResponse>> {
+      return client.request(
+        `/v1/admin/applications/${encodeResourceId(applicationId)}/memberships`,
+        AdminApplicationMembershipListResponseSchema,
+      );
+    },
+
+    async getApplicationOAuthClients(
+      applicationId: string,
+    ): Promise<AdminResponse<OAuthClientBindingListResponse>> {
+      return client.request(
+        `/v1/admin/applications/${encodeResourceId(applicationId)}/oauth-clients`,
+        OAuthClientBindingListResponseSchema,
       );
     },
 

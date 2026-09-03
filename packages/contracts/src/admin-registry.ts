@@ -3,6 +3,10 @@ import { z } from 'zod';
 export const PermissionActions = [
   'applications.read',
   'applications.change_production_origin',
+  'application_memberships.read',
+  'application_memberships.manage',
+  'oauth_clients.read',
+  'oauth_clients.manage',
   'products.read',
   'products.create',
   'product_versions.publish',

@@ -135,6 +135,113 @@ describe('admin client transport', () => {
     });
   });
 
+  it('exposes application membership and OAuth client operations through the Admin API boundary', async () => {
+    const applicationId = '00000000-0000-4000-8000-000000000010';
+    const membershipId = '00000000-0000-4000-8000-000000000011';
+    const clientId = '00000000-0000-4000-8000-000000000012';
+    const requested: string[] = [];
+    const adminClient = createAdminClient({
+      baseUrl: 'https://api.example.test',
+      fetch: async (input) => {
+        const url = String(input);
+        requested.push(url);
+        const isMembership = url.includes('/memberships');
+        const isOAuth = url.includes('/oauth-clients');
+        const data = url.endsWith('/memberships')
+          ? {
+              items: [
+                {
+                  id: membershipId,
+                  applicationId,
+                  applicationSlug: 'lens',
+                  applicationName: 'Lens',
+                  userId: applicationId,
+                  status: 'active',
+                  createdSource: 'admin',
+                  joinedAt: '2026-09-01T00:00:00.000Z',
+                  activatedAt: null,
+                  suspendedAt: null,
+                  suspendedReason: null,
+                  leftAt: null,
+                  deletedAt: null,
+                },
+              ],
+            }
+          : url.endsWith('/oauth-clients')
+            ? {
+                items: [
+                  {
+                    id: clientId,
+                    applicationId,
+                    provider: 'oidc',
+                    externalClientId: 'lens-web',
+                    clientType: 'public',
+                    environment: 'development',
+                    name: 'Lens Web',
+                    status: 'active',
+                    createdAt: '2026-09-01T00:00:00.000Z',
+                    updatedAt: '2026-09-01T00:00:00.000Z',
+                  },
+                ],
+              }
+            : isMembership
+              ? {
+                  id: membershipId,
+                  applicationId,
+                  userId: applicationId,
+                  status: 'suspended',
+                  createdSource: 'admin',
+                  joinedAt: '2026-09-01T00:00:00.000Z',
+                  activatedAt: null,
+                  suspendedAt: '2026-09-03T00:00:00.000Z',
+                  leftAt: null,
+                  deletedAt: null,
+                  auditLogId: clientId,
+                }
+              : isOAuth
+                ? {
+                    id: clientId,
+                    applicationId,
+                    provider: 'oidc',
+                    externalClientId: 'lens-web',
+                    clientType: 'public',
+                    environment: 'development',
+                    name: 'Lens Web',
+                    status: 'disabled',
+                    createdAt: '2026-09-01T00:00:00.000Z',
+                    updatedAt: '2026-09-03T00:00:00.000Z',
+                    auditLogId: membershipId,
+                  }
+                : {};
+        return new Response(JSON.stringify({ data, requestId }), {
+          headers: { 'content-type': 'application/json' },
+        });
+      },
+    });
+    const provider = createAdminDataProvider(adminClient);
+    await expect(provider.getApplicationMemberships(applicationId)).resolves.toBeTruthy();
+    await expect(provider.getApplicationOAuthClients(applicationId)).resolves.toBeTruthy();
+    const commands = createBusinessCommandClient(adminClient);
+    await commands.suspendApplicationMembership(
+      applicationId,
+      membershipId,
+      { reason: 'security review', confirmation: true },
+      { idempotencyKey: 'membership-suspend-001' },
+    );
+    await commands.disableOAuthClient(
+      applicationId,
+      clientId,
+      { reason: 'rotate client', confirmation: true },
+      { idempotencyKey: 'oauth-disable-001' },
+    );
+    expect(requested).toEqual([
+      `https://api.example.test/v1/admin/applications/${applicationId}/memberships`,
+      `https://api.example.test/v1/admin/applications/${applicationId}/oauth-clients`,
+      `https://api.example.test/v1/admin/applications/${applicationId}/memberships/${membershipId}/suspend`,
+      `https://api.example.test/v1/admin/applications/${applicationId}/oauth-clients/${clientId}/disable`,
+    ]);
+  });
+
   it('maps getOne to an explicit resource path and rejects arbitrary resources or ids', async () => {
     const client = createAdminClient({
       baseUrl: 'https://api.example.test',

@@ -10,6 +10,26 @@
       "requiresMfa": true,
       "reasonRoles": []
     },
+    "application_memberships.read": {
+      "roles": ["owner", "admin", "support"],
+      "requiresMfa": false,
+      "reasonRoles": []
+    },
+    "application_memberships.manage": {
+      "roles": ["owner", "admin"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
+    "oauth_clients.read": {
+      "roles": ["owner", "admin", "support"],
+      "requiresMfa": false,
+      "reasonRoles": []
+    },
+    "oauth_clients.manage": {
+      "roles": ["owner", "admin"],
+      "requiresMfa": true,
+      "reasonRoles": []
+    },
     "products.read": {
       "roles": ["owner", "admin", "support", "finance"],
       "requiresMfa": false,

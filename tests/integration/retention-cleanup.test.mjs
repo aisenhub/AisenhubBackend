@@ -129,8 +129,13 @@ describe('retention cleanup worker', () => {
     const unavailable = await handleRetentionCleanup(workerRequest());
     expect(unavailable.status).toBe(502);
     const unavailableBody = await unavailable.json();
-    expect(unavailableBody.error.code).toBe('CLEANUP_UNAVAILABLE');
-    expect(JSON.stringify(unavailableBody)).not.toContain('503');
+    expect(unavailableBody).toEqual({
+      error: {
+        code: 'CLEANUP_UNAVAILABLE',
+        message: 'The cleanup worker is unavailable.',
+        requestId: expect.any(String),
+      },
+    });
   });
 
   it('rejects browser callers before reading cleanup configuration or database state', async () => {
