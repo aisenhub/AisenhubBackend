@@ -1,6 +1,6 @@
 begin;
 
-select plan(24);
+select plan(12);
 
 select has_table(
   'platform',
@@ -49,44 +49,6 @@ select ok(
   'service_role does not need a public catalog function grant'
 );
 
-select has_function(
-  'public',
-  'list_user_entitlements',
-  ARRAY['uuid'],
-  'entitlement summary projection exists'
-);
-select ok(
-  (select prosecdef from pg_proc where oid = 'public.list_user_entitlements(uuid)'::regprocedure),
-  'entitlement summary projection is SECURITY DEFINER'
-);
-select ok(
-  not has_function_privilege('anon', 'public.list_user_entitlements(uuid)', 'EXECUTE'),
-  'anon cannot invoke the entitlement summary projection'
-);
-select ok(
-  has_function_privilege('service_role', 'public.list_user_entitlements(uuid)', 'EXECUTE'),
-  'service_role can invoke the entitlement summary projection'
-);
-
-select has_function(
-  'public',
-  'create_feedback',
-  ARRAY['text', 'uuid', 'text', 'text', 'text'],
-  'feedback command exists'
-);
-select ok(
-  (select prosecdef from pg_proc where oid = 'public.create_feedback(text,uuid,text,text,text)'::regprocedure),
-  'feedback command is SECURITY DEFINER'
-);
-select ok(
-  not has_function_privilege('authenticated', 'public.create_feedback(text,uuid,text,text,text)', 'EXECUTE'),
-  'authenticated cannot invoke the feedback command directly'
-);
-select ok(
-  has_function_privilege('service_role', 'public.create_feedback(text,uuid,text,text,text)', 'EXECUTE'),
-  'service_role can invoke the feedback command through the server API'
-);
-
 select lives_ok(
   $$
     insert into auth.users (
@@ -118,45 +80,6 @@ select is(
   'anon can read the active current product projection'
 );
 set local role postgres;
-
-set local role service_role;
-create temporary table feedback_projection (
-  id uuid,
-  status text,
-  created_at timestamptz
-) on commit drop;
-select lives_ok(
-  $$
-    insert into feedback_projection
-    select * from public.create_feedback(
-      'account',
-      '81000000-0000-4000-8000-000000000001',
-      'bug',
-      'Export issue',
-      'The export action is unavailable.'
-    );
-  $$,
-  'service role can create feedback through the command'
-);
-set local role postgres;
-select is(
-  (select status from feedback_projection),
-  'open',
-  'feedback command returns the initial open status'
-);
-select is(
-  (select apps.slug
-     from platform.feedback_requests as feedback
-     join platform.platform_apps as apps on apps.id = feedback.app_id
-    where feedback.id = (select id from feedback_projection)),
-  'account',
-  'feedback stores the server-resolved application identity'
-);
-select is(
-  (select user_id from platform.feedback_requests where id = (select id from feedback_projection)),
-  '81000000-0000-4000-8000-000000000001'::uuid,
-  'feedback stores the authenticated user identity'
-);
 
 select * from finish();
 rollback;

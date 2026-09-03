@@ -358,20 +358,6 @@ export type Database = {
           status: string
         }[]
       }
-      create_feedback: {
-        Args: {
-          p_app_slug: string
-          p_content: string
-          p_kind: string
-          p_title: string
-          p_user_id: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          status: string
-        }[]
-      }
       current_profile: {
         Args: never
         Returns: {
@@ -471,15 +457,6 @@ export type Database = {
           membership_status: string
           registration_policy: string
           suspended_at: string
-        }[]
-      }
-      list_user_entitlements: {
-        Args: { p_user_id: string }
-        Returns: {
-          expires_at: string
-          feature: string
-          source_product: string
-          value: Json
         }[]
       }
       publish_product_version: {

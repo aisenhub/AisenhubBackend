@@ -91,17 +91,6 @@ async function mockedFetch(url, init) {
     ]);
   }
   if (pathname.endsWith('/list_user_application_memberships')) return response([]);
-  if (pathname.endsWith('/list_user_entitlements')) {
-    lastServiceCall = { pathname, body };
-    return response([
-      {
-        feature: 'lens.export',
-        value: { max: 10 },
-        source_product: 'AISENLENS_PRO',
-        expires_at: null,
-      },
-    ]);
-  }
   if (pathname.endsWith('/list_user_application_entitlements')) {
     lastServiceCall = { pathname, body };
     return response([
