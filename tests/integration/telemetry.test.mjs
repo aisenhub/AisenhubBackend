@@ -15,7 +15,7 @@ describe('request telemetry boundary', () => {
   it('propagates one request id to headers and JSON responses', async () => {
     let handlerRequestId;
     const response = await withTelemetry(
-      new Request('http://local.supabase/functions/v1/platform-api/v1/me'),
+      new Request('http://local.supabase/functions/v1/platform-api/v1/account/me'),
       async (request) => {
         handlerRequestId = request.headers.get('x-request-id');
         return new Response(JSON.stringify({ data: { ok: true }, requestId: handlerRequestId }), {
@@ -29,7 +29,7 @@ describe('request telemetry boundary', () => {
     expect(body.requestId).toBe(handlerRequestId);
     expect(JSON.parse(logs[0])).toMatchObject({
       event: 'platform.request',
-      route: '/v1/me',
+      route: '/v1/account',
       resultCode: 'OK',
     });
   });

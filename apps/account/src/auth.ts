@@ -1,10 +1,19 @@
+import {
+  createOAuthClient,
+  type OAuthAuthorizationStart,
+  type OAuthStorage,
+} from '@aisenhub/auth-client';
+
 export type AccountAuthSession = {
   readonly accessToken: string;
+  readonly refreshToken: string | null;
 };
 
 type AuthClientOptions = {
   readonly supabaseUrl: string;
-  readonly anonKey: string;
+  readonly clientId: string;
+  readonly redirectUri: string;
+  readonly storage?: OAuthStorage;
   readonly fetchImplementation?: typeof globalThis.fetch;
 };
 
@@ -16,58 +25,67 @@ export class AccountAuthError extends Error {
 }
 
 export class AccountAuthClient {
-  private readonly supabaseUrl: string;
-  private readonly anonKey: string;
-  private readonly requestFetch: typeof globalThis.fetch;
+  private readonly oauthClient: ReturnType<typeof createOAuthClient>;
+  private readonly sessionStorage: OAuthStorage;
   private session: AccountAuthSession | null = null;
 
   constructor(options: AuthClientOptions) {
-    this.supabaseUrl = options.supabaseUrl.replace(/\/$/, '');
-    this.anonKey = options.anonKey;
-    this.requestFetch = options.fetchImplementation ?? globalThis.fetch.bind(globalThis);
+    const supabaseUrl = options.supabaseUrl.replace(/\/$/, '');
+    this.sessionStorage = options.storage ?? {
+      getItem: (key) => globalThis.sessionStorage?.getItem(key) ?? null,
+      setItem: (key, value) => globalThis.sessionStorage?.setItem(key, value),
+      removeItem: (key) => globalThis.sessionStorage?.removeItem(key),
+    };
+    this.oauthClient = createOAuthClient({
+      authorizationEndpoint: `${supabaseUrl}/auth/v1/authorize`,
+      tokenEndpoint: `${supabaseUrl}/auth/v1/token`,
+      clientId: options.clientId,
+      redirectUri: options.redirectUri,
+      storage: options.storage,
+      fetch: options.fetchImplementation,
+      storagePrefix: 'aisenhub.account.oauth',
+    });
+    const accessToken = this.sessionStorage.getItem('aisenhub.access_token');
+    const refreshToken = this.sessionStorage.getItem('aisenhub.refresh_token');
+    if (accessToken) this.session = { accessToken, refreshToken };
   }
 
   get accessToken(): string | null {
     return this.session?.accessToken ?? null;
   }
 
-  async signInWithPassword(email: string, password: string): Promise<AccountAuthSession> {
-    return this.tokenRequest('password', { email, password });
+  async startAuthorization(): Promise<OAuthAuthorizationStart> {
+    return this.oauthClient.startAuthorization();
   }
 
-  async exchangePkceCode(code: string, codeVerifier: string): Promise<AccountAuthSession> {
-    return this.tokenRequest('pkce', { auth_code: code, code_verifier: codeVerifier });
+  async completeAuthorization(callbackUrl: string | URL): Promise<AccountAuthSession> {
+    const callback = this.oauthClient.readCallback(callbackUrl);
+    let response;
+    try {
+      response = await this.oauthClient.exchangeCode(callback);
+    } catch {
+      throw new AccountAuthError('We could not complete secure sign-in.');
+    }
+    this.session = {
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+    };
+    this.persistSession();
+    return this.session;
   }
 
   signOut(): void {
     this.session = null;
+    this.sessionStorage.removeItem('aisenhub.access_token');
+    this.sessionStorage.removeItem('aisenhub.refresh_token');
   }
 
-  private async tokenRequest(
-    grantType: 'password' | 'pkce',
-    body: Record<string, string>,
-  ): Promise<AccountAuthSession> {
-    if (this.anonKey.trim() === '') throw new AccountAuthError('Account Auth is not configured.');
-
-    const response = await this.requestFetch(
-      `${this.supabaseUrl}/auth/v1/token?grant_type=${grantType}`,
-      {
-        method: 'POST',
-        headers: { apikey: this.anonKey, 'content-type': 'application/json' },
-        body: JSON.stringify(body),
-      },
-    );
-    const payload: unknown = await response.json().catch(() => null);
-    if (!response.ok || !payload || typeof payload !== 'object' || !('access_token' in payload)) {
-      throw new AccountAuthError('We could not sign you in with those details.');
+  private persistSession(): void {
+    this.sessionStorage.setItem('aisenhub.access_token', this.session?.accessToken ?? '');
+    if (this.session?.refreshToken) {
+      this.sessionStorage.setItem('aisenhub.refresh_token', this.session.refreshToken);
+    } else {
+      this.sessionStorage.removeItem('aisenhub.refresh_token');
     }
-
-    const accessToken = payload.access_token;
-    if (typeof accessToken !== 'string' || accessToken === '') {
-      throw new AccountAuthError('The sign-in response was invalid.');
-    }
-
-    this.session = { accessToken };
-    return this.session;
   }
 }

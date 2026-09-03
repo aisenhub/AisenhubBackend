@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@aisenhub/auth-client": "workspace:*",
     "@aisenhub/contracts": "workspace:*",
     "@aisenhub/platform-client": "workspace:*",
     "react": "19.2.8",

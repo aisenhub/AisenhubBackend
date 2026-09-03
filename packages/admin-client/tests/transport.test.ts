@@ -29,11 +29,11 @@ const adminHealthSchema = {
 const requestId = '00000000-0000-4000-8000-000000000003';
 
 describe('admin client transport', () => {
-  it('attaches idempotency and CSRF headers without persistent storage', async () => {
+  it('attaches bearer and idempotency headers without persistent storage', async () => {
     let receivedInit: RequestInit | undefined;
     const client = createAdminClient({
       baseUrl: 'https://api.example.test/',
-      csrfToken: () => 'csrf-memory-token',
+      accessToken: () => 'access-token',
       fetch: async (_input, init) => {
         receivedInit = init;
         return new Response(JSON.stringify({ data: { ok: true }, requestId }), {
@@ -50,7 +50,8 @@ describe('admin client transport', () => {
     });
     expect(init.idempotencyKey).toBe('idem-001');
     expect(new Headers(receivedInit?.headers).get('Idempotency-Key')).toBe('idem-001');
-    expect(new Headers(receivedInit?.headers).get('x-csrf-token')).toBe('csrf-memory-token');
+    expect(new Headers(receivedInit?.headers).get('authorization')).toBe('Bearer access-token');
+    expect(receivedInit?.credentials).toBe('omit');
   });
 
   it('maps stable errors and rejects malformed responses', async () => {
@@ -340,7 +341,7 @@ describe('admin client transport', () => {
     let receivedInit: RequestInit | undefined;
     const client = createAdminClient({
       baseUrl: 'https://api.example.test',
-      csrfToken: () => 'csrf-token',
+      accessToken: () => 'access-token',
       fetch: async (input, init) => {
         receivedUrl = String(input);
         receivedInit = init;
@@ -373,7 +374,7 @@ describe('admin client transport', () => {
     expect(new URL(receivedUrl).pathname).toBe('/v1/admin/applications');
     expect(receivedInit?.method).toBe('POST');
     expect(new Headers(receivedInit?.headers).get('idempotency-key')).toBe('draft-app-create-1');
-    expect(new Headers(receivedInit?.headers).get('x-csrf-token')).toBe('csrf-token');
+    expect(new Headers(receivedInit?.headers).get('authorization')).toBe('Bearer access-token');
   });
 
   it('rejects malformed page metadata through the shared response contract', async () => {
@@ -402,7 +403,7 @@ describe('admin client transport', () => {
     let receivedBody = '';
     const client = createAdminClient({
       baseUrl: 'https://api.example.test',
-      csrfToken: () => 'csrf-memory-token',
+      accessToken: () => 'access-token',
       fetch: async (input, init) => {
         receivedUrl = String(input);
         receivedBody = String(init?.body);
@@ -700,7 +701,7 @@ describe('admin client transport', () => {
     let receivedHeaders: Headers | undefined;
     const client = createAdminClient({
       baseUrl: 'https://api.example.test',
-      csrfToken: () => 'csrf-memory-token',
+      accessToken: () => 'access-token',
       fetch: async (input, init) => {
         receivedUrl = String(input);
         receivedBody = String(init?.body);
@@ -746,7 +747,7 @@ describe('admin client transport', () => {
       confirmation: true,
     });
     expect(receivedHeaders?.get('Idempotency-Key')).toBe('manual-verify-001');
-    expect(receivedHeaders?.get('X-CSRF-Token')).toBe('csrf-memory-token');
+    expect(receivedHeaders?.get('authorization')).toBe('Bearer access-token');
     expect(result.command).toEqual({
       idempotencyKey: 'manual-verify-001',
       entity: { resource: 'orders', id: orderId },
@@ -761,7 +762,7 @@ describe('admin client transport', () => {
     let receivedHeaders: Headers | undefined;
     const client = createAdminClient({
       baseUrl: 'https://api.example.test',
-      csrfToken: () => 'csrf-memory-token',
+      accessToken: () => 'access-token',
       fetch: async (input, init) => {
         receivedUrl = String(input);
         receivedBody = String(init?.body);
@@ -802,7 +803,7 @@ describe('admin client transport', () => {
       confirmation: true,
     });
     expect(receivedHeaders?.get('Idempotency-Key')).toBe('refund-item-001');
-    expect(receivedHeaders?.get('X-CSRF-Token')).toBe('csrf-memory-token');
+    expect(receivedHeaders?.get('authorization')).toBe('Bearer access-token');
     expect(result.command).toEqual({
       idempotencyKey: 'refund-item-001',
       entity: { resource: 'orders', id: itemId },

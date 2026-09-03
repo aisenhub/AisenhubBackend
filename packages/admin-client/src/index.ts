@@ -9,9 +9,8 @@ import {
 
 export interface AdminClientOptions {
   baseUrl: string;
-  app?: string;
+  accessToken?: () => string | null | undefined;
   fetch?: typeof globalThis.fetch;
-  csrfToken?: () => string | undefined;
 }
 
 export interface AdminResponse<T> {
@@ -77,14 +76,13 @@ export function createAdminClient(options: AdminClientOptions): AdminClient {
     ): Promise<AdminResponse<T>> {
       const headers = new Headers(init.headers);
       headers.set('accept', 'application/json');
-      if (options.app) headers.set('X-AisenHub-App', options.app);
-      const csrfToken = options.csrfToken?.();
-      if (csrfToken) headers.set('x-csrf-token', csrfToken);
+      const accessToken = options.accessToken?.();
+      if (accessToken) headers.set('authorization', `Bearer ${accessToken}`);
       if (init.idempotencyKey) headers.set('Idempotency-Key', init.idempotencyKey);
 
       const response = await requestFetch(`${baseUrl}${path}`, {
         ...init,
-        credentials: 'include',
+        credentials: 'omit',
         headers,
       });
       const responseRequestId = response.headers.get('x-request-id') ?? undefined;

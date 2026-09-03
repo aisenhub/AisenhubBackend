@@ -33,8 +33,6 @@ function createIdempotencyKey() {
 }
 
 export function App() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [viewState, setViewState] = useState<ViewState>('loading');
   const [message, setMessage] = useState<string | null>(null);
   const [session, setSession] = useState<AuthenticatedSession | null>(null);
@@ -42,14 +40,14 @@ export function App() {
   const [entitlements, setEntitlements] = useState<EntitlementsResponse['entitlements']>([]);
   const [redemptionCode, setRedemptionCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
-  const [deletionPassword, setDeletionPassword] = useState('');
   const [deletionConfirmed, setDeletionConfirmed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const auth = useMemo(
     () =>
       new AccountAuthClient({
         supabaseUrl,
-        anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? '',
+        clientId: import.meta.env.VITE_ACCOUNT_OAUTH_CLIENT_ID ?? 'account-local-web',
+        redirectUri: `${window.location.origin}/`,
       }),
     [],
   );
@@ -74,16 +72,22 @@ export function App() {
 
   useEffect(() => {
     let active = true;
-    if (!auth.accessToken) {
-      setViewState('signed_out');
-      return () => {
-        active = false;
-      };
-    }
-    client
-      .getProfile()
+    const callbackUrl = new URL(window.location.href);
+    const hasAuthorizationCallback =
+      callbackUrl.searchParams.has('code') && callbackUrl.searchParams.has('state');
+    const authorization = hasAuthorizationCallback
+      ? auth.completeAuthorization(callbackUrl).then(() => {
+          window.history.replaceState({}, document.title, callbackUrl.origin + callbackUrl.pathname);
+        })
+      : Promise.resolve();
+    authorization
+      .then(() => (auth.accessToken ? client.getProfile() : null))
       .then(async (response) => {
         if (!active) return;
+        if (!response) {
+          setViewState('signed_out');
+          return;
+        }
         setSession(response.data);
         await loadAccountData();
         if (active) setViewState('authenticated');
@@ -103,12 +107,8 @@ export function App() {
     setMessage(null);
     setViewState('signing_in');
     try {
-      await auth.signInWithPassword(email, password);
-      const profile = await client.getProfile();
-      setSession(profile.data);
-      await loadAccountData();
-      setPassword('');
-      setViewState('authenticated');
+      const authorization = await auth.startAuthorization();
+      window.location.assign(authorization.authorizationUrl);
     } catch (error: unknown) {
       setMessage(readableError(error));
       setViewState('signed_out');
@@ -134,15 +134,13 @@ export function App() {
 
   async function handleDeletion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!deletionConfirmed || !deletionPassword) return;
+    if (!deletionConfirmed) return;
     setMessage(null);
     setIsDeleting(true);
     try {
-      await auth.signInWithPassword(email, deletionPassword);
       await client.requestAccountDeletion(createIdempotencyKey());
       auth.signOut();
       setSession(null);
-      setDeletionPassword('');
       setViewState('signed_out');
       setMessage('Your account deletion request was submitted.');
     } catch (error: unknown) {
@@ -265,18 +263,9 @@ export function App() {
           <div className="account-section danger-section">
             <h2>Delete account</h2>
             <p className="muted-text">
-              This starts the recoverable platform deletion workflow. Re-enter your password to
-              confirm.
+              This starts the recoverable platform deletion workflow. Confirm to continue.
             </p>
             <form className="deletion-form" onSubmit={(event) => void handleDeletion(event)}>
-              <label htmlFor="deletion-password">Confirm password</label>
-              <input
-                id="deletion-password"
-                type="password"
-                value={deletionPassword}
-                onChange={(event) => setDeletionPassword(event.target.value)}
-                autoComplete="current-password"
-              />
               <label className="checkbox-row">
                 <input
                   type="checkbox"
@@ -288,7 +277,7 @@ export function App() {
               <button
                 className="danger-button"
                 type="submit"
-                disabled={isDeleting || !deletionConfirmed || !deletionPassword}
+                disabled={isDeleting || !deletionConfirmed}
               >
                 {isDeleting ? 'Submitting…' : 'Request account deletion'}
               </button>
@@ -308,39 +297,17 @@ export function App() {
       <section className="account-card" aria-labelledby="login-title">
         <p className="eyebrow">AisenHub Account</p>
         <h1 id="login-title">One account for your tools.</h1>
-        <p className="supporting-text">Sign in to continue across the AisenHub platform.</p>
+        <p className="supporting-text">
+          Authorize securely with OAuth to continue across the AisenHub platform.
+        </p>
         {message && (
           <p className="error-text" role="alert">
             {message}
           </p>
         )}
         <form className="login-form" onSubmit={(event) => void handleSubmit(event)}>
-          <div className="field-group">
-            <label htmlFor="email">Email address</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </div>
-          <div className="field-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </div>
           <button className="primary-button" type="submit" disabled={viewState === 'signing_in'}>
-            {viewState === 'signing_in' ? 'Signing in…' : 'Sign in'}
+            {viewState === 'signing_in' ? 'Opening secure sign-in…' : 'Continue with AisenHub'}
           </button>
         </form>
       </section>

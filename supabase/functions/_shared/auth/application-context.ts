@@ -21,6 +21,7 @@ export type ApplicationContext = {
   readonly membershipId: string;
   readonly membershipStatus: 'active';
   readonly aal: string | null;
+  readonly expiresAt: number;
 };
 
 export type ApplicationContextRow = {
@@ -209,6 +210,7 @@ export function createApplicationContextKernel(
         membershipId: row.membership_id,
         membershipStatus: 'active',
         aal: verified.aal,
+        expiresAt: verified.expiresAt,
       };
     },
   };

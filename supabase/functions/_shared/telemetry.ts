@@ -13,9 +13,9 @@ const routePatterns: readonly [RegExp, string][] = [
   [/^\/v1\/admin\/.+$/, '/v1/admin/:resource'],
   [/^\/v1\/webhooks\/.+$/, '/v1/webhooks/:provider'],
   [/^\/v1\/apps\/.+$/, '/v1/apps/:slug'],
-  [/^\/v1\/access\/.+$/, '/v1/access/:feature'],
-  [/^\/v1\/me\/deletion-requests$/, '/v1/me/deletion-requests'],
-  [/^\/v1\/me(?:\/.*)?$/, '/v1/me'],
+  [/^\/v1\/app\/access\/.+$/, '/v1/app/access/:feature'],
+  [/^\/v1\/app(?:\/.*)?$/, '/v1/app'],
+  [/^\/v1\/account(?:\/.*)?$/, '/v1/account'],
 ];
 
 const sensitiveKey = /authorization|cookie|password|secret|token|code|card|cvv|payment|content/i;
@@ -45,13 +45,11 @@ export function resultCodeFromResponse(response: Response, body: string): string
 }
 
 function metricName(route: string): string {
-  if (route === '/v1/session/exchange') return 'session_exchange_total';
-  if (route === '/v1/session') return 'session_total';
-  if (route.startsWith('/v1/access/')) return 'entitlement_check_total';
-  if (route === '/v1/redemptions') return 'redemption_total';
+  if (route.startsWith('/v1/app/access/')) return 'entitlement_check_total';
+  if (route === '/v1/app/redemptions') return 'redemption_total';
   if (route.startsWith('/v1/webhooks/')) return 'payment_webhook_total';
   if (route.startsWith('/v1/admin/')) return 'admin_operation_total';
-  if (route === '/v1/feedback') return 'feedback_total';
+  if (route === '/v1/app/feedback') return 'feedback_total';
   return 'platform_request_total';
 }
 

@@ -107,7 +107,7 @@ async function activeAdminSession(request: Request): Promise<AdminSessionRow | n
       role: membership.role,
       aal: context.aal === 'aal2' ? 'aal2' : 'aal1',
       mfa_state: context.aal === 'aal2' ? 'verified' : 'required',
-      expires_at: null,
+      expires_at: new Date(context.expiresAt * 1000).toISOString(),
     };
   } catch {
     return null;

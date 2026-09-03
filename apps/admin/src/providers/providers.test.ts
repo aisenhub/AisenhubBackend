@@ -17,26 +17,6 @@ function createSessionClient(mfaState: 'required' | 'verified' = 'verified') {
     fetch: async (input, init) => {
       const url = String(input);
       requests.push(`${init?.method ?? 'GET'} ${url}`);
-      if (url.endsWith('/v1/session')) {
-        return new Response(
-          JSON.stringify({
-            data: {
-              authenticated: true,
-              identity: {
-                userId,
-                displayName: 'Local Admin',
-                avatarUrl: null,
-                locale: 'zh-CN',
-                status: 'active',
-              },
-              expiresAt,
-              csrfToken: 'csrf-memory-only',
-            },
-            requestId,
-          }),
-          { headers: { 'content-type': 'application/json' }, status: 200 },
-        );
-      }
       return new Response(
         JSON.stringify({
           data: {
@@ -57,7 +37,7 @@ function createSessionClient(mfaState: 'required' | 'verified' = 'verified') {
 }
 
 describe('Admin Refine providers', () => {
-  it('checks the backend Admin Session and keeps identity/CSRF only in memory', async () => {
+  it('checks the backend Admin context and keeps identity only in memory', async () => {
     const store = createAdminSessionStore();
     const { client, requests } = createSessionClient();
     const redirects: string[] = [];
@@ -75,12 +55,9 @@ describe('Admin Refine providers', () => {
       aal: 'aal2',
       mfaState: 'verified',
     });
-    expect(store.getCsrfToken()).toBe('csrf-memory-only');
     expect(store.getSession()?.role).toBe('admin');
     expect(requests).toEqual([
-      'GET https://api.example.test/v1/session',
       'GET https://api.example.test/v1/admin/session',
-      'GET https://api.example.test/v1/session',
       'GET https://api.example.test/v1/admin/session',
     ]);
     expect(redirects).toEqual([]);

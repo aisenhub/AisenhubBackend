@@ -8,55 +8,78 @@ const response = (body: unknown, status = 200) =>
     headers: { 'content-type': 'application/json' },
   });
 
-describe('Account Auth boundary', () => {
-  it('keeps Supabase access tokens in memory and supports the password flow', async () => {
-    const fetchImplementation = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
-      expect(init?.body).toBe(JSON.stringify({ email: 'user@example.test', password: 'secret' }));
-      return response({ access_token: 'supabase-access-token' });
-    });
+function storage() {
+  const values = new Map<string, string>();
+  return {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
+  };
+}
+
+describe('Account OAuth authorization boundary', () => {
+  it('starts Authorization Code + PKCE without collecting a password', async () => {
     const client = new AccountAuthClient({
       supabaseUrl: 'http://127.0.0.1:54321/',
-      anonKey: 'local-anon-key',
-      fetchImplementation,
+      clientId: 'account-local-web',
+      redirectUri: 'http://localhost:5173/',
+      storage: storage(),
     });
 
-    await expect(client.signInWithPassword('user@example.test', 'secret')).resolves.toEqual({
-      accessToken: 'supabase-access-token',
-    });
-    expect(client.accessToken).toBe('supabase-access-token');
-    expect(fetchImplementation).toHaveBeenCalledWith(
-      'http://127.0.0.1:54321/auth/v1/token?grant_type=password',
-      expect.objectContaining({ method: 'POST' }),
-    );
-    expect(globalThis.localStorage).toBeUndefined();
+    const authorization = await client.startAuthorization();
+    const url = new URL(authorization.authorizationUrl);
+    expect(url.pathname).toBe('/auth/v1/authorize');
+    expect(url.searchParams.get('client_id')).toBe('account-local-web');
+    expect(url.searchParams.get('code_challenge_method')).toBe('S256');
+    expect(url.searchParams.get('code_challenge')).toBeTruthy();
+    expect(url.searchParams.get('state')).toBe(authorization.state);
   });
 
-  it('supports PKCE code exchange inside the Account boundary', async () => {
-    const fetchImplementation = vi.fn(async () => response({ access_token: 'pkce-token' }));
-    const client = new AccountAuthClient({
-      supabaseUrl: 'http://127.0.0.1:54321',
-      anonKey: 'local-anon-key',
-      fetchImplementation,
-    });
-
-    await client.exchangePkceCode('authorization-code', 'verifier');
-    expect(fetchImplementation).toHaveBeenCalledWith(
-      'http://127.0.0.1:54321/auth/v1/token?grant_type=pkce',
-      expect.objectContaining({
-        body: JSON.stringify({ auth_code: 'authorization-code', code_verifier: 'verifier' }),
+  it('exchanges the callback code and keeps only the bearer session in session storage', async () => {
+    const authStorage = storage();
+    const fetchImplementation = vi.fn(async () =>
+      response({
+        access_token: 'oauth-access-token',
+        refresh_token: 'oauth-refresh-token',
+        expires_in: 3600,
       }),
     );
-  });
-
-  it('maps Auth failures to safe user-facing errors', async () => {
     const client = new AccountAuthClient({
       supabaseUrl: 'http://127.0.0.1:54321',
-      anonKey: 'local-anon-key',
+      clientId: 'account-local-web',
+      redirectUri: 'http://localhost:5173/',
+      storage: authStorage,
+      fetchImplementation,
+    });
+    const authorization = await client.startAuthorization();
+
+    await expect(
+      client.completeAuthorization(
+        `http://localhost:5173/?code=authorization-code&state=${authorization.state}`,
+      ),
+    ).resolves.toEqual({ accessToken: 'oauth-access-token', refreshToken: 'oauth-refresh-token' });
+    expect(fetchImplementation).toHaveBeenCalledWith(
+      'http://127.0.0.1:54321/auth/v1/token',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(authStorage.getItem('aisenhub.access_token')).toBe('oauth-access-token');
+    expect(authStorage.getItem('aisenhub.refresh_token')).toBe('oauth-refresh-token');
+  });
+
+  it('maps token exchange failures to safe user-facing errors', async () => {
+    const client = new AccountAuthClient({
+      supabaseUrl: 'http://127.0.0.1:54321',
+      clientId: 'account-local-web',
+      redirectUri: 'http://localhost:5173/',
+      storage: storage(),
       fetchImplementation: async () => response({ error: 'internal detail' }, 400),
     });
+    const authorization = await client.startAuthorization();
 
-    await expect(client.signInWithPassword('user@example.test', 'secret')).rejects.toBeInstanceOf(
-      AccountAuthError,
-    );
+    await expect(
+      client.completeAuthorization(
+        `http://localhost:5173/?code=authorization-code&state=${authorization.state}`,
+      ),
+    ).rejects.toBeInstanceOf(AccountAuthError);
   });
 });
