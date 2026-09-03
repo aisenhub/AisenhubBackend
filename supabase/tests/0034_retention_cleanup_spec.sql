@@ -1,6 +1,6 @@
 begin;
 
-select plan(28);
+select plan(25);
 
 select has_function(
   'public',
@@ -53,15 +53,6 @@ select lives_ok(
       ('9e050000-0000-4000-8000-000000000001', '9e000000-0000-4000-8000-000000000001',
        '9e010000-0000-4000-8000-000000000001', '9e020000-0000-4000-8000-000000000001',
        'admin', '9e060000-0000-4000-8000-000000000001', 'active');
-    insert into platform.platform_sessions
-      (id, user_id, token_hash, csrf_hash, expires_at, last_seen_at, ip_hash, created_at)
-    values
-      ('9e070000-0000-4000-8000-000000000001', '9e000000-0000-4000-8000-000000000001',
-       'retention-expired-session', 'retention-expired-csrf', now() - interval '2 days', now() - interval '3 days',
-       'expired-session-ip', now() - interval '3 days'),
-      ('9e070000-0000-4000-8000-000000000002', '9e000000-0000-4000-8000-000000000001',
-       'retention-live-session', 'retention-live-csrf', now() + interval '2 days', now(),
-       'live-session-ip', now());
     insert into platform.idempotency_records
       (id, scope, actor_key, idempotency_key, request_hash, status, response_status, response_body, expires_at, created_at)
     values
@@ -117,7 +108,6 @@ select is(
   'dry-run reports without mutating data'
 );
 set local role postgres;
-select is((select count(*)::integer from platform.platform_sessions where id = '9e070000-0000-4000-8000-000000000001'), 1, 'dry-run retains expired session');
 select is((select ip_hash from platform.redemptions where id = '9e0c0000-0000-4000-8000-000000000001'), 'expired-redemption-ip', 'dry-run retains redemption IP hash');
 select is((select response_body ->> 'email' from platform.idempotency_records where id = '9e080000-0000-4000-8000-000000000001'), 'must be scrubbed', 'dry-run retains idempotency response');
 
@@ -126,12 +116,10 @@ select is(
   public.run_retention_cleanup(
     now() - interval '1 hour', now() - interval '1 hour', now() - interval '1 hour', 10, false
   ) ->> 'sessionCount',
-  '1',
-  'cleanup deletes one expired session'
+  '0',
+  'cleanup reports no retired platform sessions'
 );
 set local role postgres;
-select is((select count(*)::integer from platform.platform_sessions where id = '9e070000-0000-4000-8000-000000000001'), 0, 'expired session is removed');
-select is((select count(*)::integer from platform.platform_sessions where id = '9e070000-0000-4000-8000-000000000002'), 1, 'fresh session is protected');
 select is((select ip_hash from platform.redemptions where id = '9e0c0000-0000-4000-8000-000000000001'), null, 'expired redemption IP hash is cleared');
 select is((select ip_hash from platform.audit_logs where id = '9e0d0000-0000-4000-8000-000000000001'), null, 'expired audit IP hash is cleared');
 select is((select ip_hash from platform.audit_logs where id = '9e0d0000-0000-4000-8000-000000000002'), 'fresh-audit-ip', 'fresh audit IP hash is protected');

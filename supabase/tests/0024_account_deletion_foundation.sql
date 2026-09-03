@@ -1,6 +1,6 @@
 begin;
 
-select plan(38);
+select plan(36);
 
 select has_table('platform', 'account_deletion_requests', 'account deletion request table exists');
 select ok(
@@ -44,16 +44,6 @@ select lives_ok(
 );
 select lives_ok(
   $$
-    insert into platform.platform_sessions
-      (user_id, token_hash, csrf_hash, expires_at, last_seen_at)
-    values
-      ('95000000-0000-4000-8000-000000000001', 'deletion-session-1', 'deletion-csrf-1', now() + interval '1 day', now()),
-      ('95000000-0000-4000-8000-000000000001', 'deletion-session-2', 'deletion-csrf-2', now() + interval '1 day', now());
-  $$,
-  'deletion fixture sessions can be created'
-);
-select lives_ok(
-  $$
     insert into platform.entitlement_grants
       (id, user_id, product_id, product_version_id, source_type, source_id)
     values
@@ -90,12 +80,6 @@ select is(
   (select status from platform.profiles where id = '95000000-0000-4000-8000-000000000001'),
   'deletion_pending',
   'request freezes the profile'
-);
-select is(
-  (select count(*)::integer from platform.platform_sessions
-    where user_id = '95000000-0000-4000-8000-000000000001' and revoked_at is not null),
-  2,
-  'request revokes every platform session'
 );
 select is(
   (select status from platform.entitlement_grants where id = '95000000-0000-4000-8000-000000000010'),

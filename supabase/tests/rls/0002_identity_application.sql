@@ -1,6 +1,6 @@
 begin;
 
-select plan(16);
+select plan(15);
 
 select ok(
   exists (
@@ -30,10 +30,6 @@ select ok(
 select ok(
   not has_table_privilege('authenticated', 'platform.platform_apps', 'SELECT'),
   'authenticated cannot read the application registry directly'
-);
-select ok(
-  not has_table_privilege('authenticated', 'platform.platform_sessions', 'SELECT'),
-  'authenticated cannot read Platform Sessions directly'
 );
 select ok(
   not has_table_privilege('authenticated', 'platform.admin_members', 'SELECT'),

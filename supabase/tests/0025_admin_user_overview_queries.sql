@@ -1,6 +1,6 @@
 begin;
 
-select plan(32);
+select plan(29);
 
 select has_function('public', 'admin_user_overview', array['uuid', 'uuid'], 'User overview function exists');
 select has_function(
@@ -50,16 +50,6 @@ select lives_ok(
      where id = '97000000-0000-4000-8000-000000000010';
   $$,
   'User overview fixtures can be created'
-);
-select lives_ok(
-  $$
-    insert into platform.platform_sessions
-      (user_id, token_hash, csrf_hash, expires_at, last_seen_at, revoked_at, revoked_reason, created_at)
-    values
-      ('97000000-0000-4000-8000-000000000010', 'overview-session-active', 'overview-csrf-active', now() + interval '1 day', now(), null, null, now() - interval '2 hours'),
-      ('97000000-0000-4000-8000-000000000010', 'overview-session-revoked', 'overview-csrf-revoked', now() + interval '1 day', now() - interval '1 hour', now(), 'test', now() - interval '2 hours');
-  $$,
-  'User overview session fixtures can be created'
 );
 select lives_ok(
   $$
@@ -127,8 +117,6 @@ select is((select payload from overview_results) -> 'profile' ->> 'displayName',
 select is(jsonb_array_length((select payload from overview_results) -> 'entitlements'), 2, 'overview includes grant history');
 select is(jsonb_array_length((select payload from overview_results) -> 'redemptions'), 1, 'overview includes redemptions');
 select is((select payload from overview_results) -> 'feedback' -> 0 ->> 'content', 'Private feedback body', 'owner sees feedback content');
-select is(((select payload from overview_results) -> 'sessionSummary' ->> 'activeCount')::integer, 1, 'overview counts active sessions');
-select is(((select payload from overview_results) -> 'sessionSummary' ->> 'totalCount')::integer, 2, 'overview counts total sessions');
 select is(jsonb_array_length((select payload from overview_results) -> 'deletionRequests'), 1, 'overview includes deletion requests');
 select ok(jsonb_array_length((select payload from overview_results) -> 'auditTimeline') >= 2, 'overview includes related audit timeline');
 select ok((select payload from overview_results)::text not ilike '%token%' and (select payload from overview_results)::text not ilike '%ip_hash%', 'overview excludes security context');

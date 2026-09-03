@@ -309,18 +309,6 @@ export type Database = {
           status: string
         }[]
       }
-      create_platform_session: {
-        Args: {
-          p_csrf_hash: string
-          p_expires_at: string
-          p_token_hash: string
-          p_user_id: string
-        }
-        Returns: {
-          expires_at: string
-          session_id: string
-        }[]
-      }
       current_profile: {
         Args: never
         Returns: {
@@ -350,29 +338,6 @@ export type Database = {
       fulfill_paid_order: {
         Args: { p_payment_event_id: string }
         Returns: Json
-      }
-      get_admin_session: {
-        Args: { p_token_hash: string }
-        Returns: {
-          aal: string
-          display_name: string
-          expires_at: string
-          mfa_state: string
-          role: string
-          user_id: string
-        }[]
-      }
-      get_platform_session: {
-        Args: { p_token_hash: string }
-        Returns: {
-          avatar_url: string
-          display_name: string
-          expires_at: string
-          locale: string
-          profile_status: string
-          session_id: string
-          user_id: string
-        }[]
       }
       get_public_app: {
         Args: { app_slug: string }
@@ -558,10 +523,6 @@ export type Database = {
           status: string
         }[]
       }
-      revoke_all_platform_sessions: {
-        Args: { p_reason: string; p_user_id: string }
-        Returns: number
-      }
       revoke_entitlement: {
         Args: {
           p_actor_id: string
@@ -575,18 +536,6 @@ export type Database = {
           grant_id: string
           revoked_at: string
           status: string
-        }[]
-      }
-      revoke_platform_session: {
-        Args: { p_reason?: string; p_token_hash: string }
-        Returns: {
-          revoked: boolean
-        }[]
-      }
-      rotate_platform_csrf: {
-        Args: { p_csrf_hash: string; p_token_hash: string }
-        Returns: {
-          issued: boolean
         }[]
       }
       run_retention_cleanup: {
@@ -604,12 +553,6 @@ export type Database = {
         Returns: {
           current_version_id: string
           product_id: string
-        }[]
-      }
-      verify_platform_csrf: {
-        Args: { p_csrf_hash: string; p_token_hash: string }
-        Returns: {
-          valid: boolean
         }[]
       }
     }

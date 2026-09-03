@@ -1,6 +1,6 @@
 begin;
 
-select plan(25);
+select plan(24);
 
 select has_function(
   'public',
@@ -59,10 +59,6 @@ select lives_ok($$
   values ('96000000-0000-4000-8000-000000000010', 'CUSTOMER_COMMAND_TEST', 'Customer Command Test', 'one_time');
   insert into platform.product_versions (id, product_id, version, status, published_at)
   values ('96000000-0000-4000-8000-000000000011', '96000000-0000-4000-8000-000000000010', 1, 'published', now());
-  insert into platform.platform_sessions (user_id, token_hash, csrf_hash, expires_at, last_seen_at)
-  values
-    ('96000000-0000-4000-8000-000000000004', 'customer-disable-session-1', 'customer-disable-csrf-1', now() + interval '1 day', now()),
-    ('96000000-0000-4000-8000-000000000004', 'customer-disable-session-2', 'customer-disable-csrf-2', now() + interval '1 day', now());
 $$, 'Customer command fixtures can be created');
 
 set local role service_role;
@@ -155,12 +151,6 @@ select is(
   )->>'status'),
   'disabled',
   'Owner can disable an active user'
-);
-select is(
-  (select count(*)::integer from platform.platform_sessions
-    where user_id = '96000000-0000-4000-8000-000000000004' and revoked_at is not null),
-  2,
-  'disable revokes every active platform session'
 );
 select throws_ok($$ select public.admin_customer_command(
   '96000000-0000-4000-8000-000000000001', 'disable_user',

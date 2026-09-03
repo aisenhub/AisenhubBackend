@@ -1,6 +1,6 @@
 begin;
 
-select plan(31);
+select plan(29);
 
 select has_function(
   'public',
@@ -47,11 +47,6 @@ select lives_ok(
     update platform.profiles
        set display_name = 'Private Name', avatar_url = 'https://example.test/private.png', locale = 'zh-CN'
      where id = '9d000000-0000-4000-8000-000000000001';
-    insert into platform.platform_sessions
-      (id, user_id, token_hash, csrf_hash, expires_at, last_seen_at, created_at)
-    values
-      ('9d010000-0000-4000-8000-000000000001', '9d000000-0000-4000-8000-000000000001',
-       'deletion-token-hash', 'deletion-csrf-hash', now() + interval '1 day', now(), now());
     insert into platform.products (id, sku, name, billing_type, status)
     values ('9d020000-0000-4000-8000-000000000001', 'DELETION_WORKER_PRODUCT', 'Deletion Worker Product', 'one_time', 'draft');
     insert into platform.product_versions (id, product_id, version, status, published_at, sales_terms)
@@ -90,7 +85,7 @@ select lives_ok(
        set status = 'deletion_pending'
      where id = '9d000000-0000-4000-8000-000000000001';
   $$,
-  'deletion fixtures include profile, session, grants, order, feedback, audit, and request'
+  'deletion fixtures include profile, grants, order, feedback, audit, and request'
 );
 
 create temporary table deletion_claim_result on commit drop as
@@ -107,7 +102,6 @@ select public.complete_account_deletion_request(
 
 select is((select payload ->> 'status' from deletion_completion_result), 'completed', 'worker completes the deletion transaction');
 select is((select payload ->> 'revokedGrantCount' from deletion_completion_result), '2', 'completion reports all revoked Grants');
-select is((select payload ->> 'deletedSessionCount' from deletion_completion_result), '1', 'completion reports removed sessions');
 select is((select payload ->> 'anonymizedFeedbackCount' from deletion_completion_result), '1', 'completion reports anonymized feedback');
 select is((select payload ->> 'detachedOrderCount' from deletion_completion_result), '1', 'completion reports detached orders');
 select is((select status from platform.account_deletion_requests where id = '9d0a0000-0000-4000-8000-000000000001'), 'completed', 'deletion request becomes completed');
@@ -117,7 +111,6 @@ select is((select avatar_url from platform.profiles where id = '9d000000-0000-40
 select is((select locale from platform.profiles where id = '9d000000-0000-4000-8000-000000000001'), null, 'profile locale is cleared');
 select is((select count(*)::integer from platform.entitlement_grants where user_id = '9d000000-0000-4000-8000-000000000001' and status = 'active'), 0, 'no active Grant survives deletion');
 select is((select count(*)::integer from platform.entitlement_grants where user_id = '9d000000-0000-4000-8000-000000000001' and status = 'revoked'), 2, 'Grant history is retained as revoked');
-select is((select count(*)::integer from platform.platform_sessions where user_id = '9d000000-0000-4000-8000-000000000001'), 0, 'short-lived platform sessions are removed');
 select is((select user_id from platform.feedback_requests where id = '9d080000-0000-4000-8000-000000000001'), null, 'feedback direct user link is cleared');
 select is((select title from platform.feedback_requests where id = '9d080000-0000-4000-8000-000000000001'), '[deleted]', 'feedback title is anonymized');
 select is((select content from platform.feedback_requests where id = '9d080000-0000-4000-8000-000000000001'), '[deleted]', 'feedback content is anonymized');
