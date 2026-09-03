@@ -1,9 +1,5 @@
-import {
-  errorResponse,
-  jsonResponse,
-  requestIdFromRequest,
-  serviceRpc,
-} from '../_shared/platform-api.ts';
+import { errorResponse, jsonResponse, requestIdFromRequest } from '../_shared/http.ts';
+import { serviceRpc } from '../_shared/db-gateway.ts';
 import { withTelemetry } from '../_shared/telemetry.ts';
 
 type DeletionClaim = {

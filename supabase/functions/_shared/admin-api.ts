@@ -10,14 +10,10 @@ import {
   errorResponse,
   jsonResponse,
   parseJsonObject,
-  preflightResponse,
   requestIdFromRequest,
-  resolveOrigin,
-  serviceRpc,
-  ServiceRpcError,
-  sha256Hex,
-  withCors,
-} from './platform-api.ts';
+} from './http.ts';
+import { serviceRpc, ServiceRpcError, sha256Hex } from './db-gateway.ts';
+import { preflightResponse, resolveOrigin, withCors } from './platform-api.ts';
 import {
   createPlatformApplicationContextKernel,
   type ApplicationContextKernel,

@@ -1,11 +1,5 @@
-import {
-  apiPath,
-  errorResponse,
-  jsonResponse,
-  requestIdFromRequest,
-  serviceRpc,
-  ServiceRpcError,
-} from '../_shared/platform-api.ts';
+import { apiPath, errorResponse, jsonResponse, requestIdFromRequest } from '../_shared/http.ts';
+import { serviceRpc, ServiceRpcError } from '../_shared/db-gateway.ts';
 import { withTelemetry } from '../_shared/telemetry.ts';
 import {
   isProviderName,

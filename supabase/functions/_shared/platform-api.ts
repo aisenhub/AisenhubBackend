@@ -5,6 +5,15 @@ import {
   type ApplicationContextKernel,
 } from './auth/application-context.ts';
 import { createPlatformApplicationContextKernel } from './auth/platform-context.ts';
+import {
+  apiPath,
+  bearerToken,
+  errorResponse,
+  jsonResponse,
+  parseJsonObject,
+  requestIdFromRequest,
+} from './http.ts';
+import { rpc, serviceRpc, ServiceRpcError, sha256Hex } from './db-gateway.ts';
 
 type PublicApp = {
   readonly slug: string;
@@ -33,63 +42,6 @@ type ResolvedOrigin = {
 
 const allowedCorsMethods = new Set(['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS']);
 const allowedCorsHeaders = new Set(['authorization', 'content-type', 'idempotency-key']);
-
-const apiUrl = () => Deno.env.get('SUPABASE_URL') ?? 'http://127.0.0.1:54321';
-const anonKey = () => Deno.env.get('SUPABASE_ANON_KEY');
-const serviceRoleKey = () => Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-export function requestId(): string {
-  return crypto.randomUUID();
-}
-
-export function requestIdFromRequest(request: Request): string {
-  const value = request.headers.get('x-request-id')?.trim() ?? '';
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
-    ? value
-    : requestId();
-}
-
-export function jsonResponse(
-  data: unknown,
-  status: number,
-  id: string,
-  headers: Record<string, string> = {},
-): Response {
-  return new Response(JSON.stringify({ data, requestId: id }), {
-    status,
-    headers: {
-      'content-type': 'application/json',
-      'x-request-id': id,
-      ...headers,
-    },
-  });
-}
-
-export function errorResponse(code: string, message: string, status: number, id: string): Response {
-  return new Response(
-    JSON.stringify({
-      error: {
-        code,
-        message,
-        requestId: id,
-      },
-    }),
-    {
-      status,
-      headers: {
-        'content-type': 'application/json',
-        'x-request-id': id,
-      },
-    },
-  );
-}
-
-export function bearerToken(request: Request): string | null {
-  const value = request.headers.get('authorization');
-  if (!value?.startsWith('Bearer ')) return null;
-  const token = value.slice('Bearer '.length).trim();
-  return token === '' ? null : token;
-}
 
 function isResolvedOrigin(value: unknown): value is ResolvedOriginRow {
   if (!value || typeof value !== 'object') return false;
@@ -181,88 +133,6 @@ export function preflightResponse(
     }),
     resolved,
   );
-}
-
-export function apiPath(request: Request): string {
-  const pathname = new URL(request.url).pathname;
-  const marker = pathname.lastIndexOf('/v1/');
-  return marker >= 0 ? pathname.slice(marker) : pathname;
-}
-
-export async function rpc<T>(
-  name: string,
-  body: Record<string, unknown>,
-  token?: string,
-): Promise<T[]> {
-  const key = anonKey();
-  if (!key) throw new Error('Supabase anon key is not configured.');
-
-  const headers = new Headers({
-    apikey: key,
-    'content-type': 'application/json',
-    accept: 'application/json',
-  });
-  if (token) headers.set('authorization', `Bearer ${token}`);
-
-  const response = await fetch(`${apiUrl()}/rest/v1/rpc/${name}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) throw new Error('Supabase read entry failed.');
-
-  const value: unknown = await response.json();
-  if (Array.isArray(value)) return value as T[];
-  if (value && typeof value === 'object') return [value as T];
-  throw new Error('Supabase read entry returned an invalid shape.');
-}
-
-export class ServiceRpcError extends Error {
-  readonly databaseCode: string | undefined;
-
-  constructor(databaseCode?: string) {
-    super('The server data operation failed.');
-    this.name = 'ServiceRpcError';
-    this.databaseCode = databaseCode;
-  }
-}
-
-export async function serviceRpc<T>(name: string, body: Record<string, unknown>): Promise<T[]> {
-  const key = serviceRoleKey();
-  if (!key) throw new Error('Supabase service role key is not configured.');
-
-  const response = await fetch(`${apiUrl()}/rest/v1/rpc/${name}`, {
-    method: 'POST',
-    headers: {
-      apikey: key,
-      authorization: `Bearer ${key}`,
-      'content-type': 'application/json',
-      accept: 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    let databaseCode: string | undefined;
-    try {
-      const payload: unknown = await response.json();
-      if (payload && typeof payload === 'object' && 'code' in payload) {
-        databaseCode = typeof payload.code === 'string' ? payload.code : undefined;
-      }
-    } catch {
-      // Deliberately discard upstream error details.
-    }
-    throw new ServiceRpcError(databaseCode);
-  }
-
-  const value: unknown = await response.json();
-  if (Array.isArray(value)) return value as T[];
-  if (value && typeof value === 'object') return [value as T];
-  throw new Error('The server data operation returned an invalid shape.');
-}
-
-export async function sha256Hex(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 function isPublicApp(value: unknown): value is PublicApp {
@@ -735,17 +605,6 @@ type AccountDeletionRow = {
   readonly requested_at: string;
   readonly completed_at: string | null;
 };
-
-export async function parseJsonObject(request: Request): Promise<Record<string, unknown> | null> {
-  try {
-    const value: unknown = await request.json();
-    return value && typeof value === 'object' && !Array.isArray(value)
-      ? (value as Record<string, unknown>)
-      : null;
-  } catch {
-    return null;
-  }
-}
 
 type AccessRow = {
   readonly allowed: boolean;

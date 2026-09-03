@@ -1,14 +1,7 @@
 import { healthResponse } from './health.ts';
-import {
-  apiPath,
-  errorResponse,
-  jsonResponse,
-  preflightResponse,
-  requestIdFromRequest,
-  resolveOrigin,
-  rpc,
-  withCors,
-} from './platform-api.ts';
+import { apiPath, errorResponse, jsonResponse, requestIdFromRequest } from './http.ts';
+import { preflightResponse, resolveOrigin, withCors } from './platform-api.ts';
+import { rpc } from './db-gateway.ts';
 
 type PublicAppRow = {
   readonly slug: string;

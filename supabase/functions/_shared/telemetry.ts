@@ -1,4 +1,4 @@
-import { errorResponse, requestId } from './platform-api.ts';
+import { errorResponse, requestId } from './http.ts';
 
 export type TelemetryContext = {
   readonly requestId: string;

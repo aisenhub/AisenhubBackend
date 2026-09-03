@@ -98,7 +98,7 @@ for (const functionName of functionNames) {
     functionName === 'platform-public'
       ? !source.includes('../_shared/public-api.ts')
       : functionName === 'payment-webhook'
-        ? !source.includes('../_shared/platform-api.ts')
+        ? !source.includes('../_shared/db-gateway.ts')
         : functionName === 'account-deletion-worker'
           ? !source.includes('handleDeletionWorker') ||
             !source.includes('complete_account_deletion_request')
