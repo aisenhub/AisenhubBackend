@@ -1,8 +1,5 @@
 import type { AuthProvider } from '@refinedev/core';
-import {
-  AdminSessionResponseSchema,
-  type AdminSessionResponse,
-} from '@aisenhub/contracts';
+import { AdminSessionResponseSchema, type AdminSessionResponse } from '@aisenhub/contracts';
 
 import type { AdminClient, AdminClientError } from '@aisenhub/admin-client';
 import type { AdminSessionStore } from './session-store';

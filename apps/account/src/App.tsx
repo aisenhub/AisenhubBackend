@@ -85,7 +85,11 @@ export function App() {
       callbackUrl.searchParams.has('code') && callbackUrl.searchParams.has('state');
     const authorization = hasAuthorizationCallback
       ? auth.completeAuthorization(callbackUrl).then(() => {
-          window.history.replaceState({}, document.title, callbackUrl.origin + callbackUrl.pathname);
+          window.history.replaceState(
+            {},
+            document.title,
+            callbackUrl.origin + callbackUrl.pathname,
+          );
         })
       : Promise.resolve();
     authorization

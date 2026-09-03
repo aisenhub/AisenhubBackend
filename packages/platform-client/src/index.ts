@@ -119,7 +119,11 @@ export function createPlatformClient(options: PlatformClientOptions): PlatformCl
       if (!normalizedIdempotencyKey || normalizedIdempotencyKey.length > 255) {
         throw new Error('A valid Idempotency-Key is required.');
       }
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(membershipId)) {
+      if (
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          membershipId,
+        )
+      ) {
         throw new Error('A valid membership ID is required.');
       }
       return requestAtBase(
