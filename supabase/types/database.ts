@@ -478,6 +478,15 @@ export type Database = {
           status: string
         }[]
       }
+      resolve_admin_membership: {
+        Args: { p_user_id: string }
+        Returns: {
+          display_name: string
+          role: string
+          status: string
+          user_id: string
+        }[]
+      }
       resolve_app_origin: {
         Args: { p_origin: string }
         Returns: {
