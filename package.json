@@ -16,6 +16,7 @@
     "build": "pnpm --if-present -r run build",
     "clean-safe": "pnpm --if-present -r run clean",
     "boundaries:check": "node scripts/check-boundaries.mjs",
+    "architecture:check": "node scripts/check-architecture-regressions.mjs",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",

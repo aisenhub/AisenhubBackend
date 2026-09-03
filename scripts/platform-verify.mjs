@@ -93,11 +93,23 @@ function verifyGeneratedTypeStability() {
   console.log('[platform:verify] PASS generated type stability');
 }
 
+function verifyGeneratedTypeHash(expectedHash) {
+  const actualHash = sha256(generatedTypesPath);
+  if (actualHash !== expectedHash) {
+    throw new Error('Supabase generated types changed between clean database rebuilds.');
+  }
+  console.log('[platform:verify] PASS clean rebuild type hash stability');
+}
+
 try {
   ensureLocalSupabase();
-  runStep('Local database reset and seed', ['db:reset']);
+  runStep('First local database reset and seed', ['db:reset']);
   runStep('Supabase type generation', ['supabase:typegen']);
   verifyGeneratedTypeStability();
+  const firstResetTypeHash = sha256(generatedTypesPath);
+  runStep('Second local database reset and seed', ['db:reset']);
+  runStep('Supabase type generation after second reset', ['supabase:typegen']);
+  verifyGeneratedTypeHash(firstResetTypeHash);
   runStep('Database tests', ['db:test']);
   runStep('RLS tests', ['rls:test']);
   runStep('Local Auth fixture verification', ['fixtures:verify']);
@@ -111,7 +123,8 @@ try {
   runStep('Workspace build', ['build']);
   runStep('Security audit', ['test:security']);
   runStep('Secret scan', ['secrets:check']);
-  runStep('Playwright E2E discovery', ['exec', 'playwright', 'test', '--list']);
+  runStep('Architecture regression scan', ['architecture:check']);
+  runStep('Playwright E2E', ['test:e2e']);
   runStep('Boundary check', ['boundaries:check']);
   runStep('Failure-propagation harness', ['test:harness:negative']);
   console.log('\n[platform:verify] COMPLETE all Local checks passed.');
