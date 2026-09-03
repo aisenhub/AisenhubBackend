@@ -8,11 +8,18 @@
 -- Auth users are intentionally not inserted directly into this SQL seed.
 
 insert into platform.platform_apps
-  (id, slug, name, category, status, metadata)
+  (id, slug, name, category, status, membership_policy, metadata)
 values
-  ('20000000-0000-4000-8000-000000000001', 'aisenlens', 'AisenLens', 'tool', 'active', '{"surface":"product"}'::jsonb),
-  ('20000000-0000-4000-8000-000000000002', 'account', 'AisenHub Account', 'platform', 'active', '{"surface":"account"}'::jsonb),
-  ('20000000-0000-4000-8000-000000000003', 'admin', 'AisenHub Admin', 'platform', 'active', '{"surface":"admin"}'::jsonb);
+  ('20000000-0000-4000-8000-000000000001', 'aisenlens', 'AisenLens', 'tool', 'active', 'create_on_first_authorization', '{"surface":"product"}'::jsonb),
+  ('20000000-0000-4000-8000-000000000002', 'account', 'AisenHub Account', 'platform', 'active', 'explicit', '{"surface":"account"}'::jsonb),
+  ('20000000-0000-4000-8000-000000000003', 'admin', 'AisenHub Admin', 'platform', 'active', 'explicit', '{"surface":"admin"}'::jsonb);
+
+insert into platform.application_oauth_clients
+  (id, application_id, provider, external_client_id, client_type, environment, name)
+values
+  ('25000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', 'supabase', 'aisenlens-local-web', 'public', 'development', 'AisenLens Local Web'),
+  ('25000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000002', 'supabase', 'account-local-web', 'public', 'development', 'AisenHub Account Local Web'),
+  ('25000000-0000-4000-8000-000000000003', '20000000-0000-4000-8000-000000000003', 'supabase', 'admin-local-web', 'public', 'development', 'AisenHub Admin Local Web');
 
 insert into platform.app_origins
   (id, app_id, environment, origin)

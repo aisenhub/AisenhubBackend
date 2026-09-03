@@ -40,6 +40,10 @@ import {
   AdminSetCurrentProductVersionRequestSchema,
   AdminCurrentProductVersionCommandResponseSchema,
   AccessResponseSchema,
+  ApplicationMembershipCommandRequestSchema,
+  ApplicationMembershipSummarySchema,
+  MyApplicationsResponseSchema,
+  OAuthClientBindingSummarySchema,
   ApiErrorEnvelopeSchema,
   ApiSuccessEnvelopeSchema,
   EntitlementsResponseSchema,
@@ -302,6 +306,72 @@ describe('platform contract primitives', () => {
     expect(() => FeedbackRequestSchema.parse({ kind: 'bug', title: '', content: 'x' })).toThrow();
     expect(() =>
       PublicProductsResponseSchema.parse({ products: [{ sku: 'X', price: 1 }] }),
+    ).toThrow();
+  });
+
+  it('keeps application membership and OAuth projections safe and explicit', () => {
+    const applicationId = '00000000-0000-4000-8000-000000000010';
+    const membership = ApplicationMembershipSummarySchema.parse({
+      id: requestId,
+      application: {
+        id: applicationId,
+        slug: 'aisenlens',
+        name: 'AisenLens',
+        category: 'tool',
+        status: 'active',
+        registrationPolicy: 'open',
+        membershipPolicy: 'create_on_first_authorization',
+        defaultLocale: 'en-US',
+      },
+      userId: requestId,
+      status: 'active',
+      createdSource: 'oauth',
+      joinedAt: '2026-09-03T00:00:00.000Z',
+      activatedAt: '2026-09-03T00:00:00.000Z',
+      suspendedAt: null,
+      leftAt: null,
+      deletedAt: null,
+    });
+
+    expect(
+      MyApplicationsResponseSchema.parse({ applications: [membership] }).applications,
+    ).toHaveLength(1);
+    expect(
+      ApplicationMembershipCommandRequestSchema.parse({
+        action: 'suspend',
+        membershipId: requestId,
+        reason: 'policy review',
+        idempotencyKey: 'membership-command-1',
+      }).action,
+    ).toBe('suspend');
+    expect(
+      OAuthClientBindingSummarySchema.parse({
+        id: requestId,
+        applicationId,
+        provider: 'supabase',
+        externalClientId: 'aisenlens-local-web',
+        clientType: 'public',
+        environment: 'development',
+        name: 'AisenLens Local Web',
+        status: 'active',
+        createdAt: '2026-09-03T00:00:00.000Z',
+        updatedAt: '2026-09-03T00:00:00.000Z',
+      }).externalClientId,
+    ).toBe('aisenlens-local-web');
+    expect(() =>
+      OAuthClientBindingSummarySchema.parse({
+        id: requestId,
+        applicationId,
+        provider: 'supabase',
+        externalClientId: 'secret-client',
+        clientType: 'public',
+        environment: 'development',
+        name: 'Client',
+        status: 'active',
+        createdAt: '2026-09-03T00:00:00.000Z',
+        updatedAt: '2026-09-03T00:00:00.000Z',
+        clientSecret: 'must-not-cross-contract',
+      }),
     ).toThrow();
   });
 

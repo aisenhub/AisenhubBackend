@@ -14,6 +14,8 @@ export const ErrorCodes = {
   ADMIN_ACCESS_DENIED: 'ADMIN_ACCESS_DENIED',
   ADMIN_RESOURCE_NOT_FOUND: 'ADMIN_RESOURCE_NOT_FOUND',
   ACCOUNT_DISABLED: 'ACCOUNT_DISABLED',
+  APPLICATION_DISABLED: 'APPLICATION_DISABLED',
+  APPLICATION_MEMBERSHIP_NOT_FOUND: 'APPLICATION_MEMBERSHIP_NOT_FOUND',
   CHARGEBACK_NOT_ALLOWED: 'CHARGEBACK_NOT_ALLOWED',
   COMMERCE_STATE_CONFLICT: 'COMMERCE_STATE_CONFLICT',
   AUTHENTICATION_REQUIRED: 'AUTHENTICATION_REQUIRED',
@@ -23,6 +25,10 @@ export const ErrorCodes = {
   IDEMPOTENCY_KEY_REUSED: 'IDEMPOTENCY_KEY_REUSED',
   MFA_REQUIRED: 'MFA_REQUIRED',
   ORIGIN_NOT_ALLOWED: 'ORIGIN_NOT_ALLOWED',
+  OAUTH_CLIENT_DISABLED: 'OAUTH_CLIENT_DISABLED',
+  OAUTH_CLIENT_NOT_FOUND: 'OAUTH_CLIENT_NOT_FOUND',
+  MEMBERSHIP_REQUIRED: 'MEMBERSHIP_REQUIRED',
+  MEMBERSHIP_SUSPENDED: 'MEMBERSHIP_SUSPENDED',
   ORDER_ITEM_NOT_FOUND: 'ORDER_ITEM_NOT_FOUND',
   ORDER_NOT_FOUND: 'ORDER_NOT_FOUND',
   ORDER_NOT_FULFILLABLE: 'ORDER_NOT_FULFILLABLE',
@@ -131,6 +137,38 @@ export type {
   SessionResponse,
   UserId,
 } from './identity';
+
+export {
+  ApplicationMembershipCommandActionSchema,
+  ApplicationMembershipCommandRequestSchema,
+  ApplicationMembershipPolicySchema,
+  ApplicationMembershipStatusSchema,
+  ApplicationMembershipSummarySchema,
+  ApplicationRegistrationPolicySchema,
+  ApplicationSummarySchema,
+  MyApplicationsResponseSchema,
+  OAuthClientBindingListResponseSchema,
+  OAuthClientBindingSummarySchema,
+  OAuthClientEnvironmentSchema,
+  OAuthClientStatusSchema,
+  OAuthClientTypeSchema,
+} from './application-membership';
+
+export type {
+  ApplicationMembershipCommandAction,
+  ApplicationMembershipCommandRequest,
+  ApplicationMembershipPolicy,
+  ApplicationMembershipStatus,
+  ApplicationMembershipSummary,
+  ApplicationRegistrationPolicy,
+  ApplicationSummary,
+  MyApplicationsResponse,
+  OAuthClientBindingListResponse,
+  OAuthClientBindingSummary,
+  OAuthClientEnvironment,
+  OAuthClientStatus,
+  OAuthClientType,
+} from './application-membership';
 
 export {
   AccessResponseSchema,

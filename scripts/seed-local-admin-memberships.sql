@@ -16,5 +16,21 @@ begin
 
   delete from platform.admin_members
   where user_id = '10000000-0000-4000-8000-000000000005';
+
+  insert into platform.application_memberships
+    (application_id, user_id, status, created_source, activated_at, created_by)
+  values
+    ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'active', 'system', now(), null),
+    ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'active', 'system', now(), '10000000-0000-4000-8000-000000000001'),
+    ('20000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000001', 'active', 'system', now(), null),
+    ('20000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000002', 'active', 'system', now(), '10000000-0000-4000-8000-000000000001'),
+    ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000005', 'active', 'system', now(), '10000000-0000-4000-8000-000000000001')
+  on conflict (application_id, user_id) do update
+  set status = excluded.status,
+      activated_at = coalesce(platform.application_memberships.activated_at, excluded.activated_at),
+      suspended_at = null,
+      suspended_reason = null,
+      left_at = null,
+      deleted_at = null;
 end;
 $$;

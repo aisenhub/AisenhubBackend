@@ -85,6 +85,39 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_list_application_memberships: {
+        Args: { p_actor_id: string; p_application_id: string }
+        Returns: {
+          activated_at: string
+          application_id: string
+          application_name: string
+          application_slug: string
+          created_source: string
+          deleted_at: string
+          id: string
+          joined_at: string
+          left_at: string
+          membership_status: string
+          suspended_at: string
+          suspended_reason: string
+          user_id: string
+        }[]
+      }
+      admin_list_application_oauth_clients: {
+        Args: { p_actor_id: string; p_application_id: string }
+        Returns: {
+          application_id: string
+          client_type: string
+          created_at: string
+          environment: string
+          external_client_id: string
+          id: string
+          name: string
+          provider: string
+          status: string
+          updated_at: string
+        }[]
+      }
       admin_operations_overview: { Args: { p_actor_id: string }; Returns: Json }
       admin_order_overview: {
         Args: { p_actor_id: string; p_order_id: string }
@@ -200,6 +233,21 @@ export type Database = {
           p_reason: string
           p_request_hash: string
           p_request_id: string
+        }
+        Returns: Json
+      }
+      application_membership_command: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_application_id?: string
+          p_created_source?: string
+          p_idempotency_key?: string
+          p_membership_id?: string
+          p_reason?: string
+          p_request_hash?: string
+          p_request_id?: string
+          p_user_id?: string
         }
         Returns: Json
       }
@@ -365,6 +413,27 @@ export type Database = {
           source_id: string
           starts_at: string
           status: string
+        }[]
+      }
+      list_user_application_memberships: {
+        Args: { p_user_id: string }
+        Returns: {
+          activated_at: string
+          application_category: string
+          application_id: string
+          application_name: string
+          application_slug: string
+          application_status: string
+          created_source: string
+          default_locale: string
+          deleted_at: string
+          id: string
+          joined_at: string
+          left_at: string
+          membership_policy: string
+          membership_status: string
+          registration_policy: string
+          suspended_at: string
         }[]
       }
       list_user_entitlements: {
