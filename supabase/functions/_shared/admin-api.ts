@@ -6,20 +6,22 @@ import {
 } from './admin-permissions.ts';
 import {
   apiPath,
+  bearerToken,
   errorResponse,
-  enforceWritePreconditions,
   jsonResponse,
   parseJsonObject,
   preflightResponse,
   requestIdFromRequest,
   resolveOrigin,
-  rpc,
   serviceRpc,
   ServiceRpcError,
-  sessionCookie,
   sha256Hex,
   withCors,
 } from './platform-api.ts';
+import {
+  createPlatformApplicationContextKernel,
+  type ApplicationContextKernel,
+} from './auth/platform-context.ts';
 import { generateRedemptionCodes, redemptionPepperFromEnv } from './redemption-code.ts';
 
 type AdminSessionRow = {
@@ -28,8 +30,21 @@ type AdminSessionRow = {
   readonly role: 'owner' | 'admin' | 'support' | 'finance';
   readonly aal: 'aal1' | 'aal2';
   readonly mfa_state: 'not_required' | 'required' | 'verified';
-  readonly expires_at: string;
+  readonly expires_at: string | null;
 };
+
+type AdminMembershipRow = {
+  readonly user_id: string;
+  readonly display_name: string | null;
+  readonly role: 'owner' | 'admin' | 'support' | 'finance';
+  readonly status: 'active';
+};
+
+let adminContextKernel: ApplicationContextKernel | null = null;
+
+function getAdminContextKernel(): ApplicationContextKernel {
+  return (adminContextKernel ??= createPlatformApplicationContextKernel());
+}
 
 export function authorizeAdminAction(
   context: BackendAdminAuthorizationContext,
@@ -38,30 +53,13 @@ export function authorizeAdminAction(
   return evaluateBackendAdminAction(context, action);
 }
 
-function isAdminSessionRow(value: unknown): value is AdminSessionRow {
-  if (!value || typeof value !== 'object') return false;
-  const row = value as Record<string, unknown>;
-  return (
-    typeof row.user_id === 'string' &&
-    (typeof row.display_name === 'string' || row.display_name === null) &&
-    ['owner', 'admin', 'support', 'finance'].includes(String(row.role)) &&
-    ['aal1', 'aal2'].includes(String(row.aal)) &&
-    ['not_required', 'required', 'verified'].includes(String(row.mfa_state)) &&
-    typeof row.expires_at === 'string'
-  );
-}
-
 async function adminSessionRead(request: Request, id: string): Promise<Response> {
-  const rawToken = sessionCookie(request);
-  if (!rawToken) {
+  if (!bearerToken(request)) {
     return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
   }
 
   try {
-    const rows = await rpc<AdminSessionRow>('get_admin_session', {
-      p_token_hash: await sha256Hex(rawToken),
-    });
-    const session = rows.length === 1 && isAdminSessionRow(rows[0]) ? rows[0] : null;
+    const session = await activeAdminSession(request);
     if (!session) {
       return errorResponse('ADMIN_ACCESS_DENIED', 'Admin access is denied.', 403, id);
     }
@@ -87,13 +85,33 @@ async function adminSessionRead(request: Request, id: string): Promise<Response>
 }
 
 async function activeAdminSession(request: Request): Promise<AdminSessionRow | null> {
-  const rawToken = sessionCookie(request);
-  if (!rawToken) return null;
-
-  const rows = await rpc<AdminSessionRow>('get_admin_session', {
-    p_token_hash: await sha256Hex(rawToken),
-  });
-  return rows.length === 1 && isAdminSessionRow(rows[0]) ? rows[0] : null;
+  if (!bearerToken(request)) return null;
+  try {
+    const context = await getAdminContextKernel().authenticate(request, 'admin-api');
+    if (context.applicationSlug !== 'admin') return null;
+    const rows = await serviceRpc<AdminMembershipRow>('resolve_admin_membership', {
+      p_user_id: context.userId,
+    });
+    const membership = rows.length === 1 ? rows[0] : null;
+    if (
+      !membership ||
+      membership.user_id !== context.userId ||
+      membership.status !== 'active' ||
+      !['owner', 'admin', 'support', 'finance'].includes(membership.role)
+    ) {
+      return null;
+    }
+    return {
+      user_id: membership.user_id,
+      display_name: membership.display_name,
+      role: membership.role,
+      aal: context.aal === 'aal2' ? 'aal2' : 'aal1',
+      mfa_state: context.aal === 'aal2' ? 'verified' : 'required',
+      expires_at: null,
+    };
+  } catch {
+    return null;
+  }
 }
 
 type AdminQueryOptions = {
@@ -142,7 +160,7 @@ async function adminQueryRead(request: Request, resource: string, id: string): P
     return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
   }
 
-  const rawToken = sessionCookie(request);
+  const rawToken = bearerToken(request);
   if (!rawToken) {
     return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
   }
@@ -214,7 +232,7 @@ async function adminUserOverviewRead(
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
     return errorResponse('VALIDATION_ERROR', 'The User ID is invalid.', 400, id);
   }
-  if (!sessionCookie(request)) {
+  if (!bearerToken(request)) {
     return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
   }
   try {
@@ -260,7 +278,7 @@ async function adminProductOverviewRead(
   ) {
     return errorResponse('VALIDATION_ERROR', 'The Product ID is invalid.', 400, id);
   }
-  if (!sessionCookie(request)) {
+  if (!bearerToken(request)) {
     return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
   }
   try {
@@ -298,7 +316,7 @@ async function adminOrderOverviewRead(
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId)) {
     return errorResponse('VALIDATION_ERROR', 'The Order ID is invalid.', 400, id);
   }
-  if (!sessionCookie(request)) {
+  if (!bearerToken(request)) {
     return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
   }
   try {
@@ -345,7 +363,7 @@ async function adminCatalogDetailRead(
   ) {
     return errorResponse('VALIDATION_ERROR', 'The resource ID is invalid.', 400, id);
   }
-  if (!sessionCookie(request)) {
+  if (!bearerToken(request)) {
     return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
   }
   try {
@@ -1479,7 +1497,7 @@ async function adminSystemHealthRead(request: Request, id: string): Promise<Resp
   if (request.method !== 'GET') {
     return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
   }
-  if (!sessionCookie(request)) {
+  if (!bearerToken(request)) {
     return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
   }
   try {
@@ -1506,7 +1524,7 @@ async function adminOverviewRead(request: Request, id: string): Promise<Response
   if (request.method !== 'GET') {
     return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
   }
-  if (!sessionCookie(request)) {
+  if (!bearerToken(request)) {
     return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
   }
   try {
@@ -1576,38 +1594,26 @@ export async function routePlatformAdmin(
   }
   const redemptionRoute = redemptionCommandRoute(request, path);
   if (redemptionRoute) {
-    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
-    if (preconditionFailure) return withCors(preconditionFailure, resolved);
     return withCors(await adminRedemptionCommand(request, redemptionRoute, id), resolved);
   }
   const orderRoute = orderCommandRoute(request, path);
   if (orderRoute) {
-    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
-    if (preconditionFailure) return withCors(preconditionFailure, resolved);
     return withCors(await adminOrderCommand(request, orderRoute, id), resolved);
   }
   const orderItemRoute = orderItemCommandRoute(request, path);
   if (orderItemRoute) {
-    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
-    if (preconditionFailure) return withCors(preconditionFailure, resolved);
     return withCors(await adminOrderItemCommand(request, orderItemRoute, id), resolved);
   }
   const customerRoute = customerCommandRoute(request, path);
   if (customerRoute) {
-    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
-    if (preconditionFailure) return withCors(preconditionFailure, resolved);
     return withCors(await adminCustomerCommand(request, customerRoute, id), resolved);
   }
   const commandRoute = catalogCommandRoute(request, path);
   if (commandRoute) {
-    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
-    if (preconditionFailure) return withCors(preconditionFailure, resolved);
     return withCors(await adminCatalogCommand(request, commandRoute, id), resolved);
   }
   const draftRoute = draftMutationRoute(request, path);
   if (draftRoute) {
-    const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
-    if (preconditionFailure) return withCors(preconditionFailure, resolved);
     return withCors(await adminCatalogDraftMutation(request, draftRoute, id), resolved);
   }
   const detailMatch = path.match(

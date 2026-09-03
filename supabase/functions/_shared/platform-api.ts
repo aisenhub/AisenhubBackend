@@ -2,9 +2,9 @@ import { healthResponse } from './health.ts';
 import { hashRedemptionCode, redemptionPepperFromEnv } from './redemption-code.ts';
 import {
   applicationContextErrorResponse,
-  createPlatformApplicationContextKernel,
   type ApplicationContextKernel,
-} from './auth/platform-context.ts';
+} from './auth/application-context.ts';
+import { createPlatformApplicationContextKernel } from './auth/platform-context.ts';
 
 type PublicApp = {
   readonly slug: string;
@@ -21,16 +21,6 @@ type ProfileIdentity = {
   readonly status: 'active' | 'disabled' | 'deletion_pending' | 'deleted';
 };
 
-type PlatformSession = {
-  readonly session_id: string;
-  readonly user_id: string;
-  readonly expires_at: string;
-  readonly display_name: string | null;
-  readonly avatar_url: string | null;
-  readonly locale: string | null;
-  readonly profile_status: 'active';
-};
-
 type ResolvedOriginRow = {
   readonly app_slug: string;
   readonly environment: string;
@@ -42,14 +32,7 @@ type ResolvedOrigin = {
 };
 
 const allowedCorsMethods = new Set(['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS']);
-const allowedCorsHeaders = new Set([
-  'authorization',
-  'content-type',
-  'x-aisenhub-app',
-  'x-csrf-token',
-  'idempotency-key',
-]);
-const writeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const allowedCorsHeaders = new Set(['authorization', 'content-type', 'idempotency-key']);
 
 const apiUrl = () => Deno.env.get('SUPABASE_URL') ?? 'http://127.0.0.1:54321';
 const anonKey = () => Deno.env.get('SUPABASE_ANON_KEY');
@@ -101,26 +84,11 @@ export function errorResponse(code: string, message: string, status: number, id:
   );
 }
 
-function bearerToken(request: Request): string | null {
+export function bearerToken(request: Request): string | null {
   const value = request.headers.get('authorization');
   if (!value?.startsWith('Bearer ')) return null;
   const token = value.slice('Bearer '.length).trim();
   return token === '' ? null : token;
-}
-
-export function sessionCookie(request: Request): string | null {
-  const cookieHeader = request.headers.get('cookie');
-  if (!cookieHeader) return null;
-
-  for (const part of cookieHeader.split(';')) {
-    const separator = part.indexOf('=');
-    if (separator < 0 || part.slice(0, separator).trim() !== '__Host-aisenhub_session') {
-      continue;
-    }
-    const value = part.slice(separator + 1).trim();
-    return value === '' ? null : value;
-  }
-  return null;
 }
 
 function isResolvedOrigin(value: unknown): value is ResolvedOriginRow {
@@ -206,8 +174,7 @@ export function preflightResponse(
       status: 204,
       headers: {
         'access-control-allow-methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-        'access-control-allow-headers':
-          'Authorization, Content-Type, X-AisenHub-App, X-CSRF-Token, Idempotency-Key',
+        'access-control-allow-headers': 'Authorization, Content-Type, Idempotency-Key',
         'access-control-max-age': '600',
         'x-request-id': id,
       },
@@ -293,36 +260,9 @@ export async function serviceRpc<T>(name: string, body: Record<string, unknown>)
   throw new Error('The server data operation returned an invalid shape.');
 }
 
-function randomToken(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  return btoa(String.fromCharCode(...bytes))
-    .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replace(/=+$/, '');
-}
-
 export async function sha256Hex(value: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-}
-
-async function authenticatedUser(token: string): Promise<string | null> {
-  const key = anonKey();
-  if (!key) return null;
-
-  const response = await fetch(`${apiUrl()}/auth/v1/user`, {
-    headers: {
-      apikey: key,
-      authorization: `Bearer ${token}`,
-    },
-  });
-  if (!response.ok) return null;
-
-  const value: unknown = await response.json();
-  if (!value || typeof value !== 'object' || !('id' in value)) return null;
-  const id = value.id;
-  return typeof id === 'string' && id.length > 0 ? id : null;
 }
 
 function isPublicApp(value: unknown): value is PublicApp {
@@ -385,14 +325,11 @@ async function appRead(slug: string, id: string): Promise<Response> {
   }
 }
 
-async function meRead(token: string | null, id: string): Promise<Response> {
-  if (!token)
-    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
-
-  const userId = await authenticatedUser(token);
-  if (!userId)
-    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
-
+async function authenticatedProfileRead(
+  token: string,
+  userId: string,
+  id: string,
+): Promise<Response> {
   try {
     const rows = await rpc<ProfileIdentity>('current_profile', {}, token);
     const profile = rows.length === 1 ? toProfileIdentity(rows[0]) : null;
@@ -563,12 +500,7 @@ async function applicationRedemptionCreate(
   const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
   const body = await parseJsonObject(request);
   const code = typeof body?.code === 'string' ? body.code.trim().toUpperCase() : '';
-  if (
-    idempotencyKey === '' ||
-    idempotencyKey.length > 255 ||
-    code === '' ||
-    code.length > 512
-  ) {
+  if (idempotencyKey === '' || idempotencyKey.length > 255 || code === '' || code.length > 512) {
     return errorResponse('VALIDATION_ERROR', 'A code and Idempotency-Key are required.', 400, id);
   }
   try {
@@ -585,7 +517,8 @@ async function applicationRedemptionCreate(
       p_request_hash: await sha256Hex(JSON.stringify({ userId, codeHash })),
     });
     const row = rows.length === 1 ? rows[0] : null;
-    if (!row) return errorResponse('INTERNAL_ERROR', 'The redemption could not be completed.', 502, id);
+    if (!row)
+      return errorResponse('INTERNAL_ERROR', 'The redemption could not be completed.', 502, id);
     return jsonResponse(
       { redemptionId: row.redemption_id, grantId: row.grant_id, status: row.status },
       200,
@@ -624,7 +557,13 @@ async function applicationFeedbackCreate(
       readonly id: string;
       readonly status: 'open' | 'in_progress' | 'resolved' | 'closed';
       readonly created_at: string;
-    }>('create_feedback', { p_app_slug: appSlug, p_user_id: userId, p_kind: kind, p_title: title, p_content: content });
+    }>('create_feedback', {
+      p_app_slug: appSlug,
+      p_user_id: userId,
+      p_kind: kind,
+      p_title: title,
+      p_content: content,
+    });
     const row = rows.length === 1 ? rows[0] : null;
     if (!row) return errorResponse('INTERNAL_ERROR', 'Feedback could not be created.', 502, id);
     return jsonResponse({ id: row.id, status: row.status, createdAt: row.created_at }, 201, id);
@@ -646,366 +585,6 @@ async function applicationAccountDeletionCreate(
   if (idempotencyKey === '' || idempotencyKey.length > 255) {
     return errorResponse('VALIDATION_ERROR', 'A valid Idempotency-Key is required.', 400, id);
   }
-  try {
-    const rows = await serviceRpc<AccountDeletionRow>('request_account_deletion', {
-      p_user_id: userId,
-      p_idempotency_key: idempotencyKey,
-      p_request_hash: await sha256Hex(JSON.stringify({ operation: 'account-deletion', userId })),
-      p_request_id: id,
-    });
-    const row = rows.length === 1 && isAccountDeletionRow(rows[0]) ? rows[0] : null;
-    if (!row) return errorResponse('INTERNAL_ERROR', 'The deletion request is invalid.', 502, id);
-    return jsonResponse(accountDeletionPayload(row), 202, id);
-  } catch (error) {
-    if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
-      return errorResponse('IDEMPOTENCY_KEY_REUSED', 'The request key was already used.', 409, id);
-    }
-    if (error instanceof ServiceRpcError && error.databaseCode === '23505') {
-      return errorResponse('INVALID_STATE_TRANSITION', 'An account deletion request is already open.', 409, id);
-    }
-    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
-      return errorResponse('PROFILE_NOT_FOUND', 'The account profile was not found.', 404, id);
-    }
-    if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
-      return errorResponse(
-        'INVALID_STATE_TRANSITION',
-        'The account cannot request deletion in its current state.',
-        409,
-        id,
-      );
-    }
-    return errorResponse('INTERNAL_ERROR', 'The deletion request could not be created.', 502, id);
-  }
-}
-
-async function applicationAccountDeletionCancel(userId: string, id: string): Promise<Response> {
-  try {
-    const rows = await serviceRpc<AccountDeletionRow>('cancel_account_deletion', {
-      p_user_id: userId,
-      p_request_id: id,
-    });
-    const row = rows.length === 1 && isAccountDeletionRow(rows[0]) ? rows[0] : null;
-    if (!row) return errorResponse('INTERNAL_ERROR', 'The cancellation response is invalid.', 502, id);
-    return jsonResponse(accountDeletionPayload(row), 200, id);
-  } catch (error) {
-    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
-      return errorResponse(
-        'INVALID_STATE_TRANSITION',
-        'There is no account deletion request to cancel.',
-        409,
-        id,
-      );
-    }
-    if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
-      return errorResponse(
-        'INVALID_STATE_TRANSITION',
-        'The account deletion request cannot be cancelled in its current state.',
-        409,
-        id,
-      );
-    }
-    return errorResponse('INTERNAL_ERROR', 'The deletion request could not be cancelled.', 502, id);
-  }
-}
-
-async function sessionExchange(token: string | null, id: string): Promise<Response> {
-  if (!token)
-    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
-
-  const userId = await authenticatedUser(token);
-  if (!userId)
-    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
-
-  try {
-    const profileRows = await rpc<ProfileIdentity>('current_profile', {}, token);
-    const profile = profileRows.length === 1 ? toProfileIdentity(profileRows[0]) : null;
-    if (!profile) return errorResponse('PROFILE_NOT_FOUND', 'Profile was not found.', 404, id);
-    if (profile.status !== 'active') {
-      return errorResponse('ACCOUNT_DISABLED', 'This account cannot create a session.', 403, id);
-    }
-
-    const sessionToken = randomToken();
-    const csrfToken = randomToken();
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    const rows = await rpc<{ readonly session_id: string; readonly expires_at: string }>(
-      'create_platform_session',
-      {
-        p_user_id: userId,
-        p_token_hash: await sha256Hex(sessionToken),
-        p_csrf_hash: await sha256Hex(csrfToken),
-        p_expires_at: expiresAt,
-      },
-      token,
-    );
-    if (rows.length !== 1 || typeof rows[0]?.session_id !== 'string') {
-      return errorResponse('INTERNAL_ERROR', 'The session could not be created.', 502, id);
-    }
-
-    return jsonResponse(
-      {
-        authenticated: true,
-        identity: profile,
-        expiresAt,
-        csrfToken,
-      },
-      201,
-      id,
-      {
-        'set-cookie': `__Host-aisenhub_session=${sessionToken}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Lax`,
-      },
-    );
-  } catch {
-    return errorResponse('INTERNAL_ERROR', 'The session could not be created.', 502, id);
-  }
-}
-
-type SessionUserRow = {
-  readonly user_id: string;
-  readonly profile_status: 'active';
-};
-
-type AccountDeletionRow = {
-  readonly deletion_request_id: string;
-  readonly status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
-  readonly execute_after: string;
-  readonly requested_at: string;
-  readonly completed_at: string | null;
-};
-
-async function sessionUserId(request: Request): Promise<string | null> {
-  const token = sessionCookie(request);
-  if (!token) return null;
-
-  const rows = await rpc<SessionUserRow>('get_platform_session', {
-    p_token_hash: await sha256Hex(token),
-  });
-  if (rows.length !== 1 || rows[0]?.profile_status !== 'active') return null;
-  return rows[0].user_id;
-}
-
-export async function parseJsonObject(request: Request): Promise<Record<string, unknown> | null> {
-  try {
-    const value: unknown = await request.json();
-    return value && typeof value === 'object' && !Array.isArray(value)
-      ? (value as Record<string, unknown>)
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-type AccessRow = {
-  readonly allowed: boolean;
-  readonly feature: string;
-  readonly value: unknown;
-  readonly source_product: string | null;
-  readonly expires_at: string | null;
-  readonly decision_id: string;
-};
-
-async function accessRead(
-  request: Request,
-  featureCode: string,
-  appSlug: string,
-  id: string,
-): Promise<Response> {
-  const userId = await sessionUserId(request);
-  if (!userId)
-    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
-  if (!/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(featureCode)) {
-    return errorResponse('VALIDATION_ERROR', 'The feature code is invalid.', 400, id);
-  }
-
-  try {
-    const rows = await serviceRpc<AccessRow>('check_access', {
-      p_user_id: userId,
-      p_app_slug: appSlug,
-      p_feature_code: featureCode,
-    });
-    const row = rows.length === 1 ? rows[0] : null;
-    if (!row) return errorResponse('INTERNAL_ERROR', 'Access could not be resolved.', 502, id);
-    return jsonResponse(
-      {
-        allowed: row.allowed,
-        feature: row.feature,
-        value: row.value,
-        sourceProduct: row.source_product,
-        expiresAt: row.expires_at,
-        decisionId: row.decision_id,
-      },
-      200,
-      id,
-    );
-  } catch {
-    return errorResponse('INTERNAL_ERROR', 'Access could not be resolved.', 502, id);
-  }
-}
-
-async function entitlementsRead(request: Request, id: string): Promise<Response> {
-  const userId = await sessionUserId(request);
-  if (!userId)
-    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
-
-  try {
-    const rows = await serviceRpc<{
-      readonly feature: string;
-      readonly value: unknown;
-      readonly source_product: string;
-      readonly expires_at: string | null;
-    }>('list_user_entitlements', { p_user_id: userId });
-    return jsonResponse(
-      {
-        entitlements: rows.map((row) => ({
-          feature: row.feature,
-          value: row.value,
-          sourceProduct: row.source_product,
-          expiresAt: row.expires_at,
-        })),
-      },
-      200,
-      id,
-    );
-  } catch {
-    return errorResponse('INTERNAL_ERROR', 'Entitlements could not be read.', 502, id);
-  }
-}
-
-async function redemptionCreate(request: Request, id: string): Promise<Response> {
-  const userId = await sessionUserId(request);
-  if (!userId)
-    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
-  const idempotencyKey = request.headers.get('idempotency-key');
-  const body = await parseJsonObject(request);
-  const code = typeof body?.code === 'string' ? body.code.trim().toUpperCase() : '';
-  const normalizedIdempotencyKey = idempotencyKey?.trim() ?? '';
-  if (
-    normalizedIdempotencyKey === '' ||
-    normalizedIdempotencyKey.length > 255 ||
-    code === '' ||
-    code.length > 512
-  ) {
-    return errorResponse('VALIDATION_ERROR', 'A code and Idempotency-Key are required.', 400, id);
-  }
-
-  try {
-    const { pepper } = redemptionPepperFromEnv((name) => Deno.env.get(name));
-    const codeHash = await hashRedemptionCode(code, pepper);
-    const requestHash = await sha256Hex(JSON.stringify({ userId, codeHash }));
-    const rows = await serviceRpc<{
-      readonly redemption_id: string;
-      readonly grant_id: string;
-      readonly status: 'redeemed';
-    }>('redeem_code', {
-      p_code_hash: codeHash,
-      p_user_id: userId,
-      p_idempotency_key: normalizedIdempotencyKey,
-      p_request_hash: requestHash,
-    });
-    const row = rows.length === 1 ? rows[0] : null;
-    if (!row)
-      return errorResponse('INTERNAL_ERROR', 'The redemption could not be completed.', 502, id);
-    return jsonResponse(
-      { redemptionId: row.redemption_id, grantId: row.grant_id, status: row.status },
-      200,
-      id,
-    );
-  } catch (error) {
-    if (error instanceof ServiceRpcError && error.databaseCode === '23505') {
-      return errorResponse('IDEMPOTENCY_KEY_REUSED', 'The request key was already used.', 409, id);
-    }
-    return errorResponse('REDEMPTION_UNAVAILABLE', 'The redemption code is unavailable.', 409, id);
-  }
-}
-
-async function feedbackCreate(request: Request, id: string, appSlug: string): Promise<Response> {
-  const userId = await sessionUserId(request);
-  if (!userId)
-    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
-  const body = await parseJsonObject(request);
-  const kind = typeof body?.kind === 'string' ? body.kind.trim() : '';
-  const title = typeof body?.title === 'string' ? body.title.trim() : '';
-  const content = typeof body?.content === 'string' ? body.content.trim() : '';
-  if (
-    kind === '' ||
-    kind.length > 50 ||
-    title === '' ||
-    title.length > 200 ||
-    content === '' ||
-    content.length > 20_000
-  ) {
-    return errorResponse('VALIDATION_ERROR', 'Feedback fields are required.', 400, id);
-  }
-
-  try {
-    const rows = await serviceRpc<{
-      readonly id: string;
-      readonly status: 'open' | 'in_progress' | 'resolved' | 'closed';
-      readonly created_at: string;
-    }>('create_feedback', {
-      p_app_slug: appSlug,
-      p_user_id: userId,
-      p_kind: kind,
-      p_title: title,
-      p_content: content,
-    });
-    const row = rows.length === 1 ? rows[0] : null;
-    if (!row) return errorResponse('INTERNAL_ERROR', 'Feedback could not be created.', 502, id);
-    return jsonResponse({ id: row.id, status: row.status, createdAt: row.created_at }, 201, id);
-  } catch {
-    return errorResponse('INTERNAL_ERROR', 'Feedback could not be created.', 502, id);
-  }
-}
-
-function isAccountDeletionRow(value: unknown): value is AccountDeletionRow {
-  if (!value || typeof value !== 'object') return false;
-  const row = value as Record<string, unknown>;
-  return (
-    typeof row.deletion_request_id === 'string' &&
-    ['pending', 'processing', 'completed', 'failed', 'cancelled'].includes(String(row.status)) &&
-    typeof row.execute_after === 'string' &&
-    typeof row.requested_at === 'string' &&
-    (typeof row.completed_at === 'string' || row.completed_at === null)
-  );
-}
-
-function accountDeletionPayload(row: AccountDeletionRow) {
-  return {
-    deletionRequestId: row.deletion_request_id,
-    status: row.status,
-    executeAfter: row.execute_after,
-    requestedAt: row.requested_at,
-    completedAt: row.completed_at,
-  };
-}
-
-async function accountDeletionCreate(request: Request, id: string): Promise<Response> {
-  const token = bearerToken(request);
-  if (!token) {
-    return errorResponse(
-      'REAUTHENTICATION_REQUIRED',
-      'A fresh authentication token is required to request account deletion.',
-      401,
-      id,
-    );
-  }
-  const userId = await authenticatedUser(token);
-  if (!userId) {
-    return errorResponse(
-      'REAUTHENTICATION_REQUIRED',
-      'A fresh authentication token is required to request account deletion.',
-      401,
-      id,
-    );
-  }
-  const body = await parseJsonObject(request);
-  if (!body || Object.keys(body).length !== 0) {
-    return errorResponse('VALIDATION_ERROR', 'The deletion request body must be empty.', 400, id);
-  }
-  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
-  if (idempotencyKey === '' || idempotencyKey.length > 255) {
-    return errorResponse('VALIDATION_ERROR', 'A valid Idempotency-Key is required.', 400, id);
-  }
-
   try {
     const rows = await serviceRpc<AccountDeletionRow>('request_account_deletion', {
       p_user_id: userId,
@@ -1043,26 +622,7 @@ async function accountDeletionCreate(request: Request, id: string): Promise<Resp
   }
 }
 
-async function accountDeletionCancel(request: Request, id: string): Promise<Response> {
-  const token = bearerToken(request);
-  if (!token) {
-    return errorResponse(
-      'REAUTHENTICATION_REQUIRED',
-      'A fresh authentication token is required to cancel account deletion.',
-      401,
-      id,
-    );
-  }
-  const userId = await authenticatedUser(token);
-  if (!userId) {
-    return errorResponse(
-      'REAUTHENTICATION_REQUIRED',
-      'A fresh authentication token is required to cancel account deletion.',
-      401,
-      id,
-    );
-  }
-
+async function applicationAccountDeletionCancel(userId: string, id: string): Promise<Response> {
   try {
     const rows = await serviceRpc<AccountDeletionRow>('cancel_account_deletion', {
       p_user_id: userId,
@@ -1093,206 +653,60 @@ async function accountDeletionCancel(request: Request, id: string): Promise<Resp
   }
 }
 
-function isPlatformSession(value: unknown): value is PlatformSession {
+type AccountDeletionRow = {
+  readonly deletion_request_id: string;
+  readonly status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  readonly execute_after: string;
+  readonly requested_at: string;
+  readonly completed_at: string | null;
+};
+
+export async function parseJsonObject(request: Request): Promise<Record<string, unknown> | null> {
+  try {
+    const value: unknown = await request.json();
+    return value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+type AccessRow = {
+  readonly allowed: boolean;
+  readonly feature: string;
+  readonly value: unknown;
+  readonly source_product: string | null;
+  readonly expires_at: string | null;
+  readonly decision_id: string;
+};
+
+function isAccountDeletionRow(value: unknown): value is AccountDeletionRow {
   if (!value || typeof value !== 'object') return false;
-  const session = value as Record<string, unknown>;
+  const row = value as Record<string, unknown>;
   return (
-    typeof session.session_id === 'string' &&
-    typeof session.user_id === 'string' &&
-    typeof session.expires_at === 'string' &&
-    (typeof session.display_name === 'string' || session.display_name === null) &&
-    (typeof session.avatar_url === 'string' || session.avatar_url === null) &&
-    (typeof session.locale === 'string' || session.locale === null) &&
-    session.profile_status === 'active'
+    typeof row.deletion_request_id === 'string' &&
+    ['pending', 'processing', 'completed', 'failed', 'cancelled'].includes(String(row.status)) &&
+    typeof row.execute_after === 'string' &&
+    typeof row.requested_at === 'string' &&
+    (typeof row.completed_at === 'string' || row.completed_at === null)
   );
 }
 
-function sessionIdentity(session: PlatformSession): ProfileIdentity {
+function accountDeletionPayload(row: AccountDeletionRow) {
   return {
-    userId: session.user_id,
-    displayName: session.display_name,
-    avatarUrl: session.avatar_url,
-    locale: session.locale,
-    status: session.profile_status,
+    deletionRequestId: row.deletion_request_id,
+    status: row.status,
+    executeAfter: row.execute_after,
+    requestedAt: row.requested_at,
+    completedAt: row.completed_at,
   };
 }
 
-function clearSessionCookie(): string {
-  return '__Host-aisenhub_session=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Lax';
-}
-
-async function sessionRead(request: Request, id: string): Promise<Response> {
-  const rawToken = sessionCookie(request);
-  if (!rawToken) {
-    return jsonResponse({ authenticated: false, identity: null, expiresAt: null }, 200, id);
-  }
-
-  try {
-    const rows = await rpc<PlatformSession>('get_platform_session', {
-      p_token_hash: await sha256Hex(rawToken),
-    });
-    const session = rows.length === 1 && isPlatformSession(rows[0]) ? rows[0] : null;
-    if (!session) {
-      return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
-    }
-
-    const csrfToken = randomToken();
-    const csrfRows = await rpc<{ readonly issued: boolean }>('rotate_platform_csrf', {
-      p_token_hash: await sha256Hex(rawToken),
-      p_csrf_hash: await sha256Hex(csrfToken),
-    });
-    if (csrfRows.length !== 1 || csrfRows[0]?.issued !== true) {
-      return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
-    }
-
-    return jsonResponse(
-      {
-        authenticated: true,
-        identity: sessionIdentity(session),
-        expiresAt: session.expires_at,
-        csrfToken,
-      },
-      200,
-      id,
-    );
-  } catch {
-    return errorResponse('INTERNAL_ERROR', 'The session could not be read.', 502, id);
-  }
-}
-
-async function sessionDelete(request: Request, id: string): Promise<Response> {
-  const rawToken = sessionCookie(request);
-  try {
-    if (rawToken) {
-      await rpc<{ readonly revoked: boolean }>('revoke_platform_session', {
-        p_token_hash: await sha256Hex(rawToken),
-        p_reason: 'user_logout',
-      });
-    }
-    return jsonResponse({ revoked: true }, 200, id, { 'set-cookie': clearSessionCookie() });
-  } catch {
-    return errorResponse('INTERNAL_ERROR', 'The session could not be revoked.', 502, id);
-  }
-}
-
-export async function enforceWritePreconditions(
-  request: Request,
-  path: string,
-  resolved: ResolvedOrigin | null,
-  id: string,
-): Promise<Response | null> {
-  if (!writeMethods.has(request.method) || path === '/v1/session/exchange') return null;
-  if (!resolved) {
-    return errorResponse('ORIGIN_NOT_ALLOWED', 'A request Origin is required.', 403, id);
-  }
-  if (request.headers.get('x-aisenhub-app') !== resolved.appSlug) {
-    return errorResponse(
-      'APP_ORIGIN_MISMATCH',
-      'The application declaration does not match the request Origin.',
-      403,
-      id,
-    );
-  }
-
-  if (
-    path === '/v1/me/deletion-requests' &&
-    (request.method === 'POST' || request.method === 'DELETE')
-  ) {
-    return null;
-  }
-
-  const rawToken = sessionCookie(request);
-  const rawCsrf = request.headers.get('x-csrf-token');
-  if (!rawToken || !rawCsrf) {
-    return errorResponse('CSRF_INVALID', 'A valid CSRF token is required.', 403, id);
-  }
-
-  try {
-    const rows = await rpc<{ readonly valid: boolean }>('verify_platform_csrf', {
-      p_token_hash: await sha256Hex(rawToken),
-      p_csrf_hash: await sha256Hex(rawCsrf),
-    });
-    if (rows.length !== 1 || rows[0]?.valid !== true) {
-      return errorResponse('CSRF_INVALID', 'A valid CSRF token is required.', 403, id);
-    }
-    return null;
-  } catch {
-    return errorResponse(
-      'INTERNAL_ERROR',
-      'The request security checks could not be completed.',
-      502,
-      id,
-    );
-  }
-}
-
-async function routePlatformApiRoutes(
-  request: Request,
-  id: string,
-  resolved: ResolvedOrigin | null,
-): Promise<Response> {
+async function routePlatformApiRoutes(request: Request, id: string): Promise<Response> {
   const path = apiPath(request);
 
   if (path === '/' || path === '') return healthResponse('platform-api');
-  if (path === '/v1/session/exchange') {
-    if (request.method !== 'POST') {
-      return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
-    }
-    return sessionExchange(bearerToken(request), id);
-  }
-  if (path === '/v1/session') {
-    if (request.method === 'GET') return sessionRead(request, id);
-    if (request.method === 'DELETE') return sessionDelete(request, id);
-    return errorResponse(
-      'VALIDATION_ERROR',
-      'Only GET and DELETE requests are supported.',
-      405,
-      id,
-    );
-  }
-  if (path === '/v1/me/entitlements') {
-    if (request.method !== 'GET') {
-      return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
-    }
-    return entitlementsRead(request, id);
-  }
-  if (path.startsWith('/v1/access/')) {
-    if (request.method !== 'GET') {
-      return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
-    }
-    if (!resolved)
-      return errorResponse('ORIGIN_NOT_ALLOWED', 'A request Origin is required.', 403, id);
-    return accessRead(
-      request,
-      decodeURIComponent(path.slice('/v1/access/'.length)),
-      resolved.appSlug,
-      id,
-    );
-  }
-  if (path === '/v1/redemptions') {
-    if (request.method !== 'POST') {
-      return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
-    }
-    return redemptionCreate(request, id);
-  }
-  if (path === '/v1/feedback') {
-    if (request.method !== 'POST') {
-      return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
-    }
-    if (!resolved)
-      return errorResponse('ORIGIN_NOT_ALLOWED', 'A request Origin is required.', 403, id);
-    return feedbackCreate(request, id, resolved.appSlug);
-  }
-  if (path === '/v1/me/deletion-requests') {
-    if (request.method === 'POST') return accountDeletionCreate(request, id);
-    if (request.method === 'DELETE') return accountDeletionCancel(request, id);
-    return errorResponse(
-      'VALIDATION_ERROR',
-      'Only POST and DELETE requests are supported.',
-      405,
-      id,
-    );
-  }
   if (request.method !== 'GET') {
     return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
   }
@@ -1301,8 +715,6 @@ async function routePlatformApiRoutes(
     const slug = decodeURIComponent(path.slice('/v1/apps/'.length));
     return appRead(slug, id);
   }
-  if (path === '/v1/me') return meRead(bearerToken(request), id);
-
   return errorResponse('VALIDATION_ERROR', 'The requested route was not found.', 404, id);
 }
 
@@ -1319,7 +731,8 @@ async function routeApplicationApiRoutes(request: Request, id: string): Promise<
 
   const path = apiPath(request);
   const token = bearerToken(request);
-  if (!token) return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+  if (!token)
+    return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
 
   if (path === '/v1/app/context') {
     if (request.method !== 'GET') {
@@ -1409,7 +822,5 @@ export async function routePlatformApi(request: Request): Promise<Response> {
   if (path.startsWith('/v1/account/') || path.startsWith('/v1/app/')) {
     return withCors(await routeApplicationApiRoutes(request, id), resolved);
   }
-  const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
-  if (preconditionFailure) return withCors(preconditionFailure, resolved);
-  return withCors(await routePlatformApiRoutes(request, id, resolved), resolved);
+  return withCors(await routePlatformApiRoutes(request, id), resolved);
 }
