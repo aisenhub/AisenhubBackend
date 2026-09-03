@@ -35,7 +35,7 @@
 
 出现冲突时，按照以下优先级执行：
 
-1. `docs/AISENHUB_PLATFORM_BACKEND_ARCHITECTURE.md`
+1. `docs/AISENHUB_UNIFIED_IDENTITY_PLATFORM_ARCHITECTURE_V2.md`
 2. 已批准 ADR / Architecture Decision
 3. `docs/implementation/MASTER_PLAN.md`
 4. 当前 Phase / Atomic Task

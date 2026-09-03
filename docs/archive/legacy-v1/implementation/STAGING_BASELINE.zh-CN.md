@@ -176,7 +176,7 @@ Staging 配置已完成
 ## 当前代码记录
 
 - Staging 发布包记录：[`P7-T002-staging-bundle.md`](reports/P7-T002-staging-bundle.md)
-- Staging 预检脚本：[`staging-preflight.mjs`](../../scripts/staging-preflight.mjs)
+- Staging 预检脚本：[`staging-preflight.mjs`](../../../../scripts/staging-preflight.mjs)
 - 当前预检修复已推送：`ce90666`
 
 架构偏离：无。

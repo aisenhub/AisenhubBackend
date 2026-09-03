@@ -28,7 +28,7 @@ AisenHub Platform Backend
 
 Admin 开发同时遵守：
 
-1. `docs/AISENHUB_PLATFORM_BACKEND_ARCHITECTURE.md`
+1. `docs/AISENHUB_UNIFIED_IDENTITY_PLATFORM_ARCHITECTURE_V2.md`
 2. `/AGENTS.md`
 3. `apps/admin/AGENTS.md`
 4. 当前实施 Task

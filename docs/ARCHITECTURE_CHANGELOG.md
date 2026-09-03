@@ -1,10 +1,17 @@
 # AisenHub Platform Architecture Changelog
 
+## 2026-09-03 — V2 adopted
+
+`AISENHUB_UNIFIED_IDENTITY_PLATFORM_ARCHITECTURE_V2.md` is now the active
+architecture authority. The former backend architecture, Admin architecture,
+consistency check, and V1 implementation records are retained under
+`archive/legacy-v1/` for historical reference only.
+
 > 日期：2026-08-31
 >
 > 变更：将 Admin ADR 正式合并到 AisenHub Platform 唯一总体架构
 >
-> 权威文档：[AISENHUB_PLATFORM_BACKEND_ARCHITECTURE.md](./AISENHUB_PLATFORM_BACKEND_ARCHITECTURE.md)
+> 权威文档：[AISENHUB_UNIFIED_IDENTITY_PLATFORM_ARCHITECTURE_V2.md](./AISENHUB_UNIFIED_IDENTITY_PLATFORM_ARCHITECTURE_V2.md)
 
 ## Added
 
