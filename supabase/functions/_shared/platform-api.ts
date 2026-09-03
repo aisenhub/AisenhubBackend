@@ -566,6 +566,7 @@ async function applicationAccessRead(
 async function applicationRedemptionCreate(
   request: Request,
   userId: string,
+  applicationId: string,
   id: string,
 ): Promise<Response> {
   const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
@@ -581,11 +582,12 @@ async function applicationRedemptionCreate(
       readonly redemption_id: string;
       readonly grant_id: string;
       readonly status: 'redeemed';
-    }>('redeem_code', {
+    }>('redeem_application_code', {
       p_code_hash: codeHash,
       p_user_id: userId,
+      p_application_id: applicationId,
       p_idempotency_key: idempotencyKey,
-      p_request_hash: await sha256Hex(JSON.stringify({ userId, codeHash })),
+      p_request_hash: await sha256Hex(JSON.stringify({ userId, applicationId, codeHash })),
     });
     const row = rows.length === 1 ? rows[0] : null;
     if (!row)
@@ -882,7 +884,7 @@ async function routeApplicationApiRoutes(request: Request, id: string): Promise<
     if (request.method !== 'POST') {
       return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
     }
-    return applicationRedemptionCreate(request, context.userId, id);
+    return applicationRedemptionCreate(request, context.userId, context.applicationId, id);
   }
   if (path === '/v1/app/feedback') {
     if (request.method !== 'POST') {

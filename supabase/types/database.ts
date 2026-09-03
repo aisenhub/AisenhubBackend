@@ -492,6 +492,25 @@ export type Database = {
         Args: { p_payment_event_id: string; p_reason: string }
         Returns: Json
       }
+      redeem_application_code: {
+        Args: {
+          p_application_id: string
+          p_code_hash: string
+          p_idempotency_key: string
+          p_ip_hash?: string
+          p_request_hash: string
+          p_user_id: string
+        }
+        Returns: {
+          batch_id: string
+          code_id: string
+          grant_id: string
+          idempotency_record_id: string
+          redeemed_at: string
+          redemption_id: string
+          status: string
+        }[]
+      }
       redeem_code: {
         Args: {
           p_code_hash: string

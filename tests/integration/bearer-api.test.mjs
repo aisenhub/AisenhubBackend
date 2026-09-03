@@ -139,6 +139,16 @@ async function mockedFetch(url, init) {
       },
     ]);
   }
+  if (pathname.endsWith('/redeem_application_code')) {
+    lastServiceCall = { pathname, body };
+    return response([
+      {
+        redemption_id: '00000000-0000-4000-8000-000000000040',
+        grant_id: '00000000-0000-4000-8000-000000000041',
+        status: 'redeemed',
+      },
+    ]);
+  }
   if (pathname.endsWith('/application_membership_command')) {
     lastServiceCall = { pathname, body };
     return response({
@@ -244,6 +254,8 @@ beforeAll(async () => {
           SUPABASE_URL: apiOrigin,
           SUPABASE_ANON_KEY: 'anon-key',
           SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
+          REDEMPTION_PEPPER: 'integration-redemption-pepper',
+          REDEMPTION_PEPPER_VERSION: '1',
         })[name],
     },
   };
@@ -326,6 +338,26 @@ describe('Bearer application API', () => {
     expect(entitlementResponse.status).toBe(200);
     expect(lastServiceCall.pathname).toContain('list_user_application_entitlements');
     expect(lastServiceCall.body.p_application_id).toBe(accountAppId);
+  });
+
+  it('passes the resolved application into redemption without accepting an app from the body', async () => {
+    const { routePlatformApi } = await import('../../supabase/functions/_shared/platform-api.ts');
+    const token = await tokenFor('account-local-web');
+    const redemptionResponse = await routePlatformApi(
+      new Request(`${apiOrigin}/v1/app/redemptions`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Idempotency-Key': 'redemption-application-001',
+        },
+        body: JSON.stringify({ code: 'AH-LOCAL-ABCD-2345', applicationId: adminAppId }),
+      }),
+    );
+    expect(redemptionResponse.status).toBe(200);
+    expect(lastServiceCall.pathname).toContain('redeem_application_code');
+    expect(lastServiceCall.body.p_application_id).toBe(accountAppId);
+    expect(lastServiceCall.body).not.toHaveProperty('p_app_slug');
   });
 
   it('leaves only the current application membership through a named command', async () => {
