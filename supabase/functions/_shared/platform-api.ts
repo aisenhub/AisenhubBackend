@@ -1,5 +1,10 @@
 import { healthResponse } from './health.ts';
 import { hashRedemptionCode, redemptionPepperFromEnv } from './redemption-code.ts';
+import {
+  applicationContextErrorResponse,
+  createPlatformApplicationContextKernel,
+  type ApplicationContextKernel,
+} from './auth/platform-context.ts';
 
 type PublicApp = {
   readonly slug: string;
@@ -133,17 +138,9 @@ export async function resolveOrigin(
   id: string,
 ): Promise<ResolvedOrigin | Response | null> {
   const origin = request.headers.get('origin');
-  const declaration = request.headers.get('x-aisenhub-app');
 
   if (origin === null) {
-    return declaration === null
-      ? null
-      : errorResponse(
-          'APP_ORIGIN_MISMATCH',
-          'The application declaration cannot be verified.',
-          403,
-          id,
-        );
+    return null;
   }
 
   try {
@@ -151,14 +148,6 @@ export async function resolveOrigin(
     const resolved = rows.length === 1 && isResolvedOrigin(rows[0]) ? rows[0] : null;
     if (!resolved) {
       return errorResponse('ORIGIN_NOT_ALLOWED', 'The request Origin is not allowed.', 403, id);
-    }
-    if (declaration !== null && declaration !== resolved.app_slug) {
-      return errorResponse(
-        'APP_ORIGIN_MISMATCH',
-        'The application declaration does not match the request Origin.',
-        403,
-        id,
-      );
     }
     return { origin, appSlug: resolved.app_slug };
   } catch {
@@ -413,6 +402,309 @@ async function meRead(token: string | null, id: string): Promise<Response> {
     return jsonResponse({ profile }, 200, id);
   } catch {
     return errorResponse('INTERNAL_ERROR', 'The profile could not be read.', 502, id);
+  }
+}
+
+let applicationContextKernel: ApplicationContextKernel | null = null;
+
+function getApplicationContextKernel(): ApplicationContextKernel {
+  return (applicationContextKernel ??= createPlatformApplicationContextKernel());
+}
+
+type ApplicationMembershipProjection = {
+  readonly id: string;
+  readonly application_id: string;
+  readonly application_slug: string;
+  readonly application_name: string;
+  readonly application_category: string;
+  readonly application_status: string;
+  readonly registration_policy: string;
+  readonly membership_policy: string;
+  readonly default_locale: string | null;
+  readonly membership_status: string;
+  readonly created_source: string;
+  readonly joined_at: string;
+  readonly activated_at: string | null;
+  readonly suspended_at: string | null;
+  readonly left_at: string | null;
+  readonly deleted_at: string | null;
+};
+
+function isApplicationMembershipProjection(
+  value: unknown,
+): value is ApplicationMembershipProjection {
+  if (!value || typeof value !== 'object') return false;
+  const row = value as Record<string, unknown>;
+  return (
+    typeof row.id === 'string' &&
+    typeof row.application_id === 'string' &&
+    typeof row.application_slug === 'string' &&
+    typeof row.application_name === 'string' &&
+    typeof row.application_category === 'string' &&
+    typeof row.application_status === 'string' &&
+    typeof row.registration_policy === 'string' &&
+    typeof row.membership_policy === 'string' &&
+    (typeof row.default_locale === 'string' || row.default_locale === null) &&
+    typeof row.membership_status === 'string' &&
+    typeof row.created_source === 'string' &&
+    typeof row.joined_at === 'string' &&
+    (typeof row.activated_at === 'string' || row.activated_at === null) &&
+    (typeof row.suspended_at === 'string' || row.suspended_at === null) &&
+    (typeof row.left_at === 'string' || row.left_at === null) &&
+    (typeof row.deleted_at === 'string' || row.deleted_at === null)
+  );
+}
+
+async function accountApplicationsRead(userId: string, id: string): Promise<Response> {
+  try {
+    const rows = await serviceRpc<ApplicationMembershipProjection>(
+      'list_user_application_memberships',
+      { p_user_id: userId },
+    );
+    if (!rows.every(isApplicationMembershipProjection)) {
+      return errorResponse('INTERNAL_ERROR', 'Applications could not be read.', 502, id);
+    }
+    return jsonResponse(
+      {
+        applications: rows.map((row) => ({
+          id: row.id,
+          userId,
+          application: {
+            id: row.application_id,
+            slug: row.application_slug,
+            name: row.application_name,
+            category: row.application_category,
+            status: row.application_status,
+            registrationPolicy: row.registration_policy,
+            membershipPolicy: row.membership_policy,
+            defaultLocale: row.default_locale,
+          },
+          status: row.membership_status,
+          createdSource: row.created_source,
+          joinedAt: row.joined_at,
+          activatedAt: row.activated_at,
+          suspendedAt: row.suspended_at,
+          leftAt: row.left_at,
+          deletedAt: row.deleted_at,
+        })),
+      },
+      200,
+      id,
+    );
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'Applications could not be read.', 502, id);
+  }
+}
+
+async function applicationEntitlementsRead(userId: string, id: string): Promise<Response> {
+  try {
+    const rows = await serviceRpc<{
+      readonly feature: string;
+      readonly value: unknown;
+      readonly source_product: string;
+      readonly expires_at: string | null;
+    }>('list_user_entitlements', { p_user_id: userId });
+    return jsonResponse(
+      {
+        entitlements: rows.map((row) => ({
+          feature: row.feature,
+          value: row.value,
+          sourceProduct: row.source_product,
+          expiresAt: row.expires_at,
+        })),
+      },
+      200,
+      id,
+    );
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'Entitlements could not be read.', 502, id);
+  }
+}
+
+async function applicationAccessRead(
+  userId: string,
+  appSlug: string,
+  featureCode: string,
+  id: string,
+): Promise<Response> {
+  if (!/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(featureCode)) {
+    return errorResponse('VALIDATION_ERROR', 'The feature code is invalid.', 400, id);
+  }
+  try {
+    const rows = await serviceRpc<AccessRow>('check_access', {
+      p_user_id: userId,
+      p_app_slug: appSlug,
+      p_feature_code: featureCode,
+    });
+    const row = rows.length === 1 ? rows[0] : null;
+    if (!row) return errorResponse('INTERNAL_ERROR', 'Access could not be resolved.', 502, id);
+    return jsonResponse(
+      {
+        allowed: row.allowed,
+        feature: row.feature,
+        value: row.value,
+        sourceProduct: row.source_product,
+        expiresAt: row.expires_at,
+        decisionId: row.decision_id,
+      },
+      200,
+      id,
+    );
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'Access could not be resolved.', 502, id);
+  }
+}
+
+async function applicationRedemptionCreate(
+  request: Request,
+  userId: string,
+  id: string,
+): Promise<Response> {
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  const body = await parseJsonObject(request);
+  const code = typeof body?.code === 'string' ? body.code.trim().toUpperCase() : '';
+  if (
+    idempotencyKey === '' ||
+    idempotencyKey.length > 255 ||
+    code === '' ||
+    code.length > 512
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'A code and Idempotency-Key are required.', 400, id);
+  }
+  try {
+    const { pepper } = redemptionPepperFromEnv((name) => Deno.env.get(name));
+    const codeHash = await hashRedemptionCode(code, pepper);
+    const rows = await serviceRpc<{
+      readonly redemption_id: string;
+      readonly grant_id: string;
+      readonly status: 'redeemed';
+    }>('redeem_code', {
+      p_code_hash: codeHash,
+      p_user_id: userId,
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: await sha256Hex(JSON.stringify({ userId, codeHash })),
+    });
+    const row = rows.length === 1 ? rows[0] : null;
+    if (!row) return errorResponse('INTERNAL_ERROR', 'The redemption could not be completed.', 502, id);
+    return jsonResponse(
+      { redemptionId: row.redemption_id, grantId: row.grant_id, status: row.status },
+      200,
+      id,
+    );
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === '23505') {
+      return errorResponse('IDEMPOTENCY_KEY_REUSED', 'The request key was already used.', 409, id);
+    }
+    return errorResponse('REDEMPTION_UNAVAILABLE', 'The redemption code is unavailable.', 409, id);
+  }
+}
+
+async function applicationFeedbackCreate(
+  request: Request,
+  userId: string,
+  appSlug: string,
+  id: string,
+): Promise<Response> {
+  const body = await parseJsonObject(request);
+  const kind = typeof body?.kind === 'string' ? body.kind.trim() : '';
+  const title = typeof body?.title === 'string' ? body.title.trim() : '';
+  const content = typeof body?.content === 'string' ? body.content.trim() : '';
+  if (
+    kind === '' ||
+    kind.length > 50 ||
+    title === '' ||
+    title.length > 200 ||
+    content === '' ||
+    content.length > 20_000
+  ) {
+    return errorResponse('VALIDATION_ERROR', 'Feedback fields are required.', 400, id);
+  }
+  try {
+    const rows = await serviceRpc<{
+      readonly id: string;
+      readonly status: 'open' | 'in_progress' | 'resolved' | 'closed';
+      readonly created_at: string;
+    }>('create_feedback', { p_app_slug: appSlug, p_user_id: userId, p_kind: kind, p_title: title, p_content: content });
+    const row = rows.length === 1 ? rows[0] : null;
+    if (!row) return errorResponse('INTERNAL_ERROR', 'Feedback could not be created.', 502, id);
+    return jsonResponse({ id: row.id, status: row.status, createdAt: row.created_at }, 201, id);
+  } catch {
+    return errorResponse('INTERNAL_ERROR', 'Feedback could not be created.', 502, id);
+  }
+}
+
+async function applicationAccountDeletionCreate(
+  request: Request,
+  userId: string,
+  id: string,
+): Promise<Response> {
+  const body = await parseJsonObject(request);
+  if (!body || Object.keys(body).length !== 0) {
+    return errorResponse('VALIDATION_ERROR', 'The deletion request body must be empty.', 400, id);
+  }
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim() ?? '';
+  if (idempotencyKey === '' || idempotencyKey.length > 255) {
+    return errorResponse('VALIDATION_ERROR', 'A valid Idempotency-Key is required.', 400, id);
+  }
+  try {
+    const rows = await serviceRpc<AccountDeletionRow>('request_account_deletion', {
+      p_user_id: userId,
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: await sha256Hex(JSON.stringify({ operation: 'account-deletion', userId })),
+      p_request_id: id,
+    });
+    const row = rows.length === 1 && isAccountDeletionRow(rows[0]) ? rows[0] : null;
+    if (!row) return errorResponse('INTERNAL_ERROR', 'The deletion request is invalid.', 502, id);
+    return jsonResponse(accountDeletionPayload(row), 202, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
+      return errorResponse('IDEMPOTENCY_KEY_REUSED', 'The request key was already used.', 409, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '23505') {
+      return errorResponse('INVALID_STATE_TRANSITION', 'An account deletion request is already open.', 409, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse('PROFILE_NOT_FOUND', 'The account profile was not found.', 404, id);
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The account cannot request deletion in its current state.',
+        409,
+        id,
+      );
+    }
+    return errorResponse('INTERNAL_ERROR', 'The deletion request could not be created.', 502, id);
+  }
+}
+
+async function applicationAccountDeletionCancel(userId: string, id: string): Promise<Response> {
+  try {
+    const rows = await serviceRpc<AccountDeletionRow>('cancel_account_deletion', {
+      p_user_id: userId,
+      p_request_id: id,
+    });
+    const row = rows.length === 1 && isAccountDeletionRow(rows[0]) ? rows[0] : null;
+    if (!row) return errorResponse('INTERNAL_ERROR', 'The cancellation response is invalid.', 502, id);
+    return jsonResponse(accountDeletionPayload(row), 200, id);
+  } catch (error) {
+    if (error instanceof ServiceRpcError && error.databaseCode === 'P0002') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'There is no account deletion request to cancel.',
+        409,
+        id,
+      );
+    }
+    if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The account deletion request cannot be cancelled in its current state.',
+        409,
+        id,
+      );
+    }
+    return errorResponse('INTERNAL_ERROR', 'The deletion request could not be cancelled.', 502, id);
   }
 }
 
@@ -1014,6 +1306,96 @@ async function routePlatformApiRoutes(
   return errorResponse('VALIDATION_ERROR', 'The requested route was not found.', 404, id);
 }
 
+async function routeApplicationApiRoutes(request: Request, id: string): Promise<Response> {
+  let context: Awaited<ReturnType<ApplicationContextKernel['authenticate']>>;
+  try {
+    context = await getApplicationContextKernel().authenticate(request, id);
+  } catch (error) {
+    return (
+      applicationContextErrorResponse(error, id) ??
+      errorResponse('INTERNAL_ERROR', 'The application context could not be resolved.', 502, id)
+    );
+  }
+
+  const path = apiPath(request);
+  const token = bearerToken(request);
+  if (!token) return errorResponse('AUTHENTICATION_REQUIRED', 'Authentication is required.', 401, id);
+
+  if (path === '/v1/app/context') {
+    if (request.method !== 'GET') {
+      return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+    }
+    return jsonResponse(
+      {
+        userId: context.userId,
+        clientId: context.clientId,
+        application: { id: context.applicationId, slug: context.applicationSlug },
+        membershipId: context.membershipId,
+        membershipStatus: context.membershipStatus,
+        aal: context.aal,
+      },
+      200,
+      id,
+    );
+  }
+  if (path === '/v1/account/me' || path === '/v1/app/me') {
+    if (request.method !== 'GET') {
+      return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+    }
+    return authenticatedProfileRead(token, context.userId, id);
+  }
+  if (path === '/v1/account/applications') {
+    if (request.method !== 'GET') {
+      return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+    }
+    return accountApplicationsRead(context.userId, id);
+  }
+  if (path === '/v1/account/deletion-requests') {
+    if (request.method === 'POST') {
+      return applicationAccountDeletionCreate(request, context.userId, id);
+    }
+    if (request.method === 'DELETE') {
+      return applicationAccountDeletionCancel(context.userId, id);
+    }
+    return errorResponse(
+      'VALIDATION_ERROR',
+      'Only POST and DELETE requests are supported.',
+      405,
+      id,
+    );
+  }
+  if (path === '/v1/app/entitlements') {
+    if (request.method !== 'GET') {
+      return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+    }
+    return applicationEntitlementsRead(context.userId, id);
+  }
+  if (path.startsWith('/v1/app/access/')) {
+    if (request.method !== 'GET') {
+      return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
+    }
+    return applicationAccessRead(
+      context.userId,
+      context.applicationSlug,
+      decodeURIComponent(path.slice('/v1/app/access/'.length)),
+      id,
+    );
+  }
+  if (path === '/v1/app/redemptions') {
+    if (request.method !== 'POST') {
+      return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
+    }
+    return applicationRedemptionCreate(request, context.userId, id);
+  }
+  if (path === '/v1/app/feedback') {
+    if (request.method !== 'POST') {
+      return errorResponse('VALIDATION_ERROR', 'Only POST requests are supported.', 405, id);
+    }
+    return applicationFeedbackCreate(request, context.userId, context.applicationSlug, id);
+  }
+  return errorResponse('VALIDATION_ERROR', 'The requested route was not found.', 404, id);
+}
+
 export async function routePlatformApi(request: Request): Promise<Response> {
   const id = requestIdFromRequest(request);
   const resolved = await resolveOrigin(request, id);
@@ -1024,6 +1406,9 @@ export async function routePlatformApi(request: Request): Promise<Response> {
       : errorResponse('ORIGIN_NOT_ALLOWED', 'A request Origin is required.', 403, id);
   }
   const path = apiPath(request);
+  if (path.startsWith('/v1/account/') || path.startsWith('/v1/app/')) {
+    return withCors(await routeApplicationApiRoutes(request, id), resolved);
+  }
   const preconditionFailure = await enforceWritePreconditions(request, path, resolved, id);
   if (preconditionFailure) return withCors(preconditionFailure, resolved);
   return withCors(await routePlatformApiRoutes(request, id, resolved), resolved);

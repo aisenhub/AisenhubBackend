@@ -1,21 +1,13 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 
-import {
-  createPlatformClient,
-  PlatformClientError,
-  type PlatformResponse,
-} from '@aisenhub/platform-client';
-import type {
-  EntitlementsResponse,
-  PublicProductsResponse,
-  SessionResponse,
-} from '@aisenhub/contracts';
+import { createPlatformClient, PlatformClientError } from '@aisenhub/platform-client';
+import type { EntitlementsResponse, MeResponse, PublicProductsResponse } from '@aisenhub/contracts';
 
 import { AccountAuthClient, AccountAuthError } from './auth';
 import './styles.css';
 
 type ViewState = 'loading' | 'signed_out' | 'signing_in' | 'authenticated' | 'error';
-type AuthenticatedSession = Extract<SessionResponse, { authenticated: true }>;
+type AuthenticatedSession = MeResponse;
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? 'http://127.0.0.1:54321';
 const platformApiUrl =
@@ -36,12 +28,6 @@ function readableError(error: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
-function isAuthenticated(
-  response: PlatformResponse<SessionResponse>,
-): response is PlatformResponse<AuthenticatedSession> {
-  return response.data.authenticated;
-}
-
 function createIdempotencyKey() {
   return globalThis.crypto.randomUUID();
 }
@@ -59,7 +45,6 @@ export function App() {
   const [deletionPassword, setDeletionPassword] = useState('');
   const [deletionConfirmed, setDeletionConfirmed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const csrfTokenRef = useRef<string | undefined>(undefined);
   const auth = useMemo(
     () =>
       new AccountAuthClient({
@@ -73,10 +58,9 @@ export function App() {
       createPlatformClient({
         baseUrl: platformApiUrl,
         publicBaseUrl: platformPublicApiUrl,
-        appSlug: 'account',
-        csrfToken: () => csrfTokenRef.current,
+        accessToken: () => auth.accessToken,
       }),
-    [],
+    [auth],
   );
 
   async function loadAccountData() {
@@ -90,18 +74,19 @@ export function App() {
 
   useEffect(() => {
     let active = true;
+    if (!auth.accessToken) {
+      setViewState('signed_out');
+      return () => {
+        active = false;
+      };
+    }
     client
-      .getSession()
+      .getProfile()
       .then(async (response) => {
         if (!active) return;
-        if (isAuthenticated(response)) {
-          setSession(response.data);
-          csrfTokenRef.current = response.data.csrfToken;
-          await loadAccountData();
-          if (active) setViewState('authenticated');
-        } else {
-          setViewState('signed_out');
-        }
+        setSession(response.data);
+        await loadAccountData();
+        if (active) setViewState('authenticated');
       })
       .catch((error: unknown) => {
         if (!active) return;
@@ -118,10 +103,9 @@ export function App() {
     setMessage(null);
     setViewState('signing_in');
     try {
-      const authSession = await auth.signInWithPassword(email, password);
-      const exchanged = await client.exchangeSession(authSession.accessToken);
-      setSession(exchanged.data);
-      csrfTokenRef.current = exchanged.data.csrfToken;
+      await auth.signInWithPassword(email, password);
+      const profile = await client.getProfile();
+      setSession(profile.data);
       await loadAccountData();
       setPassword('');
       setViewState('authenticated');
@@ -154,11 +138,10 @@ export function App() {
     setMessage(null);
     setIsDeleting(true);
     try {
-      const reauthenticated = await auth.signInWithPassword(email, deletionPassword);
-      await client.requestAccountDeletion(reauthenticated.accessToken, createIdempotencyKey());
-      await Promise.allSettled([client.logout(), auth.signOut()]);
+      await auth.signInWithPassword(email, deletionPassword);
+      await client.requestAccountDeletion(createIdempotencyKey());
+      auth.signOut();
       setSession(null);
-      csrfTokenRef.current = undefined;
       setDeletionPassword('');
       setViewState('signed_out');
       setMessage('Your account deletion request was submitted.');
@@ -172,13 +155,11 @@ export function App() {
   async function handleLogout() {
     setMessage(null);
     try {
-      await client.logout();
       await auth.signOut();
     } catch (error: unknown) {
       setMessage(readableError(error));
       return;
     }
-    csrfTokenRef.current = undefined;
     setSession(null);
     setProducts([]);
     setEntitlements([]);
@@ -209,10 +190,10 @@ export function App() {
         <section className="account-card account-card-wide" aria-labelledby="welcome-title">
           <p className="eyebrow">AisenHub Account</p>
           <h1 id="welcome-title">
-            Welcome back{session.identity.displayName ? `, ${session.identity.displayName}` : ''}.
+            Welcome back{session.profile.displayName ? `, ${session.profile.displayName}` : ''}.
           </h1>
           <p className="supporting-text">
-            Your platform session is active. Products and access are resolved by AisenHub.
+            Your application access is active. Products and access are resolved by AisenHub.
           </p>
           {message && (
             <p className="notice-text" role="status">

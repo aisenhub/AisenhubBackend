@@ -149,23 +149,21 @@ describe('platform API Origin and CORS handler', () => {
     expect(response.headers.get('access-control-allow-credentials')).toBe('true');
   });
 
-  it('rejects unregistered, wildcard, and mismatched app declarations', async () => {
+  it('rejects unregistered and wildcard Origins', async () => {
     const cases = [
-      ['https://attacker.example', undefined, 'ORIGIN_NOT_ALLOWED'],
-      ['*', undefined, 'ORIGIN_NOT_ALLOWED'],
-      [registeredOrigin, 'admin', 'APP_ORIGIN_MISMATCH'],
+      ['https://attacker.example'],
+      ['*'],
     ];
 
-    for (const [origin, app, code] of cases) {
+    for (const [origin] of cases) {
       const headers = { Origin: origin };
-      if (app) headers['X-AisenHub-App'] = app;
       const response = await routePlatformApi(
         new Request('http://api.local/v1/apps/aisenlens', { headers }),
       );
       const body = await response.json();
 
       expect(response.status).toBe(403);
-      expect(body.error.code).toBe(code);
+      expect(body.error.code).toBe('ORIGIN_NOT_ALLOWED');
       expect(response.headers.get('access-control-allow-origin')).toBeNull();
     }
   });

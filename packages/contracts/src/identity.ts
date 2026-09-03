@@ -72,6 +72,23 @@ export const MeResponseSchema = z
   .strict();
 export type MeResponse = z.infer<typeof MeResponseSchema>;
 
+export const ApplicationContextResponseSchema = z
+  .object({
+    userId: UserIdSchema,
+    clientId: z.string().min(1).max(255),
+    application: z
+      .object({
+        id: z.string().uuid(),
+        slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+      })
+      .strict(),
+    membershipId: z.string().uuid(),
+    membershipStatus: z.literal('active'),
+    aal: z.string().min(1).max(32).nullable(),
+  })
+  .strict();
+export type ApplicationContextResponse = z.infer<typeof ApplicationContextResponseSchema>;
+
 export const AdminAalSchema = z.enum(['aal1', 'aal2']);
 export type AdminAal = z.infer<typeof AdminAalSchema>;
 

@@ -520,6 +520,21 @@ export type Database = {
           environment: string
         }[]
       }
+      resolve_application_context: {
+        Args: { p_client_id: string; p_user_id: string }
+        Returns: {
+          application_id: string
+          application_slug: string
+          application_status: string
+          client_id: string
+          client_status: string
+          membership_id: string
+          membership_policy: string
+          membership_status: string
+          profile_status: string
+          user_id: string
+        }[]
+      }
       restore_entitlement: {
         Args: {
           p_actor_id: string
