@@ -70,7 +70,6 @@ VITE_SUPABASE_ANON_KEY
 
 ```text
 VITE_SUPABASE_URL
-VITE_SUPABASE_ANON_KEY
 VITE_ADMIN_OAUTH_CLIENT_ID
 VITE_PLATFORM_ADMIN_API_ORIGIN
 ```
@@ -83,6 +82,15 @@ Vercel Production      → Production Supabase、Production API、Production OAu
 ```
 
 Vite 会在构建时注入变量，因此切换环境的本质是选择不同的 Vercel Environment，而不是修改业务代码。
+
+Staging 验收脚本还需要读取已在 Supabase OAuth Apps 中注册的非敏感 Client ID：
+
+```text
+STAGING_ACCOUNT_OAUTH_CLIENT_ID
+STAGING_ADMIN_OAUTH_CLIENT_ID
+```
+
+两者必须是 Staging 项目中独立、启用且配置了精确回调地址的 Public OAuth Client；Client Secret（如有）不得进入浏览器、仓库或聊天。
 
 ## 5. Edge Functions 和后端变量
 

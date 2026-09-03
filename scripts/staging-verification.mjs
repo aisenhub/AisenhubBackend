@@ -136,6 +136,8 @@ function bearer(token) {
 }
 
 async function smoke(settings) {
+  await verifyOAuthProvider(settings);
+
   for (const [label, origin] of [
     ['Account page', settings.accountOrigin],
     ['Admin page', settings.adminOrigin],
@@ -225,6 +227,10 @@ async function smoke(settings) {
 async function e2e(settings) {
   const accountToken = env('STAGING_ACCOUNT_ACCESS_TOKEN');
   const adminToken = env('STAGING_ADMIN_ACCESS_TOKEN');
+  const accountClientId = env('STAGING_ACCOUNT_OAUTH_CLIENT_ID');
+  const adminClientId = env('STAGING_ADMIN_OAUTH_CLIENT_ID');
+
+  await verifyOAuthProvider(settings, [accountClientId, adminClientId]);
 
   const accountMe = await request(apiUrl(settings, 'platform-api', '/v1/account/me'), {
     headers: { Origin: settings.accountOrigin, ...bearer(accountToken) },
@@ -265,6 +271,44 @@ async function e2e(settings) {
   assertStatus(overview, 200, 'Admin User 360 read');
   assertRequestId(overview, 'Admin User 360 read');
   printPass('independent Account/Admin OAuth bearer contexts and membership isolation');
+}
+
+async function verifyOAuthProvider(settings, expectedClientIds = []) {
+  const discovery = await request(
+    `${settings.supabaseUrl}/.well-known/oauth-authorization-server/auth/v1`,
+    { headers: { Accept: 'application/json' } },
+  );
+  assertStatus(discovery, 200, 'OAuth provider discovery');
+  const authorizationEndpoint = discovery.body?.authorization_endpoint;
+  const tokenEndpoint = discovery.body?.token_endpoint;
+  const jwksUri = discovery.body?.jwks_uri;
+  if (
+    authorizationEndpoint !== `${settings.supabaseUrl}/auth/v1/oauth/authorize` ||
+    tokenEndpoint !== `${settings.supabaseUrl}/auth/v1/oauth/token` ||
+    jwksUri !== `${settings.supabaseUrl}/auth/v1/.well-known/jwks.json`
+  ) {
+    throw new Error('OAuth provider discovery returned unexpected endpoint URLs.');
+  }
+
+  const oidc = await request(`${settings.supabaseUrl}/auth/v1/.well-known/openid-configuration`, {
+    headers: { Accept: 'application/json' },
+  });
+  assertStatus(oidc, 200, 'OIDC discovery');
+  const jwks = await request(`${settings.supabaseUrl}/auth/v1/.well-known/jwks.json`, {
+    headers: { Accept: 'application/json' },
+  });
+  assertStatus(jwks, 200, 'OAuth JWKS');
+  if (!Array.isArray(jwks.body?.keys) || jwks.body.keys.length === 0) {
+    throw new Error('OAuth JWKS did not contain signing keys.');
+  }
+  if (expectedClientIds.length > 0 && expectedClientIds.some((id) => !uuidPattern.test(id))) {
+    throw new Error('Staging OAuth client IDs must be provider UUIDs.');
+  }
+  printPass(
+    expectedClientIds.length > 0
+      ? 'OAuth discovery, OIDC/JWKS signing, and Staging client ID shape'
+      : 'OAuth discovery and OIDC/JWKS signing endpoints',
+  );
 }
 
 async function observability(settings) {
