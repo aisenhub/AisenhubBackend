@@ -6,8 +6,9 @@ const steps = [
   ['Verify deterministic fixtures', ['fixtures:verify']],
   [
     'Run release-candidate browser journey',
-    ['test:e2e', '--grep', 'RELEASE-CANDIDATE', '--workers=1'],
+    ['test:e2e', '--workers=1'],
   ],
+  ['Run redemption concurrency journey', ['test:redemption:concurrency']],
   [
     'Run Commerce resilience journey',
     ['exec', 'vitest', 'run', 'tests/integration/commerce-resilience.test.mjs'],
