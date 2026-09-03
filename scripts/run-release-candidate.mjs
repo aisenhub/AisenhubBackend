@@ -4,10 +4,7 @@ import process from 'node:process';
 const steps = [
   ['Reset Local database', ['db:reset']],
   ['Verify deterministic fixtures', ['fixtures:verify']],
-  [
-    'Run release-candidate browser journey',
-    ['test:e2e', '--workers=1'],
-  ],
+  ['Run release-candidate browser journey', ['test:e2e', '--workers=1']],
   ['Run redemption concurrency journey', ['test:redemption:concurrency']],
   [
     'Run Commerce resilience journey',

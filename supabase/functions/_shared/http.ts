@@ -53,6 +53,12 @@ export function bearerToken(request: Request): string | null {
 
 export function apiPath(request: Request): string {
   const pathname = new URL(request.url).pathname;
+  const functionMarker = pathname.indexOf('/functions/v1/');
+  if (functionMarker >= 0) {
+    const functionPath = pathname.slice(functionMarker + '/functions/v1/'.length);
+    const separator = functionPath.indexOf('/');
+    return separator >= 0 ? functionPath.slice(separator) || '/' : '/';
+  }
   const marker = pathname.lastIndexOf('/v1/');
   return marker >= 0 ? pathname.slice(marker) : pathname;
 }
