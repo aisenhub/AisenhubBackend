@@ -100,7 +100,7 @@ function inspectSupabaseIdentity(projectList) {
     const hostname = new URL(process.env.PRODUCTION_SUPABASE_URL).hostname;
     urlMatchesRef = hostname === `${process.env.PRODUCTION_SUPABASE_PROJECT_REF}.supabase.co`;
   } catch {
-    urlMatchesRef = false;
+    // Keep the safe default when the configured URL is malformed.
   }
 
   const projectVisibility =
