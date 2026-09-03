@@ -441,7 +441,12 @@ async function applicationMembershipLeave(
   id: string,
 ): Promise<Response> {
   if (membershipId !== expectedMembershipId) {
-    return errorResponse('APP_ACCESS_DENIED', 'The membership does not belong to this application.', 403, id);
+    return errorResponse(
+      'APP_ACCESS_DENIED',
+      'The membership does not belong to this application.',
+      403,
+      id,
+    );
   }
   const body = await parseJsonObject(request);
   const reason = typeof body?.reason === 'string' ? body.reason.trim() : '';
@@ -465,30 +470,48 @@ async function applicationMembershipLeave(
       p_request_id: id,
     });
     const result = rows.length === 1 ? rows[0] : null;
-    if (!result) return errorResponse('INTERNAL_ERROR', 'The membership command returned no result.', 502, id);
+    if (!result)
+      return errorResponse('INTERNAL_ERROR', 'The membership command returned no result.', 502, id);
     return jsonResponse(result, 200, id);
   } catch (error) {
     if (error instanceof ServiceRpcError && error.databaseCode === '42501') {
       return errorResponse('APP_ACCESS_DENIED', 'The membership command is not allowed.', 403, id);
     }
     if (error instanceof ServiceRpcError && error.databaseCode === '23514') {
-      return errorResponse('INVALID_STATE_TRANSITION', 'The membership cannot be left in its current state.', 409, id);
+      return errorResponse(
+        'INVALID_STATE_TRANSITION',
+        'The membership cannot be left in its current state.',
+        409,
+        id,
+      );
     }
     if (error instanceof ServiceRpcError && error.databaseCode === 'P0001') {
       return errorResponse('IDEMPOTENCY_KEY_REUSED', 'The request key was already used.', 409, id);
     }
-    return errorResponse('INTERNAL_ERROR', 'The membership command could not be completed.', 502, id);
+    return errorResponse(
+      'INTERNAL_ERROR',
+      'The membership command could not be completed.',
+      502,
+      id,
+    );
   }
 }
 
-async function applicationEntitlementsRead(userId: string, id: string): Promise<Response> {
+async function applicationEntitlementsRead(
+  userId: string,
+  applicationId: string,
+  id: string,
+): Promise<Response> {
   try {
     const rows = await serviceRpc<{
       readonly feature: string;
       readonly value: unknown;
       readonly source_product: string;
       readonly expires_at: string | null;
-    }>('list_user_entitlements', { p_user_id: userId });
+    }>('list_user_application_entitlements', {
+      p_user_id: userId,
+      p_application_id: applicationId,
+    });
     return jsonResponse(
       {
         entitlements: rows.map((row) => ({
@@ -508,7 +531,7 @@ async function applicationEntitlementsRead(userId: string, id: string): Promise<
 
 async function applicationAccessRead(
   userId: string,
-  appSlug: string,
+  applicationId: string,
   featureCode: string,
   id: string,
 ): Promise<Response> {
@@ -516,9 +539,9 @@ async function applicationAccessRead(
     return errorResponse('VALIDATION_ERROR', 'The feature code is invalid.', 400, id);
   }
   try {
-    const rows = await serviceRpc<AccessRow>('check_access', {
+    const rows = await serviceRpc<AccessRow>('check_application_access', {
       p_user_id: userId,
-      p_app_slug: appSlug,
+      p_application_id: applicationId,
       p_feature_code: featureCode,
     });
     const row = rows.length === 1 ? rows[0] : null;
@@ -842,7 +865,7 @@ async function routeApplicationApiRoutes(request: Request, id: string): Promise<
     if (request.method !== 'GET') {
       return errorResponse('VALIDATION_ERROR', 'Only GET requests are supported.', 405, id);
     }
-    return applicationEntitlementsRead(context.userId, id);
+    return applicationEntitlementsRead(context.userId, context.applicationId, id);
   }
   if (path.startsWith('/v1/app/access/')) {
     if (request.method !== 'GET') {
@@ -850,7 +873,7 @@ async function routeApplicationApiRoutes(request: Request, id: string): Promise<
     }
     return applicationAccessRead(
       context.userId,
-      context.applicationSlug,
+      context.applicationId,
       decodeURIComponent(path.slice('/v1/app/access/'.length)),
       id,
     );

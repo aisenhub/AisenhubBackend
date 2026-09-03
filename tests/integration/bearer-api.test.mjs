@@ -102,7 +102,31 @@ async function mockedFetch(url, init) {
       },
     ]);
   }
+  if (pathname.endsWith('/list_user_application_entitlements')) {
+    lastServiceCall = { pathname, body };
+    return response([
+      {
+        feature: 'lens.export',
+        value: { max: 10 },
+        source_product: 'AISENLENS_PRO',
+        expires_at: null,
+      },
+    ]);
+  }
   if (pathname.endsWith('/check_access')) {
+    lastServiceCall = { pathname, body };
+    return response([
+      {
+        allowed: true,
+        feature: body.p_feature_code,
+        value: { max: 10 },
+        source_product: 'AISENLENS_PRO',
+        expires_at: null,
+        decision_id: '00000000-0000-4000-8000-000000000020',
+      },
+    ]);
+  }
+  if (pathname.endsWith('/check_application_access')) {
     lastServiceCall = { pathname, body };
     return response([
       {
@@ -286,9 +310,22 @@ describe('Bearer application API', () => {
       }),
     );
     expect(access.status).toBe(200);
-    expect(lastServiceCall.body.p_app_slug).toBe('account');
+    expect(lastServiceCall.body.p_application_id).toBe(accountAppId);
     const legacy = await routePlatformApi(new Request(`${apiOrigin}/v1/session`));
     expect(legacy.status).toBe(404);
+  });
+
+  it('scopes entitlement projections to the resolved application id', async () => {
+    const { routePlatformApi } = await import('../../supabase/functions/_shared/platform-api.ts');
+    const token = await tokenFor('account-local-web');
+    const entitlementResponse = await routePlatformApi(
+      new Request(`${apiOrigin}/v1/app/entitlements`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    );
+    expect(entitlementResponse.status).toBe(200);
+    expect(lastServiceCall.pathname).toContain('list_user_application_entitlements');
+    expect(lastServiceCall.body.p_application_id).toBe(accountAppId);
   });
 
   it('leaves only the current application membership through a named command', async () => {

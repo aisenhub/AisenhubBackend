@@ -308,6 +308,21 @@ export type Database = {
           value: Json
         }[]
       }
+      check_application_access: {
+        Args: {
+          p_application_id: string
+          p_feature_code: string
+          p_user_id: string
+        }
+        Returns: {
+          allowed: boolean
+          decision_id: string
+          expires_at: string
+          feature: string
+          source_product: string
+          value: Json
+        }[]
+      }
       claim_account_deletion_request: {
         Args: { p_worker_id: string }
         Returns: {
@@ -410,6 +425,15 @@ export type Database = {
           source_id: string
           starts_at: string
           status: string
+        }[]
+      }
+      list_user_application_entitlements: {
+        Args: { p_application_id: string; p_user_id: string }
+        Returns: {
+          expires_at: string
+          feature: string
+          source_product: string
+          value: Json
         }[]
       }
       list_user_application_memberships: {
