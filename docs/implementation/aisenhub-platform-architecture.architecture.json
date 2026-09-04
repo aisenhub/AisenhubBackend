@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "AisenHub Platform 系统架构分析",
+    "locale": "zh-CN",
+    "output": "docs/implementation/aisenhub-platform-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/aisenhub/AisenhubBackend.git",
+      "revision": "8f2a1a9db89f1dd35a9ce771e84b565da4009dcd"
+    },
+    "viewBox": [1360, 600],
+    "views": [
+      {
+        "id": "identity-boundary",
+        "label": "身份与授权边界",
+        "focus": ["users", "account", "admin", "supabase_auth", "platform_api"],
+        "note": "跟随独立应用通过 OAuth/OIDC 进入 Platform API 的授权链路。"
+      },
+      {
+        "id": "business-authority",
+        "label": "业务权威链路",
+        "focus": ["shared_packages", "platform_api", "domain_authority", "postgres"],
+        "note": "查看 Contracts、API、领域逻辑和 PostgreSQL 的职责边界。"
+      },
+      {
+        "id": "release-boundary",
+        "label": "前端交付边界",
+        "focus": ["account", "admin", "shared_packages"],
+        "note": "查看两个独立前端及其共享 workspace 契约边界。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "users",
+      "type": "external",
+      "label": "用户与外部工具",
+      "sublabel": "Web / MiniApp",
+      "sources": [
+        { "path": "docs/AISENHUB_UNIFIED_IDENTITY_PLATFORM_ARCHITECTURE_V2.md", "label": "统一身份架构" }
+      ],
+      "pos": [45, 210],
+      "size": [150, 72]
+    },
+    {
+      "id": "account",
+      "type": "frontend",
+      "label": "Account Center",
+      "sublabel": "apps/account · Web",
+      "sources": [
+        { "path": "apps/account/src/auth.ts", "label": "OAuth 客户端" },
+        { "path": "apps/account/src/App.tsx", "label": "授权页面" }
+      ],
+      "pos": [270, 110],
+      "size": [190, 82],
+      "tag": "独立应用"
+    },
+    {
+      "id": "admin",
+      "type": "frontend",
+      "label": "Admin Console",
+      "sublabel": "apps/admin · Web",
+      "sources": [
+        { "path": "apps/admin/src/auth.ts", "label": "OAuth 客户端" },
+        { "path": "apps/admin/src/providers/AdminProviders.tsx", "label": "Admin Providers" }
+      ],
+      "pos": [270, 320],
+      "size": [190, 82],
+      "tag": "独立应用"
+    },
+    {
+      "id": "shared_packages",
+      "type": "backend",
+      "label": "共享客户端与 Contracts",
+      "sublabel": "client SDK · contracts",
+      "sources": [
+        { "path": "packages/platform-client/src/index.ts", "label": "普通客户端" },
+        { "path": "packages/admin-client/src/index.ts", "label": "Admin 客户端" },
+        { "path": "packages/contracts/src/index.ts", "label": "唯一类型来源" }
+      ],
+      "pos": [525, 225],
+      "size": [220, 92],
+      "tag": "HTTP / API Contract"
+    },
+    {
+      "id": "supabase_auth",
+      "type": "security",
+      "label": "Supabase Auth",
+      "sublabel": "OAuth 2.1 / OIDC · auth.users",
+      "sources": [
+        { "path": "docs/AISENHUB_UNIFIED_IDENTITY_PLATFORM_ARCHITECTURE_V2.md", "label": "身份权威" },
+        { "path": "supabase/config.toml", "label": "Supabase 配置" }
+      ],
+      "pos": [800, 90],
+      "size": [205, 82],
+      "tag": "Global Identity"
+    },
+    {
+      "id": "platform_api",
+      "type": "backend",
+      "label": "Platform API",
+      "sublabel": "/v1/* · Edge Functions",
+      "sources": [
+        { "path": "supabase/functions/platform-api/index.ts", "label": "API Functions" },
+        { "path": "docs/AISENHUB_UNIFIED_IDENTITY_PLATFORM_ARCHITECTURE_V2.md", "label": "API 边界" }
+      ],
+      "pos": [800, 275],
+      "size": [205, 82],
+      "tag": "唯一业务入口"
+    },
+    {
+      "id": "domain_authority",
+      "type": "backend",
+      "label": "领域业务权威",
+      "sublabel": "核心业务域 · Admin",
+      "sources": [
+        { "path": "supabase/functions/platform-api/index.ts", "label": "业务函数" },
+        { "path": "supabase/migrations/0002_platform_security_and_auth.sql", "label": "领域 Schema" },
+        { "path": "supabase/tests/0043_feedback_audit_application_cleanup.sql", "label": "数据库与 RLS 测试" }
+      ],
+      "pos": [1065, 190],
+      "size": [220, 100],
+      "tag": "事务 / 审计 / 幂等"
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "RLS · Functions · 唯一事实存储",
+      "sources": [
+        { "path": "supabase/migrations/0002_platform_security_and_auth.sql", "label": "Migration" },
+        { "path": "supabase/seed.sql", "label": "Local Seed" },
+        { "path": "supabase/tests/rls/0002_identity_application.sql", "label": "SQL / RLS Tests" }
+      ],
+      "pos": [1065, 410],
+      "size": [220, 92],
+      "tag": "数据权威"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "独立前端应用",
+      "wraps": ["account", "admin"],
+      "pad": 20
+    },
+    {
+      "kind": "region",
+      "label": "共享协议层",
+      "wraps": ["shared_packages"],
+      "pad": 18
+    },
+    {
+      "kind": "security-group",
+      "label": "Platform Backend / Supabase",
+      "wraps": ["supabase_auth", "platform_api", "domain_authority", "postgres"],
+      "pad": 24
+    }
+  ],
+  "connections": [
+    { "from": "users", "to": "account", "label": "登录 / 授权", "variant": "emphasis" },
+    { "from": "users", "to": "admin", "label": "登录 / 授权", "variant": "emphasis" },
+    { "from": "account", "to": "shared_packages", "label": "使用 platform-client", "route": "orthogonal-h", "labelAt": [495, 200] },
+    { "from": "admin", "to": "shared_packages", "label": "使用 admin-client", "route": "orthogonal-h", "labelAt": [495, 420] },
+    { "from": "account", "to": "supabase_auth", "label": "OAuth/OIDC", "variant": "security" },
+    { "from": "admin", "to": "supabase_auth", "label": "OAuth/OIDC", "variant": "security", "fromSide": "bottom", "toSide": "right", "via": [[365, 550], [1325, 550], [1325, 131]], "labelAt": [650, 520] },
+    { "from": "shared_packages", "to": "platform_api", "label": "typed /v1 API", "variant": "emphasis", "labelAt": [770, 200] },
+    { "from": "supabase_auth", "to": "platform_api", "label": "verified token + client_id", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelAt": [720, 180] },
+    { "from": "platform_api", "to": "domain_authority", "label": "Query / Command", "variant": "emphasis", "labelAt": [1030, 380] },
+    { "from": "domain_authority", "to": "postgres", "label": "transaction + RLS", "variant": "security", "labelAt": [1175, 370] }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "身份模型",
+      "items": [
+        "auth.users 表示 Global Identity，不代表属于所有产品",
+        "verified OAuth client_id 决定 Application Context",
+        "独立应用不共享浏览器 Cookie Session"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "业务权威",
+      "items": [
+        "前端只依赖 HTTP 和 packages/contracts",
+        "Platform API 是唯一业务入口",
+        "PostgreSQL 通过事务、RLS 和 Functions 保证事实一致性"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "交付边界",
+      "items": [
+        "Account 与 Admin 是独立 Vercel 构建目标",
+        "workspace 依赖必须在单应用构建前完成构建",
+        "GitHub main 提交是当前前端部署输入"
+      ]
+    }
+  ]
+}
