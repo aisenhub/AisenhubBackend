@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Logto OSS 系统架构分析",
+    "locale": "zh-CN",
+    "output": "docs/implementation/logto-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/logto-io/logto.git",
+      "revision": "157dd491f4d1a7a83a68ffee14cbb1262d57fc4d"
+    },
+    "viewBox": [1360, 620],
+    "views": [
+      {
+        "id": "end-user-auth",
+        "label": "终端用户登录",
+        "focus": ["client_apps", "sign_in_experience", "oidc_engine", "core_runtime", "connector_runtime", "external_idps"],
+        "note": "跟随应用从授权请求进入登录体验、连接器和 OIDC Token 签发。"
+      },
+      {
+        "id": "management-plane",
+        "label": "管理平面",
+        "focus": ["admin_console", "management_api", "core_runtime", "postgres", "cli"],
+        "note": "查看 Console、Management API、CLI 和持久化状态之间的管理链路。"
+      },
+      {
+        "id": "multi-tenant-data",
+        "label": "多租户与数据",
+        "focus": ["oidc_engine", "management_api", "core_runtime", "postgres"],
+        "note": "查看租户、组织、角色、用户和 Token 状态最终落到统一 PostgreSQL。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "client_apps",
+      "type": "external",
+      "label": "业务应用与 API 客户端",
+      "sublabel": "Web · Mobile · M2M · CLI",
+      "sources": [
+        { "path": "README.md", "label": "支持的集成形态" }
+      ],
+      "pos": [35, 245],
+      "size": [180, 76]
+    },
+    {
+      "id": "sign_in_experience",
+      "type": "frontend",
+      "label": "Sign-in Experience",
+      "sublabel": "packages/experience",
+      "sources": [
+        { "path": "packages/experience/package.json", "label": "体验前端" },
+        { "path": "packages/core/src/routes/experience/index.ts", "label": "体验路由" }
+      ],
+      "pos": [270, 100],
+      "size": [190, 82],
+      "tag": "登录 / 注册 / MFA"
+    },
+    {
+      "id": "account_center",
+      "type": "frontend",
+      "label": "Account Center",
+      "sublabel": "packages/account",
+      "sources": [
+        { "path": "packages/account/package.json", "label": "Account 前端" },
+        { "path": "packages/core/src/routes/account-center/index.ts", "label": "Account API" }
+      ],
+      "pos": [270, 260],
+      "size": [190, 82],
+      "tag": "用户自助管理"
+    },
+    {
+      "id": "admin_console",
+      "type": "frontend",
+      "label": "Admin Console",
+      "sublabel": "packages/console",
+      "sources": [
+        { "path": "packages/console/package.json", "label": "Console 前端" }
+      ],
+      "pos": [270, 430],
+      "size": [190, 82],
+      "tag": "租户 / 应用 / 组织"
+    },
+    {
+      "id": "oidc_engine",
+      "type": "security",
+      "label": "OIDC / OAuth Engine",
+      "sublabel": "oidc-provider · OAuth 2.1",
+      "sources": [
+        { "path": "packages/core/src/oidc/init.ts", "label": "Provider 初始化" },
+        { "path": "packages/core/package.json", "label": "OIDC 依赖" }
+      ],
+      "pos": [530, 120],
+      "size": [215, 90],
+      "tag": "Token / Grant / Claims"
+    },
+    {
+      "id": "management_api",
+      "type": "backend",
+      "label": "Management API",
+      "sublabel": "/api · OpenAPI types",
+      "sources": [
+        { "path": "packages/api/package.json", "label": "API 客户端类型" },
+        { "path": "packages/core/src/routes/organization/index.ts", "label": "管理路由示例" }
+      ],
+      "pos": [530, 365],
+      "size": [215, 84],
+      "tag": "租户管理面"
+    },
+    {
+      "id": "core_runtime",
+      "type": "backend",
+      "label": "Logto Core Runtime",
+      "sublabel": "Koa · routes · libraries",
+      "sources": [
+        { "path": "packages/core/src/index.ts", "label": "服务入口" },
+        { "path": "packages/core/src/app/init.ts", "label": "应用初始化" }
+      ],
+      "pos": [820, 250],
+      "size": [215, 90],
+      "tag": "模块化单体"
+    },
+    {
+      "id": "connector_runtime",
+      "type": "backend",
+      "label": "Connector Runtime",
+      "sublabel": "Social · Email · SMS · SSO",
+      "sources": [
+        { "path": "packages/core/src/routes/connector/index.ts", "label": "连接器管理路由" },
+        { "path": "packages/toolkit/connector-kit/src/index.ts", "label": "连接器 SDK" },
+        { "path": "packages/connectors/connector-google/package.json", "label": "Google Connector" }
+      ],
+      "pos": [820, 75],
+      "size": [215, 84],
+      "tag": "可插拔集成"
+    },
+    {
+      "id": "external_idps",
+      "type": "external",
+      "label": "外部身份提供商",
+      "sublabel": "Google · GitHub · SAML · OIDC",
+      "pos": [1100, 75],
+      "size": [215, 84]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "tenants · users · organizations · tokens",
+      "sources": [
+        { "path": "packages/core/src/database/utils.ts", "label": "数据库访问" },
+        { "path": "packages/schemas/src/index.ts", "label": "Schema 模型" },
+        { "path": "docker-compose.yml", "label": "OSS 运行时依赖" }
+      ],
+      "pos": [1080, 280],
+      "size": [235, 94],
+      "tag": "持久化事实"
+    },
+    {
+      "id": "cli",
+      "type": "external",
+      "label": "Logto CLI",
+      "sublabel": "install · db · connector",
+      "sources": [
+        { "path": "packages/cli/src/index.ts", "label": "CLI 入口" }
+      ],
+      "pos": [820, 465],
+      "size": [215, 80]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "End-user experiences",
+      "wraps": ["sign_in_experience", "account_center"],
+      "pad": 20
+    },
+    {
+      "kind": "security-group",
+      "label": "Logto OSS server",
+      "wraps": ["oidc_engine", "management_api", "core_runtime", "connector_runtime"],
+      "pad": 24
+    },
+    {
+      "kind": "region",
+      "label": "Persistent state",
+      "wraps": ["postgres"],
+      "pad": 18
+    }
+  ],
+  "connections": [
+    { "from": "client_apps", "to": "sign_in_experience", "label": "authorize", "variant": "emphasis" },
+    { "from": "client_apps", "to": "account_center", "label": "account APIs", "variant": "emphasis", "labelAt": [243, 356] },
+    { "from": "sign_in_experience", "to": "oidc_engine", "label": "interaction / consent", "variant": "security", "labelAt": [495, 96] },
+    { "from": "account_center", "to": "core_runtime", "label": "profile / session", "variant": "emphasis" },
+    { "from": "admin_console", "to": "management_api", "label": "Management API", "variant": "emphasis", "labelAt": [495, 525] },
+    { "from": "oidc_engine", "to": "core_runtime", "label": "grants / claims / token state", "variant": "security", "labelAt": [783, 224] },
+    { "from": "management_api", "to": "core_runtime", "label": "admin queries / commands", "variant": "emphasis", "labelAt": [783, 354] },
+    { "from": "core_runtime", "to": "connector_runtime", "label": "connector factory", "variant": "dashed" },
+    { "from": "connector_runtime", "to": "external_idps", "label": "OAuth / OIDC / SAML", "variant": "dashed", "labelAt": [1068, 173] },
+    { "from": "core_runtime", "to": "postgres", "label": "SQL + schema queries", "variant": "security", "labelAt": [1058, 236] },
+    { "from": "cli", "to": "postgres", "label": "DB_URL / seed / alterations", "variant": "security" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "协议与登录",
+      "items": [
+        "OIDC/OAuth 是 Logto 的核心协议边界",
+        "Sign-in Experience 承载登录、注册、MFA 和社交登录体验",
+        "Connector Runtime 把外部 IdP 接入统一认证流程"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "管理与多租户",
+      "items": [
+        "Admin Console 通过 Management API 管理租户和应用",
+        "Organizations、RBAC、SSO 等能力位于 Core Runtime 领域模块",
+        "CLI 同时承担安装、数据库和连接器运维入口"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "部署与数据",
+      "items": [
+        "OSS Docker Compose 将 Logto App 与 PostgreSQL 组合运行",
+        "核心运行时是 Node.js/Koa 模块化单体",
+        "数据库承载租户、用户、组织、角色和 OIDC 状态"
+      ]
+    }
+  ]
+}
