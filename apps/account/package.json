@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "pnpm --filter @aisenhub/contracts build && pnpm --filter @aisenhub/platform-client build",
+    "prebuild": "pnpm --filter @aisenhub/auth-client build && pnpm --filter @aisenhub/contracts build && pnpm --filter @aisenhub/platform-client build",
     "build": "tsc -p tsconfig.json && vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
